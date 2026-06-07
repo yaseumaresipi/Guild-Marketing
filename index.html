@@ -238,6 +238,17 @@
     <!--  2. 受講生マイページ                             -->
     <!-- ============================================== -->
     <section id="student-dashboard" class="space-y-6 fade-in" style="display: none;">
+
+      <!-- チャプタータブ切り替え -->
+      <div class="flex space-x-2 border-b border-[#dfb76c]/20 pb-0 mb-2">
+        <button id="tab-mypage" onclick="switchStudentTab('mypage')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c] transition-all">マイページ</button>
+        <button id="tab-chapters" onclick="switchStudentTab('chapters')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all">チャプター講義</button>
+      </div>
+
+      <!-- マイページコンテンツ -->
+      <div id="student-mypage-content" class="space-y-6">
+
+      <!-- プロフィール & キャリアマップ -->
       
       <!-- プロフィール & キャリアマップ -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -424,8 +435,7 @@
               ※ 送信されたレポートはギルド運営管理センターへ格納されます。<br>
               評価確定後、合否とフィードバックがマイポータル上に自動配信されます。
             </div>
-            <button 
-              type="submit" 
+            <button type="submit" 
               class="bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-3 px-8 rounded-xl text-xs transition-all shadow-lg flex items-center justify-center space-x-2 tracking-widest"
             >
               <i data-lucide="send" class="w-4 h-4"></i>
@@ -434,6 +444,19 @@
           </div>
         </form>
       </div>
+
+    </div> <!-- student-mypage-content の閉じタグ -->
+
+    <!-- チャプターコンテンツ -->
+    <div id="student-chapters-content" class="space-y-4" style="display:none;">
+      <h3 class="text-base font-black text-gray-200 tracking-wider flex items-center space-x-2 font-cinzel">
+        <i data-lucide="play-circle" class="w-5 h-5 text-[#dfb76c]"></i>
+        <span>GUILD CHAPTER LECTURES（講義動画）</span>
+      </h3>
+      <div id="student-chapter-list" class="space-y-6">
+        <!-- 動的生成 -->
+      </div>
+    </div>
 
     </section>
 
@@ -481,12 +504,6 @@
             <span class="text-xs text-gray-400 bg-[#160f0a] px-3.5 py-2 rounded-xl border border-[#3c2a1c] font-mono animate-pulse" id="admin-student-count-badge">
               TOTAL: 0 STUDENTS
             </span>
-            <button 
-              onclick="initMockData()" 
-              class="text-xs bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-900/40 px-3.5 py-2 rounded-xl font-bold transition-all"
-            >
-              + デモ受講生を追加する
-            </button>
           </div>
         </div>
 
@@ -691,6 +708,50 @@
         </div>
 
       </div>
+        </div>
+      </div>
+
+        <!-- チャプター管理パネル -->
+        <div class="quest-board-panel rounded-2xl p-6 space-y-5">
+          <div class="flex justify-between items-center border-b border-[#dfb76c]/20 pb-3">
+            <h3 class="text-sm font-bold text-[#dfb76c] flex items-center space-x-2 font-cinzel tracking-widest">
+              <i data-lucide="play-circle" class="w-5 h-5"></i>
+              <span>CHAPTER LECTURE MANAGEMENT（講義動画管理）</span>
+            </h3>
+          </div>
+
+          <!-- 追加フォーム -->
+          <div class="parchment p-4 rounded-xl border border-[#dfb76c]/30 space-y-3">
+            <h5 class="text-xs font-bold text-[#dfb76c] font-mono">＋ 新規チャプターを追加</h5>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label class="block text-gray-400 mb-1 font-bold">チャプター番号</label>
+                <input type="number" id="chapter-input-number" min="1" placeholder="1" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]">
+              </div>
+              <div>
+                <label class="block text-gray-400 mb-1 font-bold">タイトル</label>
+                <input type="text" id="chapter-input-title" placeholder="例: アカウント設計の基礎" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]">
+              </div>
+              <div>
+                <label class="block text-gray-400 mb-1 font-bold">Vimeo URL</label>
+                <input type="text" id="chapter-input-url" placeholder="https://vimeo.com/123456789" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]">
+              </div>
+              <div>
+                <label class="block text-gray-400 mb-1 font-bold">説明文</label>
+                <input type="text" id="chapter-input-description" placeholder="この講義では〜を学びます" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]">
+              </div>
+            </div>
+            <button onclick="addChapter()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2 rounded-xl text-xs transition-all flex items-center justify-center space-x-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>チャプターを追加する</span>
+            </button>
+          </div>
+
+          <!-- チャプター一覧 -->
+          <div id="admin-chapter-list" class="space-y-2">
+            <!-- 動的生成 -->
+          </div>
+        </div>
 
     </section>
 
@@ -741,87 +802,20 @@
     // セッションごとに異なる生徒Q2用のデータを確定
     const randomStudentCaseMR5 = generateRandomStudentInfo();
 
+    const appState = {
+  students: {}, 
+  currentUser: null, 
+  isAdminAuthenticated: false, 
+  currentView: "auth", 
+  activeExamNum: null, 
+  adminSelectedStudentKey: null, 
+  adminSelectedExamNum: null,
+  chapters: []
+};
+
     // 疑似データベース (セキュアログイン向けに再構造化)
     // キーは固有ユーザー名のBASE64です
-    const defaultStudents = {
-      "ZGVtby1zaG90YQ==": { // username: "demo-shota"
-        username: "demo-shota",
-        password: "password",
-        name: "木村 翔太",
-        currentRank: 2,
-        admissionDate: "2026/04/01",
-        mentor: "アキヒビ",
-        examAttempts: {
-          2: {
-            account_url: "https://instagram.com/shota_sns",
-            design_target: "20代後半で会社員をやめ、SNSマーケターとして独立したいが、何から言語化すればいいか分からない会社員男性。",
-            design_axis: "「SNSコンサルで副業から月30万稼ぐ手順」を発信軸とする。デザインは濃紺とゴールドで知的な世界観を構築。",
-            design_strength: "自身の脱サラ実績に基づいた再現性の高いマインド。他社が曖昧にするロジックを1から段階的に解説可能。",
-            design_goal: "高単価なSNS個別スクールの販売（ギルド式のコンサルティングモデル）への誘導。",
-            benchmark_url: "https://instagram.com/guild_official",
-            status: "submitted",
-            score: null,
-            result: null,
-            feedback: null,
-            timestamp: "2026/06/06 14:12"
-          }
-        }
-      },
-      "ZGVtby1taXNha2k=": { // username: "demo-misaki"
-        username: "demo-misaki",
-        password: "password",
-        name: "佐藤 美咲",
-        currentRank: 4,
-        admissionDate: "2026/01/15",
-        mentor: "まり",
-        examAttempts: {
-          2: {
-            account_url: "https://instagram.com/misaki_marketing",
-            design_target: "女性向けフリーランス志望者",
-            design_axis: "デザイン重視のアカウント設計術",
-            design_strength: "元WEBデザイナーならではのビジュアル戦略",
-            design_goal: "デザイン特化型SNS講座の成約",
-            benchmark_url: "https://instagram.com/benchmark_xyz",
-            status: "graded",
-            score: 95,
-            result: "pass",
-            feedback: "アカウントのコンセプトが非常に綺麗に言語化されています。ターゲットも具体的で素晴らしい。自信を持って次のステップへ！",
-            timestamp: "2026/06/01 10:00"
-          },
-          3: {
-            analysis_diff: "伸びる投稿は画像1枚目で「痛みの解決」が数字付きで提示されており、3枚目で即座にToDoリスト形式になっています。逆に伸びていない投稿は美しさ優先で具体情報が薄い点です。",
-            analysis_issue: "保存数が低い。フィードバックで「役立つ保存用資料」としての見せ方ができていない。デザインは良いが読み捨てられている状態。",
-            analysis_solution: "まずは直近1ヶ月で各投稿の後半に「保存必須チェックシート」を追加。毎週のデータ分析を踏まえて反応の良い上位トピックの再構成リールを週2回配信する。",
-            status: "graded",
-            score: 85,
-            result: "pass",
-            feedback: "「なぜ伸びないか」を保存率と情報量に着目してしっかりと客観的に言語化できています。納得の改善案です。合格とします。",
-            shared_tensakuUrl: "https://instagram.com/guild_official",
-            timestamp: "2026/06/03 15:30"
-          },
-          4: {
-            shared_mendanUrl: "https://zoom.us/j/123456789",
-            shared_spreadsheetUrl: "https://docs.google.com/spreadsheets/d/abc123xyz/edit",
-            shared_mendanDate: "2026年6月10日 15:00",
-            status: "graded",
-            score: 90,
-            result: "pass",
-            feedback: "対面指導の面談お疲れ様でした。傾聴姿勢、課題のロジカルな切り分けともに申し分なく、大変素晴らしいヒアリングでした。文句なしの合格です！",
-            timestamp: "2026/06/05 18:20"
-          }
-        }
-      }
-    };
-
-    const appState = {
-      students: {}, 
-      currentUser: null, 
-      isAdminAuthenticated: false, 
-      currentView: "auth", 
-      activeExamNum: null, 
-      adminSelectedStudentKey: null, 
-      adminSelectedExamNum: null 
-    };
+    const defaultStudents = {};
 
     // マーケターランク(MR)の詳細データおよび指令設定URL定義
     const ranks = {
@@ -923,18 +917,23 @@
 
     // データベース読込
     function loadDatabase() {
-      const stored = localStorage.getItem('guild_students_v4');
-      if (stored) {
-        appState.students = JSON.parse(stored);
-      } else {
-        appState.students = defaultStudents;
-        saveDatabase();
-      }
-    }
+  const stored = localStorage.getItem('guild_students_v4');
+  if (stored) {
+    appState.students = JSON.parse(stored);
+  } else {
+    appState.students = defaultStudents;
+    saveDatabase();
+  }
+  const storedChapters = localStorage.getItem('guild_chapters_v1');
+  if (storedChapters) {
+    appState.chapters = JSON.parse(storedChapters);
+  }
+}
 
-    function saveDatabase() {
-      localStorage.setItem('guild_students_v4', JSON.stringify(appState.students));
-    }
+function saveDatabase() {
+  localStorage.setItem('guild_students_v4', JSON.stringify(appState.students));
+  localStorage.setItem('guild_chapters_v1', JSON.stringify(appState.chapters));
+}
 
     function goHome() {
       if (appState.currentUser) {
@@ -1687,10 +1686,11 @@
     }
 
     // 管理ダッシュボード本体の初期化表示
-    function showAdminDashboard() {
-      document.getElementById('admin-dashboard').style.display = "block";
-      renderAdminStudentList();
-    }
+   function showAdminDashboard() {
+  document.getElementById('admin-dashboard').style.display = "block";
+  renderAdminStudentList();
+  renderAdminChapters();
+}
 
     // 生徒リスト描画
     function renderAdminStudentList() {
@@ -2371,17 +2371,6 @@
       showToast("採点完了", "採点レポートおよびギルドフィードバックを生徒のポータルへ即座に送信しました。", "success");
     }
 
-    // デモ用生徒追加
-    function initMockData() {
-      appState.students = {
-        ...appState.students,
-        ...defaultStudents
-      };
-      saveDatabase();
-      renderAdminStudentList();
-      showToast("受講生読込完了", "佐藤さん、木村さん等のテスト用カルテをギルドデータベースに同期しました。", "success");
-    }
-
     // 生徒用ワークスペースでの設問入力フォームジェネレータ
     function generateFormFields(rankNum) {
       const info = ranks[rankNum];
@@ -2477,6 +2466,144 @@
         hideToast();
       }, 7000);
     }
+
+    function switchStudentTab(tab) {
+  const mypage = document.getElementById('student-mypage-content');
+  const chapters = document.getElementById('student-chapters-content');
+  const tabMypage = document.getElementById('tab-mypage');
+  const tabChapters = document.getElementById('tab-chapters');
+
+  if (tab === 'mypage') {
+    mypage.style.display = 'block';
+    chapters.style.display = 'none';
+    tabMypage.className = "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c] transition-all";
+    tabChapters.className = "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all";
+  } else {
+    mypage.style.display = 'none';
+    chapters.style.display = 'block';
+    tabMypage.className = "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all";
+    tabChapters.className = "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c] transition-all";
+    renderStudentChapters();
+  }
+}
+
+function renderStudentChapters() {
+  const container = document.getElementById('student-chapter-list');
+  if (!container) return;
+
+  if (appState.chapters.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-16 text-gray-500">
+        <i data-lucide="video-off" class="w-10 h-10 mx-auto mb-3 text-[#5a4231]"></i>
+        <p class="text-sm font-bold">チャプター講義はまだ登録されていません。</p>
+        <p class="text-xs mt-1">ギルド運営からの講義追加をお待ちください。</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = appState.chapters.map(ch => {
+    const vimeoId = extractVimeoId(ch.url);
+    const embedUrl = vimeoId ? `https://player.vimeo.com/video/${vimeoId}` : null;
+
+    return `
+      <div class="quest-board-panel rounded-2xl p-5 space-y-3">
+        <div class="flex items-start space-x-3">
+          <span class="text-xs font-black font-mono bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1 rounded-lg flex-shrink-0">
+            CHAPTER ${ch.number}
+          </span>
+          <div>
+            <h4 class="text-sm font-bold text-white">${ch.title}</h4>
+            <p class="text-xs text-gray-400 mt-1 leading-relaxed">${ch.description}</p>
+          </div>
+        </div>
+        ${embedUrl ? `
+          <div class="rounded-xl overflow-hidden border border-[#3c2a1c]" style="padding:56.25% 0 0 0; position:relative;">
+            <iframe 
+              src="${embedUrl}" 
+              style="position:absolute;top:0;left:0;width:100%;height:100%;" 
+              frameborder="0" 
+              allow="autoplay; fullscreen; picture-in-picture" 
+              allowfullscreen
+            ></iframe>
+          </div>
+        ` : `
+          <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">
+            動画URLが正しく設定されていません。
+          </div>
+        `}
+      </div>
+    `;
+  }).join('');
+  lucide.createIcons();
+}
+
+function extractVimeoId(url) {
+  if (!url) return null;
+  const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return match ? match[1] : null;
+}
+
+function addChapter() {
+  const number = parseInt(document.getElementById('chapter-input-number').value);
+  const title = document.getElementById('chapter-input-title').value.trim();
+  const url = document.getElementById('chapter-input-url').value.trim();
+  const description = document.getElementById('chapter-input-description').value.trim();
+
+  if (!number || !title || !url) {
+    showToast("入力エラー", "番号・タイトル・URLは必須です。", "error");
+    return;
+  }
+
+  appState.chapters.push({ number, title, url, description });
+  appState.chapters.sort((a, b) => a.number - b.number);
+  saveDatabase();
+  renderAdminChapters();
+
+  document.getElementById('chapter-input-number').value = '';
+  document.getElementById('chapter-input-title').value = '';
+  document.getElementById('chapter-input-url').value = '';
+  document.getElementById('chapter-input-description').value = '';
+
+  showToast("追加完了", `チャプター${number}「${title}」を追加しました。`, "success");
+}
+
+function deleteChapter(index) {
+  const ch = appState.chapters[index];
+  if (!confirm(`チャプター${ch.number}「${ch.title}」を削除しますか？`)) return;
+  appState.chapters.splice(index, 1);
+  saveDatabase();
+  renderAdminChapters();
+  showToast("削除完了", "チャプターを削除しました。", "info");
+}
+
+function renderAdminChapters() {
+  const container = document.getElementById('admin-chapter-list');
+  if (!container) return;
+
+  if (appState.chapters.length === 0) {
+    container.innerHTML = `<div class="text-xs text-gray-500 text-center py-6">チャプターがまだ登録されていません。</div>`;
+    return;
+  }
+
+  container.innerHTML = appState.chapters.map((ch, index) => `
+    <div class="flex items-center justify-between p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-[#dfb76c]/40 transition-all">
+      <div class="flex items-center space-x-3">
+        <span class="text-xs font-black font-mono text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/20 px-2 py-0.5 rounded">CH.${ch.number}</span>
+        <div>
+          <span class="text-xs font-bold text-white">${ch.title}</span>
+          <span class="text-[10px] text-gray-500 block">${ch.description || '説明なし'}</span>
+          <span class="text-[10px] text-gray-600 font-mono">${ch.url}</span>
+        </div>
+      </div>
+      <button onclick="deleteChapter(${index})" class="text-rose-400 hover:text-rose-300 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
 
     function hideToast() {
       const toast = document.getElementById('toast-notification');
