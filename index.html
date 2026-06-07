@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guild Marketing ギルド運営管理 & 受講生ポータル</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+    
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+    
+    /* モンスターハンター風：太古のギルドハウス、クエストボードを彷彿とさせる重厚なテーマ */
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: radial-gradient(circle at center, #18100a 0%, #080503 100%);
+      color: #ede2d3;
+    }
+
+    /* ギルドゴールド・金属調・羊皮紙調のスタイル定義 */
+    .guild-gold-text {
+      color: #dfb76c;
+      text-shadow: 0 0 10px rgba(223, 183, 108, 0.45);
+    }
+    .guild-gold-bg {
+      background-color: #dfb76c;
+    }
+    .guild-border {
+      border: 2px solid #5a4231;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+    .quest-board-panel {
+      background: linear-gradient(135deg, #16100a 0%, #0a0704 100%);
+      border: 2px solid #dfb76c;
+      position: relative;
+    }
+    .quest-board-panel::before {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px; right: 3px; bottom: 3px;
+      border: 1px solid rgba(223, 183, 108, 0.15);
+      pointer-events: none;
+    }
+    .parchment {
+      background-color: #140d08;
+      border: 1px solid #3c2a1c;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+    }
+    
+    /* クエスト依頼書（スクロール風カード） */
+    .quest-card {
+      background: linear-gradient(180deg, #18100b 0%, #110905 100%);
+      border: 2px solid #3c2a1c;
+      border-top: 4px solid #dfb76c;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .quest-card:hover {
+      transform: translateY(-4px);
+      border-color: #dfb76c;
+      box-shadow: 0 10px 20px rgba(223, 183, 108, 0.15);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* カスタムスクロールバー */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080503;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #dfb76c;
+      border: 2px solid #080503;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- ヘッダー -->
+  <header class="border-b-2 border-[#dfb76c]/30 bg-[#070503] py-4 px-6 sticky top-0 z-40 shadow-xl">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      
+      <!-- 炎のギルドシンボル & ロゴ -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+        <!-- 共有されたギルドロゴマークを忠実にSVG化 (黒いサークル、内向き三角牙、薄い羊皮紙、炎) -->
+        <div class="w-12 h-12 flex-shrink-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_8px_rgba(223,183,108,0.7)]">
+            <!-- 外側の黒い背景サークル -->
+            <circle cx="50" cy="50" r="48" fill="#141414" />
+            <!-- 内側の薄い羊皮紙ベージュのサークル -->
+            <circle cx="50" cy="50" r="38" fill="#c3b59b" />
+            <!-- 内側を指す鋭い三角形のスタッズ（16個） -->
+            <g fill="#141414">
+              <polygon points="50,11 46,17 54,17" />
+              <polygon points="65,14 59,20 65,24" />
+              <polygon points="78,23 71,28 74,34" />
+              <polygon points="86,36 78,39 80,45" />
+              <polygon points="89,50 81,50 81,56" />
+              <polygon points="86,64 78,61 80,55" />
+              <polygon points="78,77 71,72 74,66" />
+              <polygon points="65,86 59,80 65,76" />
+              <polygon points="50,89 46,83 54,83" />
+              <polygon points="35,86 41,80 35,76" />
+              <polygon points="22,77 29,72 26,66" />
+              <polygon points="14,64 22,61 20,55" />
+              <polygon points="11,50 19,50 19,56" />
+              <polygon points="14,36 22,39 20,45" />
+              <polygon points="22,23 29,28 26,34" />
+              <polygon points="35,14 41,20 35,24" />
+            </g>
+            <!-- 中央のダークブラウンのシャープな炎 -->
+            <path d="M50,18 C44,30 40,37 34,49 C28,60 30,72 43,78 C55,83 66,78 68,65 C69,55 59,53 57,46 C55,39 59,34 59,26 C59,35 67,44 67,54 C67,68 56,74 49,74 C41,74 35,67 38,55 C41,43 48,32 50,18 Z M50,24 C51,31 53,35 56,42 C58,45 60,48 61,52 C62,56 59,59 55,57 C52,55 50,50 48,45 C46,40 47,31 50,24 Z M39,55 C36,53 33,49 34,44 C35,39 39,41 40,46 C41,51 39,53 39,55 Z" fill="#4d1b06" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-black font-cinzel tracking-widest guild-gold-text">GUILD MARKETING</h1>
+          <p class="text-[9px] text-[#dfb76c]/70 tracking-widest font-bold font-mono">MARKETER RANK SYSTEM</p>
+        </div>
+      </div>
+
+      <!-- モード切り替え & ログインステータス -->
+      <div class="flex items-center space-x-3">
+        <!-- 運営用管理画面への切替ボタン -->
+        <button 
+          id="btn-toggle-admin"
+          onclick="toggleAdminMode()" 
+          class="text-xs bg-[#110b07] border-2 border-[#dfb76c]/50 hover:border-[#dfb76c] hover:bg-[#20150d] text-[#dfb76c] px-4 py-2 rounded-xl flex items-center space-x-2 transition-all font-bold shadow-lg"
+        >
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span id="btn-toggle-admin-text">ギルド運営管理画面へ</span>
+        </button>
+
+        <!-- ログアウト -->
+        <button 
+          id="btn-logout"
+          onclick="handleLogout()"
+          style="display: none;"
+          class="text-xs bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/30 text-rose-300 px-3 py-2 rounded-xl transition-all"
+        >
+          ログアウト
+        </button>
+
+        <!-- 受講生ヘッダー表示 -->
+        <div class="hidden md:flex items-center space-x-2 border-l border-[#dfb76c]/20 pl-3" id="header-student-badge" style="display: none;">
+          <span class="text-xs bg-gradient-to-r from-amber-500 to-yellow-600 text-black px-2.5 py-1 rounded-lg font-bold shadow-md" id="header-rank-text">
+            MR1
+          </span>
+          <span class="text-xs text-gray-300 font-bold" id="header-student-name"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+    
+    <!-- ============================================== -->
+    <!--  1. ログイン / アカウント登録                   -->
+    <!-- ============================================== -->
+    <section id="auth-section" class="max-w-md mx-auto my-12 fade-in">
+      <div class="quest-board-panel rounded-2xl p-6 md:p-8 shadow-2xl relative">
+        <!-- タブ切り替え -->
+        <div class="grid grid-cols-2 gap-2 mb-6">
+          <button id="tab-login" onclick="switchAuthTab('login')" class="py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c] transition-all">ログイン</button>
+          <button id="tab-register" onclick="switchAuthTab('register')" class="py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400 hover:text-gray-200 transition-all">新規ギルド登録</button>
+        </div>
+
+        <div id="auth-description" class="text-center mb-6">
+          <!-- ログイン文言変更 -->
+          <h2 class="text-2xl font-black text-white tracking-wider font-cinzel text-[#dfb76c]" id="auth-title">Guild Marketing</h2>
+          <p class="text-[10px] text-gray-400 font-bold font-mono tracking-widest mt-1" id="auth-sub">Press the entrance</p>
+        </div>
+
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1.5">
+              受講生氏名 <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="auth-name" 
+              required
+              placeholder="ギルド 太郎" 
+              class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1.5">
+              生年月日 (半角数字8桁) <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="auth-birthday" 
+              required
+              maxlength="8"
+              placeholder="例: 19981005" 
+              pattern="\d{8}"
+              class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors font-mono"
+            >
+          </div>
+
+          <button 
+            type="submit" 
+            id="auth-submit-btn"
+            class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-3.5 px-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 text-xs tracking-widest"
+          >
+            <span id="auth-submit-text">ギルドに入室する</span>
+            <!-- ギルドロゴをヘッダーと同じ形でボタン内にも配置 -->
+            <svg viewBox="0 0 100 100" class="w-5 h-5 ml-1">
+              <circle cx="50" cy="50" r="48" fill="#141414" />
+              <circle cx="50" cy="50" r="38" fill="#c3b59b" />
+              <path d="M50,18 C44,30 40,37 34,49 C28,60 30,72 43,78 C55,83 66,78 68,65 C69,55 59,53 57,46 C55,39 59,34 59,26 C59,35 67,44 67,54 C67,68 56,74 49,74 C41,74 35,67 38,55 C41,43 48,32 50,18 Z" fill="#4d1b06" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+
+    <!-- ============================================== -->
+    <!--  2. 受講生マイページ                             -->
+    <!-- ============================================== -->
+    <section id="student-dashboard" class="space-y-6 fade-in" style="display: none;">
+      
+      <!-- プロフィール & キャリアマップ -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- プロフィールカード -->
+        <div class="quest-board-panel rounded-2xl p-6 flex flex-col justify-between lg:col-span-1">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-[#dfb76c]">GUILD MEMBER</span>
+              <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">ONLINE</span>
+            </div>
+            
+            <div class="flex items-center space-x-3 mb-4">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-[#1c130c] border border-[#dfb76c]/40">
+                <i data-lucide="shield" class="w-5 h-5 text-[#dfb76c]"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white mb-0.5" id="student-display-name">---</h3>
+                <p class="text-xs text-gray-400 font-mono" id="student-display-birthday">---</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="border-t border-[#dfb76c]/20 pt-4 mt-4 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400 font-bold">現在のマーケターランク</span>
+              <span class="text-base font-black text-[#dfb76c] font-mono" id="student-current-rank-label">MR1</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400 font-bold">次なる試練</span>
+              <span class="text-xs font-bold text-black bg-[#dfb76c] px-2.5 py-1 rounded shadow-md" id="student-next-exam-label">MR2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- キャリアロードマップ -->
+        <div class="quest-board-panel rounded-2xl p-6 lg:col-span-2">
+          <div class="flex justify-between items-center mb-4 border-b border-[#dfb76c]/20 pb-2">
+            <h3 class="text-sm font-bold text-gray-200 flex items-center space-x-2 font-cinzel tracking-wider">
+              <i data-lucide="compass" class="w-4 h-4 text-[#dfb76c]"></i>
+              <span>GUILD MARKETING ROADMAP</span>
+            </h3>
+            <span class="text-[10px] text-[#dfb76c] font-bold">ランクアップで昇格試験解放</span>
+          </div>
+          
+          <div class="grid grid-cols-4 md:grid-cols-7 gap-2 font-mono">
+            <!-- MR2 -->
+            <div id="timeline-r2" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs opacity-50">
+              <div class="font-bold text-gray-400">MR2</div>
+              <div class="text-[8px] text-gray-500 mt-1">STAGE 2</div>
+            </div>
+            <!-- MR3 -->
+            <div id="timeline-r3" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs opacity-50">
+              <div class="font-bold text-gray-400">MR3</div>
+              <div class="text-[8px] text-gray-500 mt-1">STAGE 3</div>
+            </div>
+            <!-- MR4 -->
+            <div id="timeline-r4" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs opacity-50">
+              <div class="font-bold text-gray-400">MR4</div>
+              <div class="text-[8px] text-gray-500 mt-1">STAGE 4</div>
+            </div>
+            <!-- MR5 -->
+            <div id="timeline-r5" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs opacity-50">
+              <div class="font-bold text-gray-400">MR5</div>
+              <div class="text-[8px] text-gray-500 mt-1">STAGE 5</div>
+            </div>
+            <!-- MR6 -->
+            <div id="timeline-r6" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs opacity-50">
+              <div class="font-bold text-gray-400">MR6</div>
+              <div class="text-[8px] text-gray-500 mt-1">STAGE 6</div>
+            </div>
+            <!-- MR7 -->
+            <div id="timeline-r7" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs opacity-50">
+              <div class="font-bold text-gray-400">MR7</div>
+              <div class="text-[8px] text-gray-500 mt-1">STAGE 7</div>
+            </div>
+            <!-- MR8 -->
+            <div id="timeline-r8" class="p-2 rounded-xl bg-[#080503] border border-[#3c2a1c] text-center text-xs col-span-4 md:col-span-1 opacity-50">
+              <div class="font-bold text-[#dfb76c]">MR8</div>
+              <div class="text-[8px] text-[#dfb76c]/70 mt-1">MASTER</div>
+            </div>
+          </div>
+          
+          <div class="mt-4 p-3 rounded-lg bg-[#0d0905] border border-[#dfb76c]/10 text-[10px] text-gray-400 leading-relaxed flex items-start space-x-2">
+            <i data-lucide="info" class="w-4 h-4 text-[#dfb76c] flex-shrink-0 mt-0.5"></i>
+            <span>マーケターランク昇格に挑戦するには、事前にギルド運営へ申請を行ってください。申請が承認されると、試練クエストを受注（受験）できるようになります。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- クエストボード（マーケターランク一覧） -->
+      <div class="space-y-4">
+        <h3 class="text-base font-black text-gray-200 tracking-wider flex items-center space-x-2 font-cinzel">
+          <i data-lucide="swords" class="w-5 h-5 text-[#dfb76c]"></i>
+          <span>GUILD QUEST BOARD（マーケターランク昇格試練）</span>
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="student-exam-grid">
+          <!-- クエスト依頼書カードがここに動的に生成されます -->
+        </div>
+      </div>
+
+      <!-- クエストワークスペース（回答フォーム・フィードバック） -->
+      <div id="exam-workspace" class="parchment rounded-2xl p-6 md:p-8 space-y-6 border-2 border-[#dfb76c]/50 shadow-2xl relative" style="display: none;">
+        
+        <div class="flex items-center justify-between border-b border-[#dfb76c]/20 pb-4">
+          <div>
+            <span class="text-[10px] font-bold text-[#dfb76c] uppercase tracking-widest font-mono" id="workspace-subtitle">ACTIVE GUILD QUEST</span>
+            <h4 class="text-lg font-bold text-white" id="workspace-title">---</h4>
+          </div>
+          <button onclick="closeWorkspace()" class="text-gray-400 hover:text-white transition-colors p-2 bg-[#080503] rounded-lg border border-[#3c2a1c]">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- 運営からのフィードバックパネル -->
+        <div id="workspace-feedback-panel" class="hidden p-4 rounded-xl border space-y-2">
+          <div class="flex justify-between items-center font-mono">
+            <span class="text-xs font-bold uppercase tracking-wider" id="feedback-status-badge">選考結果</span>
+            <span class="text-sm font-bold" id="feedback-score-badge">--- 点 / 100</span>
+          </div>
+          <div class="bg-[#080503]/90 p-3 rounded-lg border border-[#dfb76c]/10">
+            <span class="text-[10px] text-[#dfb76c] block font-bold mb-1">■ ギルド運営フィードバック:</span>
+            <p class="text-xs text-gray-200 leading-relaxed whitespace-pre-line" id="feedback-comment-content"></p>
+          </div>
+        </div>
+
+        <div class="bg-[#080503] p-4 rounded-xl border border-[#3c2a1c] text-xs text-gray-400" id="workspace-description">
+          <!-- クエスト解説 -->
+        </div>
+
+        <!-- 解答用紙フォーム -->
+        <form id="workspace-form" onsubmit="handleExamSubmit(event)" class="space-y-6">
+          <div id="workspace-fields-area">
+            <!-- 動的フィールド -->
+          </div>
+
+          <div class="pt-4 border-t border-[#3c2a1c] flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4" id="workspace-action-area">
+            <div class="text-[10px] text-gray-500 leading-relaxed">
+              ※ 送信されたレポートはギルド運営管理センターへ格納されます。<br>
+              評価確定後、合否とフィードバックがマイポータル上に自動配信されます。
+            </div>
+            <button 
+              type="submit" 
+              class="bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-3 px-8 rounded-xl text-xs transition-all shadow-lg flex items-center justify-center space-x-2 tracking-widest"
+            >
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>解答を送信する</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- ============================================== -->
+    <!--  3. ギルド運営管理画面                           -->
+    <!-- ============================================== -->
+    <section id="admin-panel" class="space-y-6 fade-in" style="display: none;">
+      
+      <!-- パスワードロック画面 -->
+      <div id="admin-lock-screen" class="max-w-md mx-auto my-12 quest-board-panel rounded-2xl p-6 md:p-8 text-center space-y-6">
+        <div class="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-white">ギルド運営管理パスワード認証</h3>
+          <p class="text-xs text-gray-400">ギルド運営管理センターへのログインキーを入力してください。</p>
+        </div>
+        <form onsubmit="handleAdminAuth(event)" class="space-y-3">
+          <input 
+            type="password" 
+            id="admin-password" 
+            required
+            placeholder="管理者認証キー" 
+            class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-center text-white placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono"
+          >
+          <button type="submit" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow tracking-wider font-mono">
+            VERIFY SECURITY KEY
+          </button>
+        </form>
+      </div>
+
+      <!-- 管理ダッシュボード本体 -->
+      <div id="admin-dashboard" class="space-y-6" style="display: none;">
+        
+        <!-- 管理ヘッダー -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#080503] p-5 rounded-2xl border-2 border-[#dfb76c]/30 gap-4">
+          <div>
+            <h3 class="text-base font-bold text-[#dfb76c] flex items-center space-x-2 font-cinzel tracking-widest">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+              <span>GUILD OPERATIONS CONTROL CENTER</span>
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">受講生の昇格申請の承認、提出解答の採点・合否判定、および個別指導フィードバックを配信・管理します。</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-gray-400 bg-[#160f0a] px-3.5 py-2 rounded-xl border border-[#3c2a1c] font-mono animate-pulse" id="admin-student-count-badge">
+              TOTAL: 0 STUDENTS
+            </span>
+            <button 
+              onclick="initMockData()" 
+              class="text-xs bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-900/40 px-3.5 py-2 rounded-xl font-bold transition-all"
+            >
+              + デモ受講生を追加する
+            </button>
+          </div>
+        </div>
+
+        <!-- 2ペインレイアウト -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- 左ペイン：受講生カルテ一覧 -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="quest-board-panel rounded-2xl p-4 space-y-3">
+              <div class="flex justify-between items-center border-b border-[#3c2a1c] pb-2">
+                <span class="text-xs font-bold text-gray-300">受講生カルテ一覧</span>
+                <span class="text-[9px] text-[#dfb76c] font-bold">クリックしてカルテを開く</span>
+              </div>
+
+              <!-- 受講生リスト -->
+              <div class="space-y-2.5 max-h-[550px] overflow-y-auto pr-1" id="admin-student-list">
+                <!-- 動的生成 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 右ペイン：詳細査定 & 承認・採点フィードバック作成 -->
+          <div class="lg:col-span-7">
+            <div class="quest-board-panel rounded-2xl p-6 space-y-6" id="admin-review-card">
+              
+              <div class="text-center py-24 text-gray-500" id="admin-review-placeholder">
+                <i data-lucide="scroll" class="w-12 h-12 text-[#5a4231] mx-auto mb-3"></i>
+                <h4 class="text-sm font-bold text-gray-400">受講生カルテが選択されていません</h4>
+                <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">左側のカルテをクリック、または各MRバッジをクリックして評価シートを読み込んでください。生徒が現在挑戦中の設問確認も可能です。</p>
+              </div>
+
+              <div id="admin-review-content" style="display: none;" class="space-y-6">
+                
+                <!-- 査定ヘッダー -->
+                <div class="flex justify-between items-start border-b border-[#3c2a1c] pb-4">
+                  <div>
+                    <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono font-bold border border-amber-500/20" id="review-rank-badge">MR-</span>
+                    <h4 class="text-lg font-bold text-white mt-1" id="review-student-title">---</h4>
+                    <span class="text-xs text-gray-500 block mt-0.5 animate-pulse" id="review-timestamp">日時: ---</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-xs text-gray-500 block font-mono">STATUS</span>
+                    <span class="text-xs font-bold text-amber-400" id="review-current-status">未完了</span>
+                  </div>
+                </div>
+
+                <!-- 承認ボタンエリア -->
+                <div id="admin-approval-area" class="bg-amber-500/10 p-4 rounded-xl border-2 border-dashed border-[#dfb76c]/40 space-y-3 hidden">
+                  <div class="flex items-start space-x-2">
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-[#dfb76c] flex-shrink-0 mt-0.5 animate-bounce"></i>
+                    <div>
+                      <span class="text-xs font-bold text-white block">マーケターランク昇格への挑戦申請を受理しました</span>
+                      <p class="text-[10px] text-gray-400 mt-0.5">受講生側で昇格クエストを受注（受験）できるように許可を与えるには、「受験を承認する」をクリックしてください。</p>
+                    </div>
+                  </div>
+                  
+                  <div id="approval-btn-container">
+                    <button 
+                      onclick="approveExamChallenge()" 
+                      class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow flex items-center justify-center space-x-1.5"
+                    >
+                      <i data-lucide="check-circle" class="w-4 h-4"></i>
+                      <span>受験を承認する（クエスト解放）</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 回答内容プレビュー（生徒の問題をそのまま確認） -->
+                <div id="admin-answers-area" class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-[#dfb76c] flex items-center space-x-1">
+                      <i data-lucide="file-code" class="w-4 h-4"></i>
+                      <span>📋 出題設問 ＆ 回答プレビュー</span>
+                    </span>
+                    <span class="text-[10px] text-gray-500" id="preview-mode-tag">（解答済データ）</span>
+                  </div>
+                  <div class="bg-[#080503] p-4 rounded-xl border border-[#3c2a1c] text-xs space-y-4 max-h-[350px] overflow-y-auto" id="review-fields-preview">
+                    <!-- 解答の中身 / 未提出の場合は白紙フォームを再現 -->
+                  </div>
+                </div>
+
+                <!-- 採点＆フィードバック送信エリア -->
+                <div id="admin-grading-area" class="border-t border-[#3c2a1c] pt-4 space-y-4">
+                  <span class="text-xs font-bold text-emerald-400 block">✍️ ギルド査定フィードバック</span>
+                  
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <!-- （5点刻み）表記を削除 -->
+                      <label class="block text-[11px] text-gray-400 mb-1">評価点数 <span class="text-rose-500">*</span></label>
+                      <select 
+                        id="review-score" 
+                        onchange="handleScoreChange()"
+                        class="w-full bg-[#080503] border border-[#3c2a1c] rounded-xl px-3 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#dfb76c] font-mono"
+                      >
+                        <!-- 5点刻みのシンプルな数字表記に変更 -->
+                        <option value="100">100 点</option>
+                        <option value="95">95 点</option>
+                        <option value="90">90 点</option>
+                        <option value="85" selected>85 点</option>
+                        <option value="80">80 点</option>
+                        <option value="75">75 点</option>
+                        <option value="70">70 点</option>
+                        <option value="65">65 点</option>
+                        <option value="60">60 点</option>
+                        <option value="55">55 点</option>
+                        <option value="50">50 点</option>
+                        <option value="45">45 点</option>
+                        <option value="40">40 点</option>
+                        <option value="35">35 点</option>
+                        <option value="30">30 点</option>
+                        <option value="25">25 点</option>
+                        <option value="20">20 点</option>
+                        <option value="15">15 点</option>
+                        <option value="10">10 点</option>
+                        <option value="5">5 点</option>
+                        <option value="0">0 点</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] text-gray-400 mb-1">合否選択 <span class="text-rose-500">*</span></label>
+                      <select 
+                        id="review-result" 
+                        class="w-full bg-[#080503] border border-[#3c2a1c] rounded-xl px-3 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#dfb76c]"
+                      >
+                        <option value="pass">合格（マーケターランク昇格）</option>
+                        <option value="fail">要再提出（不合格）</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-[11px] text-gray-400 mb-1">指導フィードバックコメント <span class="text-rose-500">*</span></label>
+                    <textarea 
+                      id="review-feedback" 
+                      rows="4" 
+                      required
+                      placeholder="整合性、表現の丁寧さについて、次のステージへ進むための具体的なアドバイスを記載してください。"
+                      class="w-full bg-[#080503] border border-[#3c2a1c] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#dfb76c]"
+                    ></textarea>
+                  </div>
+
+                  <button 
+                    onclick="submitReview()" 
+                    class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3 rounded-xl text-xs transition-all flex items-center justify-center space-x-1.5 shadow-lg tracking-widest font-mono"
+                  >
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                    <span>SUBMIT GRADUATION REPORT & FEEDBACK</span>
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- 通知ポップアップ -->
+  <div id="toast-notification" class="fixed bottom-6 right-6 z-50 glass-panel-active rounded-xl p-4 shadow-2xl flex items-start space-x-3 max-w-sm transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+    <div id="toast-icon-bg" class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+      <i data-lucide="check" class="w-5 h-5" id="toast-icon"></i>
+    </div>
+    <div>
+      <h5 class="text-sm font-bold text-white" id="toast-title">通知</h5>
+      <p class="text-[11px] text-gray-400 mt-1 leading-relaxed" id="toast-message">メッセージ</p>
+    </div>
+    <button onclick="hideToast()" class="text-gray-500 hover:text-white transition-colors">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- フッター -->
+  <footer class="bg-[#050302] border-t-2 border-[#dfb76c]/20 py-4 text-center text-[10px] text-gray-500 font-mono tracking-widest">
+    <p>&copy; 2026 Guild Marketing. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    // 擬似データベース
+    const defaultStudents = {
+      "demo-shota": {
+        name: "木村 翔太",
+        birthday: "19980412",
+        currentRank: 2,
+        examAttempts: {
+          2: {
+            account_url: "https://instagram.com/shota_sns",
+            design_target: "20代後半で会社員をやめ、SNSマーケターとして独立したいが、何から言語化すればいいか分からない会社員男性。",
+            design_axis: "「SNSコンサルで副業から月30万稼ぐ手順」を発信軸とする。デザインは濃紺とゴールドで知的な世界観を構築。",
+            design_strength: "自身の脱サラ実績に基づいた再現性の高いマインド。他社が曖昧にするロジックを1から段階的に解説可能。",
+            design_goal: "高単価なSNS個別スクールの販売（ギルド式のコンサルティングモデル）への誘導。",
+            benchmark_url: "https://instagram.com/guild_official",
+            status: "submitted",
+            score: null,
+            result: null,
+            feedback: null,
+            timestamp: "2026/06/06 14:12"
+          }
+        }
+      },
+      "demo-misaki": {
+        name: "佐藤 美咲",
+        birthday: "20000825",
+        currentRank: 4,
+        examAttempts: {
+          2: {
+            account_url: "https://instagram.com/misaki_marketing",
+            design_target: "女性向けフリーランス志望者",
+            design_axis: "デザイン重視のアカウント設計術",
+            design_strength: "元WEBデザイナーならではのビジュアル戦略",
+            design_goal: "デザイン特化型SNS講座の成約",
+            benchmark_url: "https://instagram.com/benchmark_xyz",
+            status: "graded",
+            score: 95,
+            result: "pass",
+            feedback: "アカウントのコンセプトが非常に綺麗に言語化されています。ターゲットも具体的で素晴らしい。自信を持って次のステップへ！",
+            timestamp: "2026/06/01 10:00"
+          },
+          3: {
+            analysis_diff: "伸びる投稿は画像1枚目で「痛みの解決」が数字付きで提示されており、3枚目で即座にToDoリスト形式になっています。逆に伸びていない投稿は美しさ優先で具体情報が薄い点です。",
+            analysis_issue: "保存数が低い。フィードバックで「役立つ保存用資料」としての見せ方ができていない。デザインは良いが読み捨てられている状態。",
+            analysis_solution: "まずは直近1ヶ月で各投稿の後半に「保存必須チェックシート」を追加。毎週のデータ分析を踏まえて反応の良い上位トピックの再構成リールを週2回配信する。",
+            status: "graded",
+            score: 85,
+            result: "pass",
+            feedback: "「なぜ伸びないか」を保存率と情報量に着目してしっかりと客観的に言語化できています。納得の改善案です。合格とします。",
+            timestamp: "2026/06/03 15:30"
+          },
+          4: {
+            meeting_link: "https://drive.google.com/file/d/demo_meeting_link/view",
+            sheet_link: "https://docs.google.com/spreadsheets/d/demo_sheet_link/edit",
+            status: "submitted",
+            score: null,
+            result: null,
+            feedback: null,
+            timestamp: "2026/06/05 18:20"
+          }
+        }
+      }
+    };
+
+    const appState = {
+      students: {}, 
+      currentUser: null, 
+      isAdminAuthenticated: false, 
+      currentView: "auth", 
+      activeExamNum: null, 
+      adminSelectedStudentKey: null, 
+      adminSelectedExamNum: null 
+    };
+
+    // マーケターランク(MR)の詳細データ定義
+    const ranks = {
+      2: {
+        id: 2,
+        title: "マーケターランク 2 (MR2)",
+        purpose: "自己アカウントの徹底言語化",
+        description: "将来的にコンサルをする側を狙うための、第一歩の設計。自身のアカウントの徹底言語化とブレない軸を確認します。",
+        criteria: "合格基準: 80点以上。設定の具体性、軸の一貫性、言語化の丁寧さを審査します。",
+        fields: [
+          { name: "account_url", label: "あなたのアカウント URL", type: "url", required: true, placeholder: "https://instagram.com/your_account" },
+          { name: "design_target", label: "【設計シート】1. ターゲットについて (誰に届けるか)", type: "textarea", required: true, placeholder: "ターゲットの属性、年齢、仕事や人生の悩みを具体的に記載" },
+          { name: "design_axis", label: "【設計シート】2. 発信内容と投稿の軸 (何を発信するのか)", type: "textarea", required: true, placeholder: "どのようなテーマ、情報発信を軸にするのか" },
+          { name: "design_strength", label: "【設計シート】3. 自分の強み (なぜこのアカウントをしているのか)", type: "textarea", required: true, placeholder: "競合と比較した際のあなたの強み、独自性" },
+          { name: "design_goal", label: "【設計シート】4. 最終的なゴール", type: "textarea", required: true, placeholder: "マネタイズモデルや獲得したいビジネスゴール" },
+          { name: "benchmark_url", label: "参考にしているベンチマークアカウント URL", type: "url", required: true, placeholder: "https://instagram.com/benchmark_account" }
+        ]
+      },
+      3: {
+        id: 3,
+        title: "マーケターランク 3 (MR3)",
+        purpose: "アカウントデータ分析 ＆ 改善案立案",
+        description: "ギルド指定の添削元アカウントをもとに、客観的な分析力・改善を言語化するフィードバック能力を審査します。",
+        criteria: "合格基準: 80点以上。なぜ伸びている/いないかの『なぜ』が根拠を持って書けているかを審査します。",
+        fields: [
+          { name: "analysis_diff", label: "1. 伸びている投稿、伸びていない投稿の差は何か？", type: "textarea", required: true, placeholder: "フック、構成、見やすさ、保存誘導などの観点から分析" },
+          { name: "analysis_issue", label: "2. このアカウントの現状の課題は何か？", type: "textarea", required: true, placeholder: "ボトルネックとなっているデータや設計上の欠陥を記述" },
+          { name: "analysis_solution", label: "3. 直近1ヶ月でやるべき改善案の具体的な提案", type: "textarea", required: true, placeholder: "明日から実行できる具体的な施策プランを提示" }
+        ]
+      },
+      4: {
+        id: 4,
+        title: "マーケターランク 4 (MR4)",
+        purpose: "個別指導・ヒアリング実践 (面談ロープレ)",
+        description: "ここをクリアすると、受講生を担当できます。面談練習の様子、ヒアリングカルテのスプレッドシートをもとに審査します。",
+        criteria: "合格基準: 80点以上。ヒアリングができているか、改善案の提案ができているか、モチベ維持ができているか。",
+        fields: [
+          { name: "meeting_link", label: "面談ロールプレイング（録画/音声）リンクURL", type: "url", required: true, placeholder: "https://drive.google.com/..." },
+          { name: "sheet_link", label: "実際の生徒情報スプレッドシート（共有用）URL", type: "url", required: true, placeholder: "https://docs.google.com/spreadsheets/..." }
+        ]
+      },
+      5: {
+        id: 5,
+        title: "マーケターランク 5 (MR5)",
+        purpose: "担当受講生マネジメント報告 ＆ ケーススタディ",
+        description: "実際に担当している生徒実績のデータに加え、複数人が同時に困った場合の意思決定能力を測るケーススタディです。",
+        criteria: "合格基準: 80点以上。全生徒への対応アプローチ根拠、およびケーススタディでの明確なアドバイスの違いを審査します。",
+        fields: [
+          { name: "r5_student_meta", label: "1. 担当全員分のデータ (生徒名、フォロワー数、目指している未来等)", type: "textarea", required: true, placeholder: "生徒ごとの課題、施した対応、結果を列挙" },
+          { name: "case_q1_answer", label: "【ケースQ1】対応優先順位と理由 (生徒A: 伸び悩み / 生徒B: 辞めたい / 生徒C: タグ選定)", type: "textarea", required: true, placeholder: "3名が同時に連絡をしてきた際の優先度とロジック" },
+          { name: "case_q2_answer", label: "【ケースQ2】フォロワーが増えない悩みへのアプローチの違い (生徒D: 週1・高エンゲージ / 生徒E: 毎日・低エンゲージ)", type: "textarea", required: true, placeholder: "二者への明確に異なるアドバイス" }
+        ]
+      },
+      6: {
+        id: 6,
+        title: "マーケターランク 6 (MR6)",
+        purpose: "指導設計書 ＆ ギルド帰属意識論述",
+        description: "テンプレート発想を排除し、深く考え抜いた論述問題3問（各700字以上）と後輩生徒の指導計画設計書を審査します。",
+        criteria: "合格基準: 80点以上。Q1〜Q3の客観的思考の深さ、指導スケジュールが根拠のある育成計画になっているか。",
+        fields: [
+          { name: "essay_q1", label: "論述Q1. 担当している生徒(MR2〜3)をMR4以上に引き上げるプランと根拠 (700字以上)", type: "textarea", required: true, placeholder: "具体的な育成スケジュールと論理的アプローチ" },
+          { name: "essay_q2", label: "論述Q2. Guild Marketingが生徒に対して果たすべき責任と、あなた自身の実践 (700字以上)", type: "textarea", required: true, placeholder: "スクールへの当事者意識、ビジネスコミットメント" },
+          { name: "essay_q3", label: "論述Q3. あなた自身のコンサルの弱点と、現在行っている対策 (700字以上)", type: "textarea", required: true, placeholder: "自己客観視と具体的な改善行動" },
+          { name: "r6_plan_weakness", label: "【指導設計書】1. 担当している生徒の現在の課題（弱点はどこか）", type: "textarea", required: true, placeholder: "課題の深掘り" },
+          { name: "r6_plan_strategy", label: "【指導設計書】2. 指指導方針（どんなアプローチで育てるか）", type: "textarea", required: true, placeholder: "育成方針" },
+          { name: "r6_plan_action", label: "【指導設計書】3. 直近アクション（具体的に何をさせるか）", type: "textarea", required: true, placeholder: "次の一手" },
+          { name: "r6_plan_timeline", label: "【指導設計書】4. MR3またはMR4までの昇格時期・スケジュール", type: "textarea", required: true, placeholder: "いつ頃昇格できそうかの時期" }
+        ]
+      },
+      7: {
+        id: 7,
+        title: "マーケターランク 7 (MR7)",
+        purpose: "運営役員最終面談・ファクト実績審査",
+        description: "これまでの継続率や昇格させた受講生の数などの明確な数値を提出し、運営との本音面談(60分)にて総合確認を行います。",
+        criteria: "合格基準: 役員協議承認。実績が規定条件を満たし、スクール全体を見ている視座を審査します。",
+        fields: [
+          { name: "r7_retention", label: "担当生徒数・継続率 (直近6ヶ月の推移)", type: "textarea", required: true, placeholder: "1月○名(100%), 2月○名..." },
+          { name: "r7_success_story", label: "マーケターランク4以上に育てた生徒数 (具体的な育成プロセス)", type: "textarea", required: true, placeholder: "具体的な引き上げ実話" },
+          { name: "r7_my_sns_record", label: "自分自身のSNS実績 (フォロワー、代表的な実績)", type: "textarea", required: true, placeholder: "マーケ実績の証明" }
+        ]
+      },
+      8: {
+        id: 8,
+        title: "マーケターランク 8 (MR8)",
+        purpose: "トップギルドパートナー (完全推薦枠)",
+        description: "ギルドマーケティングのブランドを背負い、全受講生を統括する最高峰。推薦完了時、メッセージが表示されます。",
+        criteria: "合格基準: 運営役員推薦。",
+        fields: []
+      }
+    };
+
+    // データベース読込
+    function loadDatabase() {
+      const stored = localStorage.getItem('guild_students_v4');
+      if (stored) {
+        appState.students = JSON.parse(stored);
+      } else {
+        appState.students = defaultStudents;
+        saveDatabase();
+      }
+    }
+
+    function saveDatabase() {
+      localStorage.setItem('guild_students_v4', JSON.stringify(appState.students));
+    }
+
+    function goHome() {
+      if (appState.currentUser) {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('student-dashboard').style.display = 'block';
+        document.getElementById('admin-panel').style.display = 'none';
+        appState.currentView = "student";
+        updateStudentUI();
+      }
+    }
+
+    // ログイン切り替え
+    function switchAuthTab(tab) {
+      activeAuthTab = tab;
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const title = document.getElementById('auth-title');
+      const sub = document.getElementById('auth-sub');
+      const submitText = document.getElementById('auth-submit-text');
+
+      if (tab === 'login') {
+        tabLogin.className = "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c] transition-all";
+        tabRegister.className = "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400 hover:text-gray-200 transition-all";
+        title.innerText = "Guild Marketing";
+        sub.innerText = "Press the entrance";
+        submitText.innerText = "ギルドに入室する";
+      } else {
+        tabLogin.className = "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400 hover:text-gray-200 transition-all";
+        tabRegister.className = "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c] transition-all";
+        title.innerText = "新規メンバー登録";
+        sub.innerText = "ギルドマーケティングの門戸を叩く";
+        submitText.innerText = "新規アカウント登録";
+      }
+    }
+
+    // ログイン/登録実行
+    function handleAuthSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById('auth-name').value.trim();
+      const birthday = document.getElementById('auth-birthday').value.trim();
+
+      if (!name || birthday.length !== 8 || isNaN(birthday)) {
+        showToast("入力エラー", "名前と半角数字8桁の生年月日を入力してください。", "error");
+        return;
+      }
+
+      const userKey = btoa(encodeURIComponent(name + "_" + birthday));
+
+      if (activeAuthTab === 'login') {
+        if (appState.students[userKey]) {
+          loginUser(userKey);
+        } else {
+          showToast("認証失敗", "入力された生徒データが見つかりません。新規ギルド登録を行ってください。", "error");
+        }
+      } else {
+        if (appState.students[userKey]) {
+          showToast("登録済み", "このお名前と生年月日はすでに登録されています。ログインを行ってください。", "info");
+        } else {
+          appState.students[userKey] = {
+            name: name,
+            birthday: birthday,
+            currentRank: 1,
+            examAttempts: {}
+          };
+          saveDatabase();
+          loginUser(userKey);
+          showToast("登録完了", `マーケター ${name} さんを新規ギルド登録しました！`, "success");
+        }
+      }
+    }
+
+    // ログイン
+    function loginUser(key) {
+      appState.currentUser = {
+        key: key,
+        data: appState.students[key]
+      };
+
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('student-dashboard').style.display = 'block';
+      document.getElementById('btn-logout').style.display = 'block';
+
+      updateStudentUI();
+      appState.currentView = "student";
+      showToast("ギルド入室", `受講生: ${appState.currentUser.data.name} ログイン完了。`, "success");
+    }
+
+    // ログアウト
+    function handleLogout() {
+      appState.currentUser = null;
+      document.getElementById('auth-section').style.display = 'block';
+      document.getElementById('student-dashboard').style.display = 'none';
+      document.getElementById('btn-logout').style.display = 'none';
+      document.getElementById('header-student-badge').style.display = 'none';
+      document.getElementById('exam-workspace').style.display = 'none';
+      
+      appState.currentView = "auth";
+      showToast("ログアウト", "ギルドハウスを退出しました。", "info");
+    }
+
+    // 生徒用ポータルの更新
+    function updateStudentUI() {
+      if (!appState.currentUser) return;
+      const data = appState.students[appState.currentUser.key];
+
+      document.getElementById('student-display-name').innerText = data.name;
+      document.getElementById('header-student-name').innerText = data.name;
+      // 生年月日の例を19981005に統一
+      document.getElementById('student-display-birthday').innerText = `ID: ${data.birthday}`;
+      document.getElementById('student-current-rank-label').innerText = `MR${data.currentRank}`;
+      document.getElementById('header-rank-text').innerText = `MR${data.currentRank}`;
+      document.getElementById('header-student-badge').style.display = 'flex';
+
+      const nextRank = data.currentRank === 8 ? 8 : data.currentRank + 1;
+      document.getElementById('student-next-exam-label').innerText = data.currentRank === 8 ? "MASTER" : `MR${nextRank}`;
+
+      updateTimelineUI(data.currentRank);
+      renderStudentExamCards(data.currentRank, data.examAttempts);
+    }
+
+    // タイムライン描画
+    function updateTimelineUI(currentRank) {
+      for (let r = 2; r <= 8; r++) {
+        const timeline = document.getElementById(`timeline-r${r}`);
+        if (!timeline) continue;
+
+        if (r <= currentRank) {
+          timeline.className = "p-2 rounded-xl bg-emerald-950/20 border border-emerald-500/40 text-center text-xs";
+          timeline.querySelector('div:first-child').className = "font-bold text-emerald-400";
+        } else if (r === currentRank + 1) {
+          timeline.className = "p-2 rounded-xl bg-amber-950/20 border border-amber-500/50 text-center text-xs animate-pulse";
+          timeline.querySelector('div:first-child').className = "font-bold text-amber-400";
+        } else {
+          timeline.className = "p-2 rounded-xl bg-gray-950 border border-gray-900 text-center text-xs opacity-50";
+          timeline.querySelector('div:first-child').className = "font-bold text-gray-500";
+        }
+      }
+    }
+
+    // 生徒用マーケターランク試験カードレンダリング
+    function renderStudentExamCards(currentRank, attempts) {
+      const container = document.getElementById('student-exam-grid');
+      container.innerHTML = "";
+
+      for (let r = 2; r <= 8; r++) {
+        const info = ranks[r];
+        const attempt = attempts[r];
+        const isCompleted = r <= currentRank; 
+        const isUnlocked = r <= currentRank + 1; 
+
+        let statusBadge = "";
+        let actionBtn = "";
+        let borderClass = "border-[#3c2a1c]";
+        
+        // カンニング対策
+        const pledgeBlock = `
+          <div class="space-y-1.5 mt-2 bg-[#090604] p-3 rounded-lg border border-[#3c2a1c] font-mono text-[9px] text-gray-500">
+            <span class="text-[#dfb76c]/80 font-bold block flex items-center space-x-1">
+              <i data-lucide="shield" class="w-3 h-3 text-[#dfb76c]"></i>
+              <span>GUILD QUEST DETAILS</span>
+            </span>
+            <p>※本試練はプロマーケターの信頼性と責任を担保するためのものです。挑戦を開始するまで設問は開示されません。</p>
+          </div>
+        `;
+
+        if (isCompleted) {
+          statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
+                          <i data-lucide="check" class="w-3 h-3"></i><span>QUEST CLEARED!</span>
+                         </span>`;
+          actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-[#16100b] hover:bg-[#221810] border border-[#dfb76c]/30 text-gray-300 py-2 rounded-xl text-xs transition-colors font-bold tracking-wider">
+                        提出履歴 / フィードバックを見る
+                       </button>`;
+          borderClass = "border-emerald-500/20 bg-emerald-950/5";
+        } else if (isUnlocked) {
+          if (attempt && attempt.status === "submitted") {
+            statusBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-pulse">
+                            選考中...
+                           </span>`;
+            actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-[#1b120a] hover:bg-[#281c10] border border-amber-500/30 text-amber-400 py-2 rounded-xl text-xs transition-all font-bold">
+                          提出データ・採点状況を見る
+                         </button>`;
+            borderClass = "border-amber-500/30 bg-amber-950/5";
+          } else if (attempt && attempt.status === "applying") {
+            statusBadge = `<span class="bg-[#2a1b10] text-[#dfb76c] border border-[#dfb76c]/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
+                            承認申請中
+                           </span>`;
+            actionBtn = `<button disabled class="w-full bg-gray-950/80 text-gray-500 border border-[#3c2a1c] py-2 rounded-xl text-xs cursor-not-allowed">
+                          ギルド承認をお待ちください...
+                         </button>`;
+            borderClass = "border-[#dfb76c]/20 bg-[#22160d]/10";
+          } else if (attempt && attempt.status === "approved") {
+            statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
+                            <i data-lucide="unlock" class="w-3 h-3"></i><span>挑戦許可</span>
+                           </span>`;
+            // （受験可）を削除し、力強い受注に変更
+            actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow-md tracking-wider">
+                          試練クエストを受注する
+                         </button>`;
+            borderClass = "border-emerald-500/20 bg-[#141d18]";
+          } else if (attempt && attempt.status === "graded" && attempt.result === "fail") {
+            statusBadge = `<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
+                            RE-SUBMIT
+                           </span>`;
+            actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow">
+                          フィードバックを受けて再挑戦
+                         </button>`;
+            borderClass = "border-rose-500/30 bg-rose-950/5";
+          } else {
+            // 未申請
+            statusBadge = `<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">STANDBY</span>`;
+            actionBtn = `<button type="button" onclick="requestExamChallenge(${r})" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs transition-all font-bold tracking-wider">
+                          マーケターランク昇格に挑戦を申請する
+                         </button>`;
+            borderClass = "border-[#dfb76c]/10 bg-gray-950/20";
+          }
+        } else {
+          statusBadge = `<span class="bg-gray-950 text-gray-700 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-900">LOCKED</span>`;
+          actionBtn = `<button disabled class="w-full bg-[#0d0805] text-gray-700 py-2.5 rounded-xl text-xs cursor-not-allowed flex items-center justify-center space-x-1.5">
+                        <i data-lucide="lock" class="w-3.5 h-3.5"></i><span>MR${r-1}をクリアしてください</span>
+                       </button>`;
+          borderClass = "border-gray-950 bg-gray-950/10 opacity-45";
+        }
+
+        const card = `
+          <div class="quest-card rounded-xl p-5 flex flex-col justify-between transition-all duration-300 ${borderClass}">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-cinzel font-bold text-[#dfb76c]">MR STAGE ${r}</span>
+                ${statusBadge}
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-white">${info.title}</h4>
+                <p class="text-[10px] text-[#dfb76c]/80 font-medium font-mono">${info.purpose}</p>
+              </div>
+              ${pledgeBlock}
+            </div>
+            <div class="mt-4">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+        container.innerHTML += card;
+      }
+      lucide.createIcons();
+    }
+
+    // 昇格挑戦の申請を登録する (修正：管理画面へ確実に届くように連動)
+    function requestExamChallenge(examNum) {
+      if (!appState.currentUser) return;
+      
+      const userKey = appState.currentUser.key;
+      appState.students[userKey].examAttempts[examNum] = {
+        status: "applying",
+        timestamp: new Date().toLocaleString()
+      };
+      saveDatabase();
+      updateStudentUI();
+
+      // 管理画面にも即時に申請データを同期表示
+      if (appState.isAdminAuthenticated) {
+        renderAdminStudentList();
+      }
+
+      showToast("申請完了", `マーケターランク${examNum} への昇格挑戦の申請が完了しました。運営の承認をお待ちください。`, "success");
+    }
+
+    // 生徒：ワークスペースでの試験開始
+    function openWorkspace(examNum) {
+      appState.activeExamNum = examNum;
+      
+      const workspace = document.getElementById('exam-workspace');
+      const title = document.getElementById('workspace-title');
+      const subtitle = document.getElementById('workspace-subtitle');
+      const desc = document.getElementById('workspace-description');
+      const fieldsArea = document.getElementById('workspace-fields-area');
+      const feedbackPanel = document.getElementById('workspace-feedback-panel');
+
+      const info = ranks[examNum];
+      const attempt = appState.students[appState.currentUser.key].examAttempts[examNum];
+
+      title.innerText = info.title;
+      subtitle.innerText = `MR EXAM LEVEL ${examNum} - ${info.purpose}`;
+      desc.innerHTML = `
+        <div class="font-bold text-[#dfb76c] mb-1">【クエスト指令】</div>
+        <p class="mb-2 text-xs text-gray-300 leading-relaxed">${info.description}</p>
+        <div class="text-[10px] text-[#dfb76c]/80 border-t border-[#3c2a1c] pt-1.5 font-medium">${info.criteria}</div>
+      `;
+
+      // フィードバック表示
+      if (attempt && attempt.status === "graded") {
+        feedbackPanel.classList.remove('hidden');
+        if (attempt.result === 'pass') {
+          feedbackPanel.className = "p-4 rounded-xl border border-emerald-500/20 bg-emerald-950/10 space-y-2";
+          document.getElementById('feedback-status-badge').className = "text-xs font-bold text-emerald-400";
+          document.getElementById('feedback-status-badge').innerText = "■ クエスト達成: 合格（昇格承認！）";
+        } else {
+          feedbackPanel.className = "p-4 rounded-xl border border-rose-500/20 bg-rose-950/10 space-y-2";
+          document.getElementById('feedback-status-badge').className = "text-xs font-bold text-rose-400";
+          document.getElementById('feedback-status-badge').innerText = "■ クエスト失敗: 再提出要請";
+        }
+        document.getElementById('feedback-score-badge').innerText = `${attempt.score} 点`;
+        document.getElementById('feedback-comment-content').innerText = attempt.feedback || "フィードバックコメントはまだありません。";
+      } else if (attempt && attempt.status === "submitted") {
+        feedbackPanel.classList.remove('hidden');
+        feedbackPanel.className = "p-4 rounded-xl border border-[#dfb76c]/20 bg-[#1c130c] space-y-2";
+        document.getElementById('feedback-status-badge').className = "text-xs font-bold text-[#dfb76c]";
+        document.getElementById('feedback-status-badge').innerText = "■ 運営審査中...";
+        document.getElementById('feedback-score-badge').innerText = `審査中`;
+        document.getElementById('feedback-comment-content').innerText = "ギルド運営にて提出されたレポートを審査中です。しばらくお待ちください。";
+      } else {
+        feedbackPanel.classList.add('hidden');
+      }
+
+      // 設問フィールド表示
+      fieldsArea.innerHTML = generateFormFields(examNum);
+
+      // 値反映
+      if (attempt) {
+        fillWorkspaceAnswers(attempt);
+      }
+
+      // 編集可否
+      const submitBtn = document.querySelector('#workspace-form button[type="submit"]');
+      const formInputs = fieldsArea.querySelectorAll('input, textarea, select');
+      
+      if (attempt && (attempt.status === "submitted" || (attempt.status === "graded" && attempt.result === "pass"))) {
+        formInputs.forEach(el => el.disabled = true);
+        submitBtn.style.display = "none";
+      } else {
+        formInputs.forEach(el => el.disabled = false);
+        submitBtn.style.display = "flex";
+      }
+
+      workspace.style.display = "block";
+      lucide.createIcons();
+      workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ワークスペースクローズ
+    function closeWorkspace() {
+      document.getElementById('exam-workspace').style.display = 'none';
+      appState.activeExamNum = null;
+    }
+
+    function fillWorkspaceAnswers(attempt) {
+      const form = document.getElementById('workspace-form');
+      const inputs = form.querySelectorAll('input, textarea, select');
+      
+      inputs.forEach(input => {
+        if (input.name && attempt[input.name] !== undefined) {
+          if (input.type === 'checkbox') {
+            input.checked = attempt[input.name] === 'on' || attempt[input.name] === true;
+          } else {
+            input.value = attempt[input.name];
+          }
+        }
+      });
+    }
+
+    // フォーム送信（修正：確実に管理画面へ届くよう連動）
+    function handleExamSubmit(event) {
+      event.preventDefault();
+
+      if (!appState.currentUser) return;
+      const examNum = appState.activeExamNum;
+      const formData = new FormData(event.target);
+      const attemptData = {};
+
+      formData.forEach((value, key) => {
+        attemptData[key] = value;
+      });
+
+      attemptData.status = "submitted";
+      attemptData.timestamp = new Date().toLocaleString();
+      attemptData.score = null;
+      attemptData.result = null;
+      attemptData.feedback = null;
+
+      appState.students[appState.currentUser.key].examAttempts[examNum] = attemptData;
+      saveDatabase();
+
+      updateStudentUI();
+      closeWorkspace();
+
+      // 管理画面のリストを即時再レンダリングさせて、新着を届ける
+      if (appState.isAdminAuthenticated) {
+        renderAdminStudentList();
+      }
+
+      showToast(
+        "提出完了", 
+        `マーケターランク${examNum} への解答を運営宛に提出しました。`, 
+        "success"
+      );
+    }
+
+    // ==============================================
+    //  ギルド運営管理画面ロジック                         
+    // ==============================================
+    
+    // 管理モードのトグル
+    function toggleAdminMode() {
+      const authSec = document.getElementById('auth-section');
+      const studSec = document.getElementById('student-dashboard');
+      const adminSec = document.getElementById('admin-panel');
+      const btnText = document.getElementById('btn-toggle-admin-text');
+
+      if (appState.currentView !== "admin") {
+        authSec.style.display = "none";
+        studSec.style.display = "none";
+        document.getElementById('exam-workspace').style.display = "none";
+        adminSec.style.display = "block";
+        
+        btnText.innerText = "受講生マイページへ";
+        appState.currentView = "admin";
+
+        if (appState.isAdminAuthenticated) {
+          showAdminDashboard();
+        } else {
+          document.getElementById('admin-lock-screen').style.display = "block";
+          document.getElementById('admin-dashboard').style.display = "none";
+        }
+      } else {
+        adminSec.style.display = "none";
+        btnText.innerText = "ギルド運営管理画面へ";
+        
+        if (appState.currentUser) {
+          studSec.style.display = "block";
+          appState.currentView = "student";
+          updateStudentUI();
+        } else {
+          authSec.style.display = "block";
+          appState.currentView = "auth";
+        }
+      }
+    }
+
+    // 運営管理者ログイン
+    function handleAdminAuth(event) {
+      event.preventDefault();
+      const pw = document.getElementById('admin-password').value;
+
+      // パスワードを固定・画面上のヒント排除
+      if (pw === "guild@akihibimari") {
+        appState.isAdminAuthenticated = true;
+        document.getElementById('admin-lock-screen').style.display = "none";
+        showAdminDashboard();
+        showToast("認証完了", "ギルド特権アクセスが許可されました。", "success");
+      } else {
+        showToast("認証失敗", "認証パスワードが正しくありません。", "error");
+      }
+    }
+
+    // ダッシュボード更新
+    function showAdminDashboard() {
+      document.getElementById('admin-dashboard').style.display = "block";
+      renderAdminStudentList();
+    }
+
+    // 運営用：全出題内容の一覧トグル
+    function toggleExamMasterList() {
+      const list = document.getElementById('exam-master-list');
+      const chevron = document.getElementById('master-list-chevron');
+      if (list.classList.contains('hidden')) {
+        list.classList.remove('hidden');
+        chevron.style.transform = "rotate(180deg)";
+      } else {
+        list.classList.add('hidden');
+        chevron.style.transform = "rotate(0deg)";
+      }
+    }
+
+    // 生徒リスト描画
+    function renderAdminStudentList() {
+      const container = document.getElementById('admin-student-list');
+      container.innerHTML = "";
+
+      // 最新のローカルストレージデータを読み込んで反映させる
+      loadDatabase();
+
+      const keys = Object.keys(appState.students);
+      document.getElementById('admin-student-count-badge').innerText = `TOTAL: ${keys.length} STUDENTS`;
+
+      if (keys.length === 0) {
+        container.innerHTML = `<div class="text-xs text-gray-500 text-center py-6">生徒データが存在しません。</div>`;
+        return;
+      }
+
+      keys.forEach(key => {
+        const student = appState.students[key];
+        const attempts = student.examAttempts;
+
+        // 各種試験/申請ボタンのバッジ生成
+        let badgeHtml = "";
+        
+        // 未承認の申請がないか・未採点がないか
+        let pendingApproval = false;
+        let pendingGrading = false;
+
+        // 全ランクMR2〜MR7をチェック可能
+        for (let r = 2; r <= 7; r++) {
+          const att = attempts[r];
+          let color = "bg-[#080503] text-gray-600 border border-gray-900";
+          let labelText = `MR${r}`;
+
+          if (att) {
+            if (att.status === 'applying') {
+              color = "bg-amber-500/20 text-amber-300 border border-amber-500/50 animate-pulse font-bold";
+              labelText = `MR${r}:申請`;
+              pendingApproval = true;
+            } else if (att.status === 'approved') {
+              color = "bg-[#142d1f] text-emerald-400 border border-emerald-500/40";
+              labelText = `MR${r}:承認済`;
+            } else if (att.status === 'submitted') {
+              color = "bg-amber-500 text-black border border-amber-400 font-bold animate-pulse";
+              labelText = `MR${r}:採点待`;
+              pendingGrading = true;
+            } else if (att.status === 'graded' && att.result === 'pass') {
+              color = "bg-emerald-900 text-emerald-300 border border-emerald-500/50";
+              labelText = `MR${r}:合格`;
+            } else if (att.status === 'graded' && att.result === 'fail') {
+              color = "bg-rose-950 text-rose-400 border border-rose-500/30";
+              labelText = `MR${r}:不合格`;
+            }
+          }
+
+          badgeHtml += `
+            <button 
+              type="button"
+              onclick="openAdminReview('${key}', ${r})" 
+              class="text-[9px] px-1.5 py-1 rounded transition-all ${color} hover:opacity-85"
+            >
+              ${labelText}
+            </button>
+          `;
+        }
+
+        const isSelected = appState.adminSelectedStudentKey === key;
+        const activeClass = isSelected ? 'border-[#dfb76c] bg-[#dfb76c]/5' : 'border-[#3c2a1c] bg-[#080503]/40 hover:border-[#dfb76c]/40';
+
+        const item = `
+          <div class="p-3.5 rounded-xl border transition-all ${activeClass}">
+            <div class="flex justify-between items-start mb-2">
+              <div class="cursor-pointer flex-grow" onclick="selectStudentOnly('${key}')">
+                <span class="text-xs font-black text-white hover:text-[#dfb76c] transition-colors flex items-center space-x-1">
+                  <i data-lucide="user" class="w-3.5 h-3.5 text-[#dfb76c]"></i>
+                  <span>${student.name}</span>
+                </span>
+                <span class="text-[9px] text-gray-500 block mt-0.5">生年月日ID: ${student.birthday}</span>
+              </div>
+              <span class="text-[10px] bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/20 px-2.5 py-0.5 rounded font-mono font-bold">
+                MR${student.currentRank}
+              </span>
+            </div>
+
+            <!-- ランク試練ショートカット -->
+            <div class="border-t border-[#3c2a1c] pt-2 mt-2">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[9px] text-gray-400 block">■ 各マーケターランク審査状態:</span>
+                ${pendingApproval ? '<span class="text-[8px] text-amber-400 bg-amber-500/15 px-1 rounded animate-pulse font-bold border border-amber-500/30">新着申請あり</span>' : ''}
+                ${pendingGrading ? '<span class="text-[8px] text-rose-400 bg-rose-500/15 px-1 rounded animate-pulse font-bold border border-rose-500/30">解答到着</span>' : ''}
+              </div>
+              <div class="grid grid-cols-6 gap-1">
+                ${badgeHtml}
+              </div>
+            </div>
+          </div>
+        `;
+        container.innerHTML += item;
+      });
+      lucide.createIcons();
+    }
+
+    // 生徒選択のみ（試験ボタンをクリックしていない場合）
+    function selectStudentOnly(studentKey) {
+      appState.adminSelectedStudentKey = studentKey;
+      appState.adminSelectedExamNum = null;
+      
+      const student = appState.students[studentKey];
+      
+      document.getElementById('admin-review-placeholder').style.display = "none";
+      document.getElementById('admin-review-content').style.display = "block";
+      
+      document.getElementById('review-rank-badge').innerText = `CARTE`;
+      document.getElementById('review-student-title').innerText = `${student.name} さんの指導カルテ`;
+      document.getElementById('review-timestamp').innerText = `現在ランク: MR${student.currentRank}`;
+      
+      const statusLabel = document.getElementById('review-current-status');
+      statusLabel.className = "text-xs font-bold text-gray-400 bg-gray-900 px-2 py-0.5 rounded";
+      statusLabel.innerText = "閲覧モード";
+
+      document.getElementById('admin-approval-area').classList.add('hidden');
+      document.getElementById('admin-answers-area').classList.add('hidden');
+      document.getElementById('admin-grading-area').classList.add('hidden');
+
+      document.getElementById('review-fields-preview').innerHTML = `
+        <div class="text-center py-6 space-y-2">
+          <i data-lucide="info" class="w-8 h-8 text-[#dfb76c] mx-auto opacity-70"></i>
+          <p class="text-gray-400 text-xs font-bold">下部の「MR2〜MR7」いずれかの試練バッジをクリックすると、試験問題のチェックや解答データの審査ができます。</p>
+        </div>
+      `;
+      
+      renderAdminStudentList();
+    }
+
+    // 運営用：審査または承認画面ロード（切り替え不具合を完全修正！）
+    function openAdminReview(studentKey, examNum) {
+      appState.adminSelectedStudentKey = studentKey;
+      appState.adminSelectedExamNum = examNum;
+
+      const student = appState.students[studentKey];
+      const attempt = student.examAttempts[examNum] || { status: "not_started" };
+
+      if (!student) return;
+
+      document.getElementById('admin-review-placeholder').style.display = "none";
+      document.getElementById('admin-review-content').style.display = "block";
+
+      // ヘッダー情報
+      document.getElementById('review-rank-badge').innerText = `MR${examNum}`;
+      document.getElementById('review-student-title').innerText = `${student.name} さんの MR${examNum} 試練`;
+      
+      const statusLabel = document.getElementById('review-current-status');
+
+      // ステータス判定
+      if (attempt.status === 'not_started') {
+        // まだ挑戦していない -> 「試験内容プレビュー」として設問をすべて見せる
+        statusLabel.className = "text-xs font-bold text-gray-500 bg-[#080503] px-2.5 py-1 rounded border border-gray-800";
+        statusLabel.innerText = "未挑戦 (設問確認モード)";
+
+        document.getElementById('admin-approval-area').classList.add('hidden');
+        document.getElementById('admin-answers-area').classList.remove('hidden');
+        document.getElementById('admin-grading-area').classList.add('hidden'); 
+        document.getElementById('preview-mode-tag').innerText = "（未受験・設問チェック中）";
+
+        renderFieldsPreview(examNum, {}, true); 
+      } 
+      else if (attempt.status === 'applying') {
+        // 申請中 -> 承認ボタンを表示
+        statusLabel.className = "text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20";
+        statusLabel.innerText = "受験申請中";
+
+        document.getElementById('admin-approval-area').classList.remove('hidden');
+        document.getElementById('admin-answers-area').classList.remove('hidden');
+        document.getElementById('admin-grading-area').classList.add('hidden');
+        document.getElementById('preview-mode-tag').innerText = "（未受験・設問チェック中）";
+
+        // 承認ボタンエリアのリセット
+        document.getElementById('approval-btn-container').innerHTML = `
+          <button 
+            onclick="approveExamChallenge()" 
+            class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow flex items-center justify-center space-x-1.5"
+          >
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>受験を承認する（クエスト解放）</span>
+          </button>
+        `;
+
+        renderFieldsPreview(examNum, {}, true);
+      } 
+      else if (attempt.status === 'approved') {
+        // 承認済み未提出
+        statusLabel.className = "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20";
+        statusLabel.innerText = "挑戦承認済 (回答待ち)";
+
+        document.getElementById('admin-approval-area').classList.add('hidden');
+        document.getElementById('admin-answers-area').classList.remove('hidden');
+        document.getElementById('admin-grading-area').classList.add('hidden');
+        document.getElementById('preview-mode-tag').innerText = "（未提出・白紙）";
+
+        renderFieldsPreview(examNum, {}, true);
+      } 
+      else {
+        // 提出済み or 採点完了 -> 採点フォームと解答プレビュー
+        document.getElementById('admin-approval-area').classList.add('hidden');
+        document.getElementById('admin-answers-area').classList.remove('hidden');
+        document.getElementById('admin-grading-area').classList.remove('hidden');
+        document.getElementById('preview-mode-tag').innerText = "（解答済データ）";
+
+        if (attempt.status === 'submitted') {
+          statusLabel.className = "text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20 animate-pulse";
+          statusLabel.innerText = "未採点 (審査中)";
+
+          document.getElementById('review-score').value = "85";
+          document.getElementById('review-result').value = "pass";
+          document.getElementById('review-feedback').value = "";
+        } else {
+          // すでに採点完了
+          statusLabel.className = attempt.result === 'pass'
+            ? "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20"
+            : "text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20";
+          statusLabel.innerText = attempt.result === 'pass' ? `クリア! (${attempt.score}点)` : `要再提出 (${attempt.score}点)`;
+
+          document.getElementById('review-score').value = attempt.score || "80";
+          document.getElementById('review-result').value = attempt.result || "fail";
+          document.getElementById('review-feedback').value = attempt.feedback || "";
+        }
+
+        renderFieldsPreview(examNum, attempt, false);
+      }
+
+      document.getElementById('review-timestamp').innerText = `最終アクション日時: ${attempt.timestamp || 'なし'}`;
+      renderAdminStudentList();
+    }
+
+    // 挑戦申請の承認
+    function approveExamChallenge() {
+      const studentKey = appState.adminSelectedStudentKey;
+      const examNum = appState.adminSelectedExamNum;
+
+      if (!studentKey || !examNum) return;
+
+      appState.students[studentKey].examAttempts[examNum].status = "approved";
+      appState.students[studentKey].examAttempts[examNum].timestamp = new Date().toLocaleString();
+      saveDatabase();
+
+      // ボタンを「承認完了！」のアニメーション状態に書き換える
+      const btnContainer = document.getElementById('approval-btn-container');
+      btnContainer.innerHTML = `
+        <div class="w-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 animate-bounce shadow-inner">
+          <i data-lucide="check" class="w-5 h-5"></i>
+          <span>ギルド挑戦承認 完了！</span>
+        </div>
+      `;
+      lucide.createIcons();
+
+      // 通知
+      showToast("承認完了", `マーケターランク${examNum} への挑戦を承認しました。生徒側のポータルが即座にアンロックされます。`, "success");
+
+      // 1秒後にヘッダーや他の状態表示を自動リフレッシュ
+      setTimeout(() => {
+        openAdminReview(studentKey, examNum);
+      }, 1000);
+    }
+
+    // 点数選択が変わった時の、合否自動チェック制限（80点未満の合格誤送信防止）
+    function handleScoreChange() {
+      const score = parseInt(document.getElementById('review-score').value);
+      const resultSelect = document.getElementById('review-result');
+
+      if (score < 80) {
+        resultSelect.value = "fail"; // 自動で不合格に倒す
+      }
+    }
+
+    // 採点サブミット（80点未満合格の誤送信ブロック制限付き）
+    function submitReview() {
+      const studentKey = appState.adminSelectedStudentKey;
+      const examNum = appState.adminSelectedExamNum;
+
+      if (!studentKey || !examNum) return;
+
+      const score = parseInt(document.getElementById('review-score').value) || 0;
+      let result = document.getElementById('review-result').value;
+      const feedback = document.getElementById('review-feedback').value.trim();
+
+      if (!feedback) {
+        showToast("入力エラー", "ギルドフィードバックコメントを入力してください。", "error");
+        return;
+      }
+
+      // 点数が80点未満の場合、誤って合格が選ばれていても強制的に不合格（要再提出）に変更
+      if (score < 80 && result === 'pass') {
+        result = 'fail';
+        showToast(
+          "合否設定を自動修正", 
+          "評価点数が80点未満のため、合否判定を強制的に「要再提出（不合格）」として処理しました。点数を80点以上にするか、再提出を促してください。", 
+          "info"
+        );
+      }
+
+      const attempt = appState.students[studentKey].examAttempts[examNum];
+      attempt.status = "graded";
+      attempt.score = score;
+      attempt.result = result;
+      attempt.feedback = feedback;
+
+      // 合格した場合のみ生徒の現在の最高ランクを更新
+      if (result === 'pass') {
+        if (examNum > appState.students[studentKey].currentRank) {
+          appState.students[studentKey].currentRank = examNum;
+        }
+      }
+
+      saveDatabase();
+      renderAdminStudentList();
+      openAdminReview(studentKey, examNum);
+
+      showToast("採点完了", "採点レポートおよびギルドフィードバックを生徒のポータルへ即座に送信しました。", "success");
+    }
+
+    // 設問プレビューの出力（未提出時は白紙を表示）
+    function renderFieldsPreview(examNum, attempt, isBlank = false) {
+      const preview = document.getElementById('review-fields-preview');
+      preview.innerHTML = "";
+
+      const info = ranks[examNum];
+      if (!info || !info.fields) return;
+
+      info.fields.forEach(field => {
+        const val = isBlank ? "" : (attempt[field.name] || "");
+        let displayVal = "";
+
+        if (isBlank) {
+          displayVal = `<span class="text-gray-600 italic">（受講生の回答待ち - 設問内容: 「${field.placeholder}」）</span>`;
+        } else if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
+          displayVal = `<a href="${val}" target="_blank" class="text-amber-400 hover:underline break-all flex items-center space-x-1">
+                          <span>${val}</span><i data-lucide="external-link" class="w-3.5 h-3.5 inline"></i>
+                        </a>`;
+        } else {
+          displayVal = `<p class="whitespace-pre-line text-gray-200 leading-relaxed">${val || '（未入力）'}</p>`;
+        }
+
+        const block = `
+          <div class="border-b border-[#3c2a1c] pb-3 mb-3 last:border-0 last:pb-0">
+            <span class="block text-[11px] font-bold text-[#dfb76c] mb-1">■ ${field.label}</span>
+            <div class="bg-[#080503] p-3 rounded-lg border border-gray-900/80">
+              ${displayVal}
+            </div>
+          </div>
+        `;
+        preview.innerHTML += block;
+      });
+      lucide.createIcons();
+    }
+
+    // デモ用生徒追加
+    function initMockData() {
+      appState.students = {
+        ...appState.students,
+        ...defaultStudents
+      };
+      saveDatabase();
+      renderAdminStudentList();
+      showToast("受講生読込完了", "佐藤さん、木村さん等のテスト用カルテをギルドデータベースに同期しました。", "success");
+    }
+
+    // 生徒用ワークスペースでの設問ジェネレータ
+    function generateFormFields(rankNum) {
+      const info = ranks[rankNum];
+      if (!info || !info.fields) return "";
+
+      let html = "";
+      info.fields.forEach(field => {
+        if (field.type === "url") {
+          html += `
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-gray-300 mb-1.5">${field.label} ${field.required ? '<span class="text-rose-500">*</span>' : ''}</label>
+              <input type="url" name="${field.name}" ${field.required ? 'required' : ''} placeholder="${field.placeholder}" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c] font-mono">
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-gray-300 mb-1.5">${field.label} ${field.required ? '<span class="text-rose-500">*</span>' : ''}</label>
+              <textarea name="${field.name}" rows="4" ${field.required ? 'required' : ''} placeholder="${field.placeholder}" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c]"></textarea>
+            </div>
+          `;
+        }
+      });
+      return html;
+    }
+
+    // トースト
+    function showToast(title, message, type = "info") {
+      const toast = document.getElementById('toast-notification');
+      const iconBg = document.getElementById('toast-icon-bg');
+      const icon = document.getElementById('toast-icon');
+      const titleEl = document.getElementById('toast-title');
+      const msgEl = document.getElementById('toast-message');
+
+      titleEl.innerText = title;
+      msgEl.innerText = message;
+
+      if (type === "success") {
+        iconBg.className = "p-2 rounded-lg bg-[#142d1f] text-emerald-400";
+        icon.setAttribute('data-lucide', 'check-circle');
+      } else if (type === "error") {
+        iconBg.className = "p-2 rounded-lg bg-rose-500/20 text-rose-400";
+        icon.setAttribute('data-lucide', 'alert-circle');
+      } else {
+        iconBg.className = "p-2 rounded-lg bg-amber-500/20 text-amber-400";
+        icon.setAttribute('data-lucide', 'shield-alert');
+      }
+
+      lucide.createIcons();
+
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        hideToast();
+      }, 6000);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('toast-notification');
+      toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+    }
+  </script>
+</body>
+</html>
