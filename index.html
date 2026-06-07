@@ -198,7 +198,8 @@
               type="text" 
               id="auth-username-input" 
               required
-              placeholder="例: guild_marketer" 
+              maxlength="10"
+              placeholder="例: guildmarketer" 
               class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors font-mono"
             >
           </div>
@@ -545,7 +546,7 @@
                     </div>
                     <div>
                       <label class="block text-gray-400 mb-1 font-bold">ユーザー名 (ログインID)</label>
-                      <input type="text" id="admin-edit-username" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]">
+                      <input type="text" id="admin-edit-username"maxlength="10" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]">
                     </div>
                     <div>
                       <label class="block text-gray-400 mb-1 font-bold">パスワード (8桁制限)</label>
@@ -981,9 +982,9 @@
       const password = document.getElementById('auth-password-input').value.trim();
 
       // 半角英数字のチェック
-      const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+      const usernameRegex = /^[a-zA-Z0-9]+$/;
       if (!usernameRegex.test(username)) {
-        showToast("入力エラー", "ユーザー名は半角英数字（ハイフン、アンダーバー可）で入力してください。", "error");
+        showToast("入力エラー", "ユーザー名は半角英数字で入力してください。", "error");
         return;
       }
 
