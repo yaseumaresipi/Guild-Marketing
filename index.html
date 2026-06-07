@@ -194,13 +194,8 @@
             <label class="block text-xs font-bold text-gray-300 mb-1.5">
               ユーザー名（ログインID） <span class="text-rose-500">*</span>
             </label>
-            <input 
-              type="text" 
-              id="auth-username-input" 
-              required
-              placeholder="例: guild_marketer" 
-              class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors font-mono"
-            >
+            <!-- 修正後のログイン用ユーザー名入力欄 -->
+<input type="text" id="username" maxlength="10" placeholder="ユーザー名 (10文字以内)" class="w-full p-3 bg-black/30 border border-amber-900/30 rounded text-white">
           </div>
 
           <div>
