@@ -94,16 +94,12 @@
   <header class="border-b-2 border-[#dfb76c]/30 bg-[#070503] py-4 px-6 sticky top-0 z-40 shadow-xl">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
       
-      <!-- 炎のギルドシンボル & ロゴ -->
+      <!-- 炎 of ギルドシンボル & ロゴ -->
       <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
-        <!-- 共有されたギルドロゴマークを忠実にSVG化 (黒いサークル、内向き三角牙、薄い羊皮紙、炎) -->
         <div class="w-12 h-12 flex-shrink-0">
           <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_8px_rgba(223,183,108,0.7)]">
-            <!-- 外側の黒い背景サークル -->
             <circle cx="50" cy="50" r="48" fill="#141414" />
-            <!-- 内側の薄い羊皮紙ベージュのサークル -->
             <circle cx="50" cy="50" r="38" fill="#c3b59b" />
-            <!-- 内側を指す鋭い三角形のスタッズ（16個） -->
             <g fill="#141414">
               <polygon points="50,11 46,17 54,17" />
               <polygon points="65,14 59,20 65,24" />
@@ -122,7 +118,6 @@
               <polygon points="22,23 29,28 26,34" />
               <polygon points="35,14 41,20 35,24" />
             </g>
-            <!-- 中央のダークブラウンのシャープな炎 -->
             <path d="M50,18 C44,30 40,37 34,49 C28,60 30,72 43,78 C55,83 66,78 68,65 C69,55 59,53 57,46 C55,39 59,34 59,26 C59,35 67,44 67,54 C67,68 56,74 49,74 C41,74 35,67 38,55 C41,43 48,32 50,18 Z M50,24 C51,31 53,35 56,42 C58,45 60,48 61,52 C62,56 59,59 55,57 C52,55 50,50 48,45 C46,40 47,31 50,24 Z M39,55 C36,53 33,49 34,44 C35,39 39,41 40,46 C41,51 39,53 39,55 Z" fill="#4d1b06" />
           </svg>
         </div>
@@ -134,7 +129,6 @@
 
       <!-- モード切り替え & ログインステータス -->
       <div class="flex items-center space-x-3">
-        <!-- 運営用管理画面への切替ボタン -->
         <button 
           id="btn-toggle-admin"
           onclick="toggleAdminMode()" 
@@ -144,7 +138,6 @@
           <span id="btn-toggle-admin-text">ギルド運営管理画面へ</span>
         </button>
 
-        <!-- ログアウト -->
         <button 
           id="btn-logout"
           onclick="handleLogout()"
@@ -154,7 +147,6 @@
           ログアウト
         </button>
 
-        <!-- 受講生ヘッダー表示 -->
         <div class="hidden md:flex items-center space-x-2 border-l border-[#dfb76c]/20 pl-3" id="header-student-badge" style="display: none;">
           <span class="text-xs bg-gradient-to-r from-amber-500 to-yellow-600 text-black px-2.5 py-1 rounded-lg font-bold shadow-md" id="header-rank-text">
             MR1
@@ -173,27 +165,26 @@
     <!-- ============================================== -->
     <section id="auth-section" class="max-w-md mx-auto my-12 fade-in">
       <div class="quest-board-panel rounded-2xl p-6 md:p-8 shadow-2xl relative">
-        <!-- タブ切り替え -->
         <div class="grid grid-cols-2 gap-2 mb-6">
           <button id="tab-login" onclick="switchAuthTab('login')" class="py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c] transition-all">ログイン</button>
           <button id="tab-register" onclick="switchAuthTab('register')" class="py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400 hover:text-gray-200 transition-all">新規ギルド登録</button>
         </div>
 
         <div id="auth-description" class="text-center mb-6">
-          <!-- ログイン文言変更 -->
           <h2 class="text-2xl font-black text-white tracking-wider font-cinzel text-[#dfb76c]" id="auth-title">Guild Marketing</h2>
-          <p class="text-[10px] text-gray-400 font-bold font-mono tracking-widest mt-1" id="auth-sub">Press the entrance</p>
+          <p class="text-[10px] text-gray-400 font-bold font-mono tracking-widest mt-1" id="auth-sub">Enter credentials to proceed</p>
         </div>
 
         <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-          <div>
+          
+          <!-- 新規登録時のみ表示する受講生本名（ログイン時はJSで隠す） -->
+          <div id="auth-field-realname" class="hidden">
             <label class="block text-xs font-bold text-gray-300 mb-1.5">
               受講生氏名 <span class="text-rose-500">*</span>
             </label>
             <input 
               type="text" 
-              id="auth-name" 
-              required
+              id="auth-realname-input" 
               placeholder="ギルド 太郎" 
               class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors"
             >
@@ -201,15 +192,27 @@
 
           <div>
             <label class="block text-xs font-bold text-gray-300 mb-1.5">
-              生年月日 (半角数字8桁) <span class="text-rose-500">*</span>
+              ユーザー名（ログインID） <span class="text-rose-500">*</span>
             </label>
             <input 
               type="text" 
-              id="auth-birthday" 
+              id="auth-username-input" 
+              required
+              placeholder="例: guild_marketer" 
+              class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors font-mono"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1.5">
+              パスワード（半角英数字8桁まで） <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="password" 
+              id="auth-password-input" 
               required
               maxlength="8"
-              placeholder="例: 19981005" 
-              pattern="\d{8}"
+              placeholder="••••••••" 
               class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] transition-colors font-mono"
             >
           </div>
@@ -220,7 +223,6 @@
             class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-3.5 px-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center space-x-2 text-xs tracking-widest"
           >
             <span id="auth-submit-text">ギルドに入室する</span>
-            <!-- ギルドロゴをヘッダーと同じ形でボタン内にも配置 -->
             <svg viewBox="0 0 100 100" class="w-5 h-5 ml-1">
               <circle cx="50" cy="50" r="48" fill="#141414" />
               <circle cx="50" cy="50" r="38" fill="#c3b59b" />
@@ -230,7 +232,6 @@
         </form>
       </div>
     </section>
-
 
     <!-- ============================================== -->
     <!--  2. 受講生マイページ                             -->
@@ -254,7 +255,19 @@
               </div>
               <div>
                 <h3 class="text-xl font-bold text-white mb-0.5" id="student-display-name">---</h3>
-                <p class="text-xs text-gray-400 font-mono" id="student-display-birthday">---</p>
+                <p class="text-xs text-gray-400 font-mono" id="student-display-username">ID: ---</p>
+              </div>
+            </div>
+
+            <!-- 基本属性・入学日・担当マーケター表示 -->
+            <div class="space-y-1.5 bg-[#090604] p-3 rounded-lg border border-[#3c2a1c] text-xs mt-3">
+              <div class="flex justify-between">
+                <span class="text-gray-400">入学日:</span>
+                <span class="font-bold text-[#dfb76c]" id="student-display-admission">---</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400">担当マーケター:</span>
+                <span class="font-bold text-white" id="student-display-mentor">---</span>
               </div>
             </div>
           </div>
@@ -363,8 +376,40 @@
           </div>
         </div>
 
+        <!-- 運営から共有されたリンク表示欄（生徒は編集不可・踏んで移動のみ可） -->
+        <div id="workspace-shared-links-panel" class="hidden p-4 rounded-xl border-2 border-[#dfb76c]/40 bg-[#16100b] space-y-3">
+          <h5 class="text-xs font-bold text-[#dfb76c] flex items-center space-x-1.5 font-mono">
+            <i data-lucide="link" class="w-3.5 h-3.5"></i>
+            <span>🛡️ ギルド運営からの指令情報（閲覧用）</span>
+          </h5>
+          <div id="workspace-shared-links-content" class="space-y-2 text-xs">
+            <!-- 共有されたリンク等がここに差し込まれます -->
+          </div>
+        </div>
+
         <div class="bg-[#080503] p-4 rounded-xl border border-[#3c2a1c] text-xs text-gray-400" id="workspace-description">
           <!-- クエスト解説 -->
+        </div>
+
+        <!-- 最終推薦(MR8)受け入れ表示エリア -->
+        <div id="workspace-r8-accept-area" class="hidden p-6 rounded-xl border-2 border-[#dfb76c] bg-[#1a120a] text-center space-y-4">
+          <div class="w-16 h-16 rounded-full bg-[#dfb76c]/10 border border-[#dfb76c]/30 flex items-center justify-center mx-auto text-[#dfb76c] drop-shadow-[0_0_8px_rgba(223,183,108,0.5)]">
+            <i data-lucide="award" class="w-8 h-8"></i>
+          </div>
+          <div class="space-y-2">
+            <h5 class="text-base font-black text-[#dfb76c] tracking-widest font-cinzel">GUILD MASTER RECOMMENDATION</h5>
+            <p class="text-xs text-gray-200 leading-relaxed max-w-md mx-auto">
+              ギルド運営役員会より、あなたを最高峰のプロフェッショナルである<strong class="text-amber-400">「マーケターランク8 (MR8) トップギルドパートナー」</strong>として正式に推薦いたしました。<br>
+              以下のボタンを押し、推薦状を受諾することでパートナー就任が確定します。
+            </p>
+          </div>
+          <button 
+            onclick="acceptR8Recommendation()"
+            class="mx-auto bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-3 px-8 rounded-xl text-xs transition-all shadow-lg flex items-center justify-center space-x-2 tracking-widest"
+          >
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>特別推薦を受け入れ、MR8に就任する</span>
+          </button>
         </div>
 
         <!-- 解答用紙フォーム -->
@@ -469,7 +514,7 @@
               <div class="text-center py-24 text-gray-500" id="admin-review-placeholder">
                 <i data-lucide="scroll" class="w-12 h-12 text-[#5a4231] mx-auto mb-3"></i>
                 <h4 class="text-sm font-bold text-gray-400">受講生カルテが選択されていません</h4>
-                <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">左側のカルテをクリック、または各MRバッジをクリックして評価シートを読み込んでください。生徒が現在挑戦中の設問確認も可能です。</p>
+                <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">左側のカルテをクリック、または各MRバッジをクリックして評価シートを読み込んでください。基本情報の変更（名前、パスワード、担当マーケター等）もカルテから行えます。</p>
               </div>
 
               <div id="admin-review-content" style="display: none;" class="space-y-6">
@@ -487,13 +532,60 @@
                   </div>
                 </div>
 
-                <!-- 承認ボタンエリア -->
-                <div id="admin-approval-area" class="bg-amber-500/10 p-4 rounded-xl border-2 border-dashed border-[#dfb76c]/40 space-y-3 hidden">
+                <!-- 【追加】受講生基本プロフィールの編集・追加パネル -->
+                <div id="admin-student-basic-edit-area" class="parchment p-4 rounded-xl border border-[#dfb76c]/40 space-y-4">
+                  <h5 class="text-xs font-bold text-[#dfb76c] flex items-center space-x-1.5 font-mono">
+                    <i data-lucide="user-cog" class="w-4 h-4"></i>
+                    <span>👤 受講生カルテ基本情報の編集</span>
+                  </h5>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label class="block text-gray-400 mb-1 font-bold">受講生氏名</label>
+                      <input type="text" id="admin-edit-realname" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]">
+                    </div>
+                    <div>
+                      <label class="block text-gray-400 mb-1 font-bold">ユーザー名 (ログインID)</label>
+                      <input type="text" id="admin-edit-username" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]">
+                    </div>
+                    <div>
+                      <label class="block text-gray-400 mb-1 font-bold">パスワード (8桁制限)</label>
+                      <input type="text" id="admin-edit-password" maxlength="8" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]" placeholder="8文字以内">
+                    </div>
+                    <div>
+                      <label class="block text-gray-400 mb-1 font-bold">入学日</label>
+                      <input type="text" id="admin-edit-admission" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]" placeholder="例: 2026/06/07">
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-gray-400 mb-1 font-bold">担当マーケター名 (追加・編集可能)</label>
+                      <div class="flex gap-2">
+                        <input type="text" id="admin-edit-mentor" class="flex-grow bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]" placeholder="例: アキヒビ、まり">
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onclick="saveStudentBasicInfo()"
+                    class="w-full bg-[#1e140d] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c] text-[#dfb76c] font-bold py-2 rounded-xl text-xs transition-all flex items-center justify-center space-x-1.5"
+                  >
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>生徒の基本情報（カルテ）を上書き保存する</span>
+                  </button>
+                </div>
+
+                <!-- 承認・リンク先行登録ボタンエリア（MR3, MR4, MR5, MR7, MR8に対応） -->
+                <div id="admin-approval-area" class="bg-amber-500/10 p-4 rounded-xl border-2 border-dashed border-[#dfb76c]/40 space-y-4 hidden">
                   <div class="flex items-start space-x-2">
                     <i data-lucide="shield-alert" class="w-5 h-5 text-[#dfb76c] flex-shrink-0 mt-0.5 animate-bounce"></i>
                     <div>
-                      <span class="text-xs font-bold text-white block">マーケターランク昇格への挑戦申請を受理しました</span>
-                      <p class="text-[10px] text-gray-400 mt-0.5">受講生側で昇格クエストを受注（受験）できるように許可を与えるには、「受験を承認する」をクリックしてください。</p>
+                      <span class="text-xs font-bold text-white block" id="approval-box-title">昇格への挑戦申請を受理しました</span>
+                      <p class="text-[10px] text-gray-400 mt-0.5" id="approval-box-description">受講生側で昇格クエストを受注できるように許可を与えるには、以下の設定項目を入力して「受験を承認する」をクリックしてください。</p>
+                    </div>
+                  </div>
+
+                  <!-- 運営からの指令リンク先行設定フィールド群 -->
+                  <div id="admin-links-setup-fields" class="space-y-3 border-t border-b border-[#dfb76c]/20 py-3 hidden">
+                    <h5 class="text-xs font-bold text-[#dfb76c] uppercase font-mono">🔗 生徒側へ共有する指示リンク・情報の編集</h5>
+                    <div id="admin-setup-inputs-container" class="space-y-2">
+                      <!-- 動的に生成 -->
                     </div>
                   </div>
                   
@@ -524,18 +616,16 @@
 
                 <!-- 採点＆フィードバック送信エリア -->
                 <div id="admin-grading-area" class="border-t border-[#3c2a1c] pt-4 space-y-4">
-                  <span class="text-xs font-bold text-emerald-400 block">✍️ ギルド査定フィードバック</span>
+                  <span class="text-xs font-bold text-emerald-400 block" id="admin-feedback-section-title">✍️ ギルド査定フィードバック</span>
                   
-                  <div class="grid grid-cols-2 gap-4">
+                  <div class="grid grid-cols-2 gap-4" id="admin-score-fields">
                     <div>
-                      <!-- （5点刻み）表記を削除 -->
                       <label class="block text-[11px] text-gray-400 mb-1">評価点数 <span class="text-rose-500">*</span></label>
                       <select 
                         id="review-score" 
                         onchange="handleScoreChange()"
                         class="w-full bg-[#080503] border border-[#3c2a1c] rounded-xl px-3 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#dfb76c] font-mono"
                       >
-                        <!-- 5点刻みのシンプルな数字表記に変更 -->
                         <option value="100">100 点</option>
                         <option value="95">95 点</option>
                         <option value="90">90 点</option>
@@ -572,17 +662,18 @@
                   </div>
 
                   <div>
-                    <label class="block text-[11px] text-gray-400 mb-1">指導フィードバックコメント <span class="text-rose-500">*</span></label>
+                    <label class="block text-[11px] text-gray-400 mb-1" id="admin-comment-label">指導フィードバックコメント <span class="text-rose-500">*</span></label>
                     <textarea 
                       id="review-feedback" 
                       rows="4" 
                       required
-                      placeholder="整合性、表現の丁寧さについて、次のステージへ進むための具体的なアドバイスを記載してください。"
+                      placeholder="整合性、表現 of 丁寧さについて、次のステージへ進むための具体的なアドバイスを記載してください。"
                       class="w-full bg-[#080503] border border-[#3c2a1c] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#dfb76c]"
                     ></textarea>
                   </div>
 
                   <button 
+                    id="btn-admin-grading-submit"
                     onclick="submitReview()" 
                     class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3 rounded-xl text-xs transition-all flex items-center justify-center space-x-1.5 shadow-lg tracking-widest font-mono"
                   >
@@ -605,7 +696,7 @@
   </main>
 
   <!-- 通知ポップアップ -->
-  <div id="toast-notification" class="fixed bottom-6 right-6 z-50 glass-panel-active rounded-xl p-4 shadow-2xl flex items-start space-x-3 max-w-sm transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+  <div id="toast-notification" class="fixed bottom-6 right-6 z-50 glass-panel-active rounded-xl p-4 shadow-2xl flex items-start space-x-3 max-w-sm transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none" style="background-color: #110b07; border: 2px solid #dfb76c;">
     <div id="toast-icon-bg" class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
       <i data-lucide="check" class="w-5 h-5" id="toast-icon"></i>
     </div>
@@ -624,12 +715,41 @@
   </footer>
 
   <script>
-    // 擬似データベース
+    // ログインのアクティブなタブ管理 ("login" or "register")
+    let activeAuthTab = "login";
+
+    // ランダムな生徒情報を生成するヘルパー関数 (MR5 Q2ケーススタディ用)
+    function generateRandomStudentInfo() {
+      const genres = ["ビジネス・副業系", "暮らし・お片付けライフハック系", "恋愛・心理コミュニケーション系", "時短ガジェット・AI便利ツール系"];
+      const histories = ["アカウント開設から3ヶ月", "アカウント開設から半年", "アカウント開設から1年（運用ジャンル変更歴あり）", "アカウント開設から2ヶ月（完全初心者）"];
+      const frequencies = ["毎日投稿（ストーリーズ含め非常に活発）", "週2〜3回投稿（リール中心の高クオリティ路線）", "不定期（月に4〜5本程度）", "平日は毎日投稿（土日は完全停止運用）"];
+
+      // 共通ジャンルを1点決定
+      const selectedGenre = genres[Math.floor(Math.random() * genres.length)];
+      
+      // 他の配列をシャッフル
+      const shuffledHistories = [...histories].sort(() => Math.random() - 0.5);
+      const shuffledFrequencies = [...frequencies].sort(() => Math.random() - 0.5);
+
+      return `■【共通指導ジャンル】: ${selectedGenre}
+・生徒X：投稿歴 [ ${shuffledHistories[0]} ] / 投稿頻度 [ ${shuffledFrequencies[0]} ]
+・生徒Y：投稿歴 [ ${shuffledHistories[1]} ] / 投稿頻度 [ ${shuffledFrequencies[1]} ]
+・生徒Z：投稿歴 [ ${shuffledHistories[2]} ] / 投稿頻度 [ ${shuffledFrequencies[2]} ]`;
+    }
+
+    // セッションごとに異なる生徒Q2用のデータを確定
+    const randomStudentCaseMR5 = generateRandomStudentInfo();
+
+    // 疑似データベース (セキュアログイン向けに再構造化)
+    // キーは固有ユーザー名のBASE64です
     const defaultStudents = {
-      "demo-shota": {
+      "ZGVtby1zaG90YQ==": { // username: "demo-shota"
+        username: "demo-shota",
+        password: "password",
         name: "木村 翔太",
-        birthday: "19980412",
         currentRank: 2,
+        admissionDate: "2026/04/01",
+        mentor: "アキヒビ",
         examAttempts: {
           2: {
             account_url: "https://instagram.com/shota_sns",
@@ -646,10 +766,13 @@
           }
         }
       },
-      "demo-misaki": {
+      "ZGVtby1taXNha2k=": { // username: "demo-misaki"
+        username: "demo-misaki",
+        password: "password",
         name: "佐藤 美咲",
-        birthday: "20000825",
         currentRank: 4,
+        admissionDate: "2026/01/15",
+        mentor: "まり",
         examAttempts: {
           2: {
             account_url: "https://instagram.com/misaki_marketing",
@@ -672,15 +795,17 @@
             score: 85,
             result: "pass",
             feedback: "「なぜ伸びないか」を保存率と情報量に着目してしっかりと客観的に言語化できています。納得の改善案です。合格とします。",
+            shared_tensakuUrl: "https://instagram.com/guild_official",
             timestamp: "2026/06/03 15:30"
           },
           4: {
-            meeting_link: "https://drive.google.com/file/d/demo_meeting_link/view",
-            sheet_link: "https://docs.google.com/spreadsheets/d/demo_sheet_link/edit",
-            status: "submitted",
-            score: null,
-            result: null,
-            feedback: null,
+            shared_mendanUrl: "https://zoom.us/j/123456789",
+            shared_spreadsheetUrl: "https://docs.google.com/spreadsheets/d/abc123xyz/edit",
+            shared_mendanDate: "2026年6月10日 15:00",
+            status: "graded",
+            score: 90,
+            result: "pass",
+            feedback: "対面指導の面談お疲れ様でした。傾聴姿勢、課題のロジカルな切り分けともに申し分なく、大変素晴らしいヒアリングでした。文句なしの合格です！",
             timestamp: "2026/06/05 18:20"
           }
         }
@@ -697,7 +822,7 @@
       adminSelectedExamNum: null 
     };
 
-    // マーケターランク(MR)の詳細データ定義
+    // マーケターランク(MR)の詳細データおよび指令設定URL定義
     const ranks = {
       2: {
         id: 2,
@@ -706,84 +831,92 @@
         description: "将来的にコンサルをする側を狙うための、第一歩の設計。自身のアカウントの徹底言語化とブレない軸を確認します。",
         criteria: "合格基準: 80点以上。設定の具体性、軸の一貫性、言語化の丁寧さを審査します。",
         fields: [
-          { name: "account_url", label: "あなたのアカウント URL", type: "url", required: true, placeholder: "https://instagram.com/your_account" },
-          { name: "design_target", label: "【設計シート】1. ターゲットについて (誰に届けるか)", type: "textarea", required: true, placeholder: "ターゲットの属性、年齢、仕事や人生の悩みを具体的に記載" },
-          { name: "design_axis", label: "【設計シート】2. 発信内容と投稿の軸 (何を発信するのか)", type: "textarea", required: true, placeholder: "どのようなテーマ、情報発信を軸にするのか" },
-          { name: "design_strength", label: "【設計シート】3. 自分の強み (なぜこのアカウントをしているのか)", type: "textarea", required: true, placeholder: "競合と比較した際のあなたの強み、独自性" },
-          { name: "design_goal", label: "【設計シート】4. 最終的なゴール", type: "textarea", required: true, placeholder: "マネタイズモデルや獲得したいビジネスゴール" },
-          { name: "benchmark_url", label: "参考にしているベンチマークアカウント URL", type: "url", required: true, placeholder: "https://instagram.com/benchmark_account" }
+          { name: "account_url", label: "あなたのアカウント URL", type: "url", required: true, placeholder: "" },
+          { name: "design_target", label: "【設計シート】1. ターゲットについて (誰に届けるか)", type: "textarea", required: true, placeholder: "" },
+          { name: "design_axis", label: "【設計シート】2. 発信内容と投稿の軸 (何を発信するのか)", type: "textarea", required: true, placeholder: "" },
+          { name: "design_strength", label: "【設計シート】3. 自分の強み (なぜこのアカウントをしているのか)", type: "textarea", required: true, placeholder: "" },
+          { name: "design_goal", label: "【設計シート】4. 最終的なゴール", type: "textarea", required: true, placeholder: "" },
+          { name: "benchmark_url", label: "参考にしているベンチマークアカウント URL", type: "url", required: true, placeholder: "" }
         ]
       },
       3: {
         id: 3,
         title: "マーケターランク 3 (MR3)",
         purpose: "アカウントデータ分析 ＆ 改善案立案",
-        description: "ギルド指定の添削元アカウントをもとに、客観的な分析力・改善を言語化するフィードバック能力を審査します。",
+        description: "ギルドから共有された添削元アカウントデータをもとに、客観的な分析力・改善を言語化するフィードバック能力を審査します。",
         criteria: "合格基準: 80点以上。なぜ伸びている/いないかの『なぜ』が根拠を持って書けているかを審査します。",
+        adminFields: [
+          { name: "tensakuUrl", label: "指導用添削元アカウント URL", placeholder: "https://instagram.com/..." }
+        ],
         fields: [
-          { name: "analysis_diff", label: "1. 伸びている投稿、伸びていない投稿の差は何か？", type: "textarea", required: true, placeholder: "フック、構成、見やすさ、保存誘導などの観点から分析" },
-          { name: "analysis_issue", label: "2. このアカウントの現状の課題は何か？", type: "textarea", required: true, placeholder: "ボトルネックとなっているデータや設計上の欠陥を記述" },
-          { name: "analysis_solution", label: "3. 直近1ヶ月でやるべき改善案の具体的な提案", type: "textarea", required: true, placeholder: "明日から実行できる具体的な施策プランを提示" }
+          { name: "analysis_diff", label: "1. 伸びている投稿、伸びていない投稿の差は何か？", type: "textarea", required: true, placeholder: "" },
+          { name: "analysis_issue", label: "2. このアカウントの現状の課題は何か？", type: "textarea", required: true, placeholder: "" },
+          { name: "analysis_solution", label: "3. 直近1ヶ月でやるべき改善案の具体的な提案", type: "textarea", required: true, placeholder: "" }
         ]
       },
       4: {
         id: 4,
         title: "マーケターランク 4 (MR4)",
         purpose: "個別指導・ヒアリング実践 (面談ロープレ)",
-        description: "ここをクリアすると、受講生を担当できます。面談練習の様子、ヒアリングカルテのスプレッドシートをもとに審査します。",
-        criteria: "合格基準: 80点以上。ヒアリングができているか、改善案の提案ができているか、モチベ維持ができているか。",
-        fields: [
-          { name: "meeting_link", label: "面談ロールプレイング（録画/音声）リンクURL", type: "url", required: true, placeholder: "https://drive.google.com/..." },
-          { name: "sheet_link", label: "実際の生徒情報スプレッドシート（共有用）URL", type: "url", required: true, placeholder: "https://docs.google.com/spreadsheets/..." }
-        ]
+        description: "ここをクリアすると、受講生を担当できます。指定の面談予定日にZoom等で指導面談練習を行います。<br>※生徒からレポートやリンクの送信提出はありません。共有されたリンクをもとに面談を実施し、終了後運営にて審査します。",
+        criteria: "合格基準: 80点以上。対面における傾聴力、課題定義、アプローチ根拠、生徒を前向きにさせる共感力を総合的に審査します。",
+        adminFields: [
+          { name: "mendanUrl", label: "面談用会議リンク (Zoom / Meet等)", placeholder: "https://zoom.us/..." },
+          { name: "spreadsheetUrl", label: "面談用指導カルテスプレッドシート URL", placeholder: "https://docs.google.com/spreadsheets/..." },
+          { name: "mendanDate", label: "面談実施日時", placeholder: "例: 2026年6月15日 14:00〜" }
+        ],
+        fields: [] 
       },
       5: {
         id: 5,
         title: "マーケターランク 5 (MR5)",
-        purpose: "担当受講生マネジメント報告 ＆ ケーススタディ",
-        description: "実際に担当している生徒実績のデータに加え、複数人が同時に困った場合の意思決定能力を測るケーススタディです。",
-        criteria: "合格基準: 80点以上。全生徒への対応アプローチ根拠、およびケーススタディでの明確なアドバイスの違いを審査します。",
+        purpose: "担当受講生マネジメントケーススタディ",
+        description: "実際の生徒指導と全く同じ状況下を想定したケーススタディです。課題解決の優先順位と適切な指導アドバイス案を作成してください。<br>※指導対象のスプレッドシートは、ギルド運営より挑戦承認（許可）を出す前に事前に共有されます。",
+        criteria: "合格基準: 80点以上。生徒ごとのモチベーション推移と進捗状況を正しく分析し、納得度の高いアプローチが言語化できているかを審査します。",
+        adminFields: [
+          { name: "spreadsheetUrlMR5", label: "指導生徒データベース共有スプシ URL", placeholder: "https://docs.google.com/spreadsheets/..." }
+        ],
         fields: [
-          { name: "r5_student_meta", label: "1. 担当全員分のデータ (生徒名、フォロワー数、目指している未来等)", type: "textarea", required: true, placeholder: "生徒ごとの課題、施した対応、結果を列挙" },
-          { name: "case_q1_answer", label: "【ケースQ1】対応優先順位と理由 (生徒A: 伸び悩み / 生徒B: 辞めたい / 生徒C: タグ選定)", type: "textarea", required: true, placeholder: "3名が同時に連絡をしてきた際の優先度とロジック" },
-          { name: "case_q2_answer", label: "【ケースQ2】フォロワーが増えない悩みへのアプローチの違い (生徒D: 週1・高エンゲージ / 生徒E: 毎日・低エンゲージ)", type: "textarea", required: true, placeholder: "二者への明確に異なるアドバイス" }
+          { name: "case_q1_answer", label: "【ケーススタディ Q1】以下の3人から同日に連絡が来た。対応する順番と理由を書いてください。<br><br>・生徒A：「最近投稿が伸びなくて悩んでいます」<br>・生徒B：「もう辞めようかと思ってます」<br>・生徒C：「ハッシュタグどれがいいですか？」", type: "textarea", required: true, placeholder: "" },
+          { name: "case_q2_answer", label: `【ケーススタディ Q2】以下の条件（同ジャンルで、投稿歴・頻度が異なる）の3名の生徒に対して、それぞれ「似たような質問」を受けた際、どのような異なるアプローチやアドバイスを行うか、その明確な違いを根拠を含めて記述してください。<br><br><span class="text-[#dfb76c] font-mono whitespace-pre-wrap">${randomStudentCaseMR5}</span>`, type: "textarea", required: true, placeholder: "" }
         ]
       },
       6: {
         id: 6,
         title: "マーケターランク 6 (MR6)",
         purpose: "指導設計書 ＆ ギルド帰属意識論述",
-        description: "テンプレート発想を排除し、深く考え抜いた論述問題3問（各700字以上）と後輩生徒の指導計画設計書を審査します。",
-        criteria: "合格基準: 80点以上。Q1〜Q3の客観的思考の深さ、指導スケジュールが根拠のある育成計画になっているか。",
+        description: "テンプレート発想を排除し、深く考え抜いた論述問題3問（※すべて300字以上必須！）と後輩生徒の指導計画設計書を審査します。",
+        criteria: "合格基準: 80点以上。各論述内容が300字以上書かれ、かつ具体論と育成への確固たる当事者意識が宿っているかを審査します。",
         fields: [
-          { name: "essay_q1", label: "論述Q1. 担当している生徒(MR2〜3)をMR4以上に引き上げるプランと根拠 (700字以上)", type: "textarea", required: true, placeholder: "具体的な育成スケジュールと論理的アプローチ" },
-          { name: "essay_q2", label: "論述Q2. Guild Marketingが生徒に対して果たすべき責任と、あなた自身の実践 (700字以上)", type: "textarea", required: true, placeholder: "スクールへの当事者意識、ビジネスコミットメント" },
-          { name: "essay_q3", label: "論述Q3. あなた自身のコンサルの弱点と、現在行っている対策 (700字以上)", type: "textarea", required: true, placeholder: "自己客観視と具体的な改善行動" },
-          { name: "r6_plan_weakness", label: "【指導設計書】1. 担当している生徒の現在の課題（弱点はどこか）", type: "textarea", required: true, placeholder: "課題の深掘り" },
-          { name: "r6_plan_strategy", label: "【指導設計書】2. 指指導方針（どんなアプローチで育てるか）", type: "textarea", required: true, placeholder: "育成方針" },
-          { name: "r6_plan_action", label: "【指導設計書】3. 直近アクション（具体的に何をさせるか）", type: "textarea", required: true, placeholder: "次の一手" },
-          { name: "r6_plan_timeline", label: "【指導設計書】4. MR3またはMR4までの昇格時期・スケジュール", type: "textarea", required: true, placeholder: "いつ頃昇格できそうかの時期" }
+          { name: "essay_q1", label: "論述Q1. 担当している生徒(MR2〜3)をMR4以上に引き上げるプランと根拠 (【300字以上】必須)", type: "textarea", required: true, placeholder: "", minLength: 300 },
+          { name: "essay_q2", label: "論述Q2. Guild Marketingが生徒に対して果たすべき責任と、あなた自身の実践 (【300字以上】必須)", type: "textarea", required: true, placeholder: "", minLength: 300 },
+          { name: "essay_q3", label: "論述Q3. あなた自身のコンサルの弱点と、現在行っている対策 (【300字以上】必須)", type: "textarea", required: true, placeholder: "", minLength: 300 },
+          { name: "r6_plan_weakness", label: "【指導設計書】1. 担当している生徒の現在の課題（弱点はどこか）", type: "textarea", required: true, placeholder: "" },
+          { name: "r6_plan_strategy", label: "【指導設計書】2. 指導方針（どんなアプローチで育てるか）", type: "textarea", required: true, placeholder: "" },
+          { name: "r6_plan_action", label: "【指導設計書】3. 直近アクション（具体的に何をさせるか）", type: "textarea", required: true, placeholder: "" },
+          { name: "r6_plan_timeline", label: "【指導設計書】4. MR3またはMR4までの昇格時期・スケジュール", type: "textarea", required: true, placeholder: "" }
         ]
       },
       7: {
         id: 7,
         title: "マーケターランク 7 (MR7)",
         purpose: "運営役員最終面談・ファクト実績審査",
-        description: "これまでの継続率や昇格させた受講生の数などの明確な数値を提出し、運営との本音面談(60分)にて総合確認を行います。",
-        criteria: "合格基準: 役員協議承認。実績が規定条件を満たし、スクール全体を見ている視座を審査します。",
-        fields: [
-          { name: "r7_retention", label: "担当生徒数・継続率 (直近6ヶ月の推移)", type: "textarea", required: true, placeholder: "1月○名(100%), 2月○名..." },
-          { name: "r7_success_story", label: "マーケターランク4以上に育てた生徒数 (具体的な育成プロセス)", type: "textarea", required: true, placeholder: "具体的な引き上げ実話" },
-          { name: "r7_my_sns_record", label: "自分自身のSNS実績 (フォロワー、代表的な実績)", type: "textarea", required: true, placeholder: "マーケ実績の証明" }
-        ]
+        description: "これまでの継続率や昇格させた受講生の数などの明確な実績数値や指導実績をもとに、運営役員会との最終面談（60分）を完全面接にて実施します。<br>※承認（許可）を出す前に、面談リンク、面接日時、および最終査定用のスプレッドシート（指令リンク）が先行共有されます。生徒側のレポート送信・出題設問はありません。",
+        criteria: "合格基準: 役員面談による総合協議. 実績が規定条件を満たし、スクールを統括する経営者・幹部としての優れた視座が備わっているかを審査します。",
+        adminFields: [
+          { name: "finalMendanUrl", label: "最終役員面接 会議リンク", placeholder: "https://zoom.us/..." },
+          { name: "finalMendanDate", label: "最終役員面接 実施日時", placeholder: "例: 2026年6月25日 16:00〜" },
+          { name: "finalSpreadsheetUrl", label: "指示スプレッドシート URL (指令リンク)", placeholder: "https://docs.google.com/spreadsheets/..." }
+        ],
+        fields: [] 
       },
       8: {
         id: 8,
         title: "マーケターランク 8 (MR8)",
-        purpose: "トップギルドパートナー (完全推薦枠)",
-        description: "ギルドマーケティングのブランドを背負い、全受講生を統括する最高峰。推薦完了時、メッセージが表示されます。",
-        criteria: "合格基準: 運営役員推薦。",
-        fields: []
+        purpose: "トップギルドパートナー (特別推薦・最終就任)",
+        description: "ギルドマーケティングのブランドを背負い、全受講生を統括する最高峰パートナー。<br>※本ステージは自己申請制ではありません。役員会による特別審査を経て推薦状が届いたら、受託を完了することでMR8に就任します。",
+        criteria: "合格基準: ギルド運営役員会からの特別推薦・就任受諾。",
+        fields: [] 
       }
     };
 
@@ -812,7 +945,7 @@
       }
     }
 
-    // ログイン切り替え
+    // ログイン画面の切り替え
     function switchAuthTab(tab) {
       activeAuthTab = tab;
       const tabLogin = document.getElementById('tab-login');
@@ -820,59 +953,83 @@
       const title = document.getElementById('auth-title');
       const sub = document.getElementById('auth-sub');
       const submitText = document.getElementById('auth-submit-text');
+      const realNameField = document.getElementById('auth-field-realname');
 
       if (tab === 'login') {
         tabLogin.className = "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c] transition-all";
         tabRegister.className = "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400 hover:text-gray-200 transition-all";
         title.innerText = "Guild Marketing";
-        sub.innerText = "Press the entrance";
+        sub.innerText = "Enter credentials to proceed";
         submitText.innerText = "ギルドに入室する";
+        realNameField.classList.add('hidden');
+        document.getElementById('auth-realname-input').required = false;
       } else {
         tabLogin.className = "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400 hover:text-gray-200 transition-all";
         tabRegister.className = "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c] transition-all";
         title.innerText = "新規メンバー登録";
-        sub.innerText = "ギルドマーケティングの門戸を叩く";
-        submitText.innerText = "新規アカウント登録";
+        sub.innerText = "新規IDとパスワードを登録して入室";
+        submitText.innerText = "新規受講生登録を実行";
+        realNameField.classList.remove('hidden');
+        document.getElementById('auth-realname-input').required = true;
       }
     }
 
-    // ログイン/登録実行
+    // ログイン/登録実行 (セキュア英数字8桁認証に進化)
     function handleAuthSubmit(event) {
       event.preventDefault();
-      const name = document.getElementById('auth-name').value.trim();
-      const birthday = document.getElementById('auth-birthday').value.trim();
+      const username = document.getElementById('auth-username-input').value.trim().toLowerCase();
+      const password = document.getElementById('auth-password-input').value.trim();
 
-      if (!name || birthday.length !== 8 || isNaN(birthday)) {
-        showToast("入力エラー", "名前と半角数字8桁の生年月日を入力してください。", "error");
+      // 半角英数字のチェック
+      const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!usernameRegex.test(username)) {
+        showToast("入力エラー", "ユーザー名は半角英数字（ハイフン、アンダーバー可）で入力してください。", "error");
         return;
       }
 
-      const userKey = btoa(encodeURIComponent(name + "_" + birthday));
+      if (password.length < 4 || password.length > 8) {
+        showToast("入力エラー", "パスワードは4文字以上、8文字以下で入力してください。", "error");
+        return;
+      }
+
+      const userKey = btoa(encodeURIComponent(username));
 
       if (activeAuthTab === 'login') {
-        if (appState.students[userKey]) {
+        const student = appState.students[userKey];
+        if (student && student.password === password) {
           loginUser(userKey);
         } else {
-          showToast("認証失敗", "入力された生徒データが見つかりません。新規ギルド登録を行ってください。", "error");
+          showToast("認証失敗", "ユーザー名、またはパスワードが正しくありません。", "error");
         }
       } else {
+        // 新規登録
+        const realName = document.getElementById('auth-realname-input').value.trim();
+        if (!realName) {
+          showToast("入力エラー", "受講生の本名を入力してください。", "error");
+          return;
+        }
+
         if (appState.students[userKey]) {
-          showToast("登録済み", "このお名前と生年月日はすでに登録されています。ログインを行ってください。", "info");
+          showToast("登録不可", "このユーザー名はすでに使われています。別のIDを指定してください。", "info");
         } else {
+          const todayStr = new Date().toLocaleDateString('ja-JP');
           appState.students[userKey] = {
-            name: name,
-            birthday: birthday,
+            username: username,
+            password: password,
+            name: realName,
             currentRank: 1,
+            admissionDate: todayStr, // 当日の日付を登録
+            mentor: "未割り当て",       // 初期状態の担当マーケター
             examAttempts: {}
           };
           saveDatabase();
           loginUser(userKey);
-          showToast("登録完了", `マーケター ${name} さんを新規ギルド登録しました！`, "success");
+          showToast("登録完了", `受講生 ${realName} さんのギルド登録が完了しました！`, "success");
         }
       }
     }
 
-    // ログイン
+    // ログイン処理
     function loginUser(key) {
       appState.currentUser = {
         key: key,
@@ -901,15 +1058,21 @@
       showToast("ログアウト", "ギルドハウスを退出しました。", "info");
     }
 
-    // 生徒用ポータルの更新
+    // 生徒用ポータルの更新 (入学日と担当マーケター表示を対応)
     function updateStudentUI() {
       if (!appState.currentUser) return;
+      
+      // ローカルDBから最新データをフェッチ
+      loadDatabase();
       const data = appState.students[appState.currentUser.key];
+      if (!data) return;
 
       document.getElementById('student-display-name').innerText = data.name;
       document.getElementById('header-student-name').innerText = data.name;
-      // 生年月日の例を19981005に統一
-      document.getElementById('student-display-birthday').innerText = `ID: ${data.birthday}`;
+      document.getElementById('student-display-username').innerText = `ID: ${data.username}`;
+      document.getElementById('student-display-admission').innerText = data.admissionDate || "未設定";
+      document.getElementById('student-display-mentor').innerText = data.mentor || "未割り当て";
+
       document.getElementById('student-current-rank-label').innerText = `MR${data.currentRank}`;
       document.getElementById('header-rank-text').innerText = `MR${data.currentRank}`;
       document.getElementById('header-student-badge').style.display = 'flex';
@@ -940,7 +1103,7 @@
       }
     }
 
-    // 生徒用マーケターランク試験カードレンダリング
+    // 生徒用マーケターランク試験カードレンダリング (MR8の推薦状流れを含む)
     function renderStudentExamCards(currentRank, attempts) {
       const container = document.getElementById('student-exam-grid');
       container.innerHTML = "";
@@ -955,14 +1118,22 @@
         let actionBtn = "";
         let borderClass = "border-[#3c2a1c]";
         
-        // カンニング対策
+        let customPledgeDesc = "※本試練はプロマーケターの信頼性と責任を担保するためのものです。挑戦を開始するまで設問は開示されません。";
+        if (r === 4) {
+          customPledgeDesc = "※本試練は対面面談での実技審査です。運営から提示されるスプレッドシートやZoom会議から受験してください。";
+        } else if (r === 7) {
+          customPledgeDesc = "※本試練は運営幹部との本気面接審査です。共有される指令リンクと指示スプシを必ず確認してください。";
+        } else if (r === 8) {
+          customPledgeDesc = "※最高峰(MR8)トップギルドパートナー。役員推薦が届いた選ばれし者のみ就任が許される、栄光の頂。";
+        }
+
         const pledgeBlock = `
           <div class="space-y-1.5 mt-2 bg-[#090604] p-3 rounded-lg border border-[#3c2a1c] font-mono text-[9px] text-gray-500">
             <span class="text-[#dfb76c]/80 font-bold block flex items-center space-x-1">
               <i data-lucide="shield" class="w-3 h-3 text-[#dfb76c]"></i>
               <span>GUILD QUEST DETAILS</span>
             </span>
-            <p>※本試練はプロマーケターの信頼性と責任を担保するためのものです。挑戦を開始するまで設問は開示されません。</p>
+            <p>${customPledgeDesc}</p>
           </div>
         `;
 
@@ -971,51 +1142,80 @@
                           <i data-lucide="check" class="w-3 h-3"></i><span>QUEST CLEARED!</span>
                          </span>`;
           actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-[#16100b] hover:bg-[#221810] border border-[#dfb76c]/30 text-gray-300 py-2 rounded-xl text-xs transition-colors font-bold tracking-wider">
-                        提出履歴 / フィードバックを見る
+                        認定証 / フィードバックを見る
                        </button>`;
           borderClass = "border-emerald-500/20 bg-emerald-950/5";
         } else if (isUnlocked) {
-          if (attempt && attempt.status === "submitted") {
-            statusBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-pulse">
-                            選考中...
-                           </span>`;
-            actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-[#1b120a] hover:bg-[#281c10] border border-amber-500/30 text-amber-400 py-2 rounded-xl text-xs transition-all font-bold">
-                          提出データ・採点状況を見る
-                         </button>`;
-            borderClass = "border-amber-500/30 bg-amber-950/5";
-          } else if (attempt && attempt.status === "applying") {
-            statusBadge = `<span class="bg-[#2a1b10] text-[#dfb76c] border border-[#dfb76c]/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
-                            承認申請中
-                           </span>`;
-            actionBtn = `<button disabled class="w-full bg-gray-950/80 text-gray-500 border border-[#3c2a1c] py-2 rounded-xl text-xs cursor-not-allowed">
-                          ギルド承認をお待ちください...
-                         </button>`;
-            borderClass = "border-[#dfb76c]/20 bg-[#22160d]/10";
-          } else if (attempt && attempt.status === "approved") {
-            statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
-                            <i data-lucide="unlock" class="w-3 h-3"></i><span>挑戦許可</span>
-                           </span>`;
-            // （受験可）を削除し、力強い受注に変更
-            actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow-md tracking-wider">
-                          試練クエストを受注する
-                         </button>`;
-            borderClass = "border-emerald-500/20 bg-[#141d18]";
-          } else if (attempt && attempt.status === "graded" && attempt.result === "fail") {
-            statusBadge = `<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
-                            RE-SUBMIT
-                           </span>`;
-            actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow">
-                          フィードバックを受けて再挑戦
-                         </button>`;
-            borderClass = "border-rose-500/30 bg-rose-950/5";
-          } else {
-            // 未申請
-            statusBadge = `<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">STANDBY</span>`;
-            actionBtn = `<button type="button" onclick="requestExamChallenge(${r})" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs transition-all font-bold tracking-wider">
-                          マーケターランク昇格に挑戦を申請する
-                         </button>`;
-            borderClass = "border-[#dfb76c]/10 bg-gray-950/20";
+          
+          // MR8の場合の特別推薦分岐
+          if (r === 8) {
+            if (attempt && attempt.status === "recommended") {
+              statusBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-bounce">
+                              推薦到着！
+                             </span>`;
+              actionBtn = `<button type="button" onclick="openWorkspace(8)" class="w-full bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:to-yellow-500 text-black font-black py-2.5 rounded-xl text-xs transition-all shadow-lg tracking-widest animate-pulse">
+                            👑 推薦状を開封する
+                           </button>`;
+              borderClass = "border-amber-400 bg-amber-950/10 shadow-[0_0_15px_rgba(251,191,36,0.15)]";
+            } else {
+              statusBadge = `<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">RECOMMEND</span>`;
+              actionBtn = `<button disabled class="w-full bg-[#0d0805] text-gray-600 border border-[#2a1d13] py-2.5 rounded-xl text-xs cursor-not-allowed text-center">
+                            ギルドからの推薦をお待ちください！
+                           </button>`;
+              borderClass = "border-[#dfb76c]/10 bg-gray-950/20";
+            }
+          } 
+          // 通常のMR2〜MR7のアンロック表示
+          else {
+            if (attempt && attempt.status === "submitted") {
+              statusBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-pulse">
+                              選考中...
+                             </span>`;
+              const checkingBtnName = (r === 4 || r === 7) ? "面談の査定・結果発表待ち" : "提出データ・採点状況を見る";
+              actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-[#1b120a] hover:bg-[#281c10] border border-amber-500/30 text-amber-400 py-2 rounded-xl text-xs transition-all font-bold">
+                            ${checkingBtnName}
+                           </button>`;
+              borderClass = "border-amber-500/30 bg-amber-950/5";
+            } else if (attempt && attempt.status === "applying") {
+              statusBadge = `<span class="bg-[#2a1b10] text-[#dfb76c] border border-[#dfb76c]/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
+                              承認申請中
+                             </span>`;
+              actionBtn = `<button disabled class="w-full bg-gray-950/80 text-gray-500 border border-[#3c2a1c] py-2 rounded-xl text-xs cursor-not-allowed">
+                            ギルド承認をお待ちください...
+                           </button>`;
+              borderClass = "border-[#dfb76c]/20 bg-[#22160d]/10";
+            } else if (attempt && attempt.status === "approved") {
+              statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
+                              <i data-lucide="unlock" class="w-3 h-3"></i><span>挑戦許可</span>
+                             </span>`;
+              
+              let startBtnName = "試練クエストを受注する";
+              if (r === 4) startBtnName = "🤝 練習面談の情報を見る";
+              if (r === 7) startBtnName = "🛡️ 役員面談と指示書を見る";
+
+              actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow-md tracking-wider">
+                            ${startBtnName}
+                           </button>`;
+              borderClass = "border-emerald-500/20 bg-[#141d18]";
+            } else if (attempt && attempt.status === "graded" && attempt.result === "fail") {
+              statusBadge = `<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
+                              RE-SUBMIT
+                             </span>`;
+              
+              const retryBtnName = (r === 4 || r === 7) ? "フィードバックを確認する" : "フィードバックを受けて再挑戦";
+              actionBtn = `<button type="button" onclick="openWorkspace(${r})" class="w-full bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow">
+                            ${retryBtnName}
+                           </button>`;
+              borderClass = "border-rose-500/30 bg-rose-950/5";
+            } else {
+              statusBadge = `<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">STANDBY</span>`;
+              actionBtn = `<button type="button" onclick="requestExamChallenge(${r})" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs transition-all font-bold tracking-wider">
+                            マーケターランク昇格に挑戦を申請する
+                           </button>`;
+              borderClass = "border-[#dfb76c]/10 bg-gray-950/20";
+            }
           }
+
         } else {
           statusBadge = `<span class="bg-gray-950 text-gray-700 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-900">LOCKED</span>`;
           actionBtn = `<button disabled class="w-full bg-[#0d0805] text-gray-700 py-2.5 rounded-xl text-xs cursor-not-allowed flex items-center justify-center space-x-1.5">
@@ -1047,27 +1247,31 @@
       lucide.createIcons();
     }
 
-    // 昇格挑戦の申請を登録する (修正：管理画面へ確実に届くように連動)
+    // 生徒：挑戦を申請する
     function requestExamChallenge(examNum) {
       if (!appState.currentUser) return;
-      
       const userKey = appState.currentUser.key;
+
+      if (!appState.students[userKey].examAttempts) {
+        appState.students[userKey].examAttempts = {};
+      }
+
       appState.students[userKey].examAttempts[examNum] = {
         status: "applying",
         timestamp: new Date().toLocaleString()
       };
+
       saveDatabase();
       updateStudentUI();
 
-      // 管理画面にも即時に申請データを同期表示
       if (appState.isAdminAuthenticated) {
         renderAdminStudentList();
       }
 
-      showToast("申請完了", `マーケターランク${examNum} への昇格挑戦の申請が完了しました。運営の承認をお待ちください。`, "success");
+      showToast("申請完了", `マーケターランク ${examNum} の挑戦申請を送信しました。ギルド運営による承認をお待ちください。`, "success");
     }
 
-    // 生徒：ワークスペースでの試験開始
+    // 生徒：ワークスペースでの試験開始 (面談リンク表示・推薦受け入れ対応)
     function openWorkspace(examNum) {
       appState.activeExamNum = examNum;
       
@@ -1077,9 +1281,13 @@
       const desc = document.getElementById('workspace-description');
       const fieldsArea = document.getElementById('workspace-fields-area');
       const feedbackPanel = document.getElementById('workspace-feedback-panel');
+      const sharedLinksPanel = document.getElementById('workspace-shared-links-panel');
+      const sharedLinksContent = document.getElementById('workspace-shared-links-content');
+      const r8AcceptArea = document.getElementById('workspace-r8-accept-area');
+      const workspaceForm = document.getElementById('workspace-form');
 
       const info = ranks[examNum];
-      const attempt = appState.students[appState.currentUser.key].examAttempts[examNum];
+      const attempt = appState.students[appState.currentUser.key].examAttempts[examNum] || {};
 
       title.innerText = info.title;
       subtitle.innerText = `MR EXAM LEVEL ${examNum} - ${info.purpose}`;
@@ -1088,6 +1296,104 @@
         <p class="mb-2 text-xs text-gray-300 leading-relaxed">${info.description}</p>
         <div class="text-[10px] text-[#dfb76c]/80 border-t border-[#3c2a1c] pt-1.5 font-medium">${info.criteria}</div>
       `;
+
+      // 初期非表示リセット
+      r8AcceptArea.classList.add('hidden');
+      workspaceForm.classList.remove('hidden');
+
+      // 1. 運営からの共有情報パネルをレンダリング (MR3, MR4, MR5, MR7に対応)
+      let hasSharedData = false;
+      let sharedHtml = "";
+
+      if (examNum === 3 && attempt.shared_tensakuUrl) {
+        hasSharedData = true;
+        sharedHtml += `
+          <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20">
+            <span class="text-[10px] text-gray-400 block font-bold mb-1">■ 添削対象アカウント:</span>
+            <a href="${attempt.shared_tensakuUrl}" target="_blank" class="text-[#dfb76c] hover:underline font-bold flex items-center space-x-1">
+              <span>${attempt.shared_tensakuUrl}</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        `;
+      } 
+      else if (examNum === 4) {
+        if (attempt.shared_mendanUrl || attempt.shared_spreadsheetUrl || attempt.shared_mendanDate) {
+          hasSharedData = true;
+          sharedHtml += `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20">
+                <span class="text-[10px] text-gray-400 block font-bold">■ Zoom・Meet面談リンク:</span>
+                ${attempt.shared_mendanUrl ? `
+                  <a href="${attempt.shared_mendanUrl}" target="_blank" class="text-amber-400 hover:underline font-bold flex items-center space-x-1 mt-1">
+                    <span>面談室へ入室する</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                ` : '<span class="text-rose-400">面談URL未設定</span>'}
+              </div>
+              <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20">
+                <span class="text-[10px] text-gray-400 block font-bold">■ 指導用カルテスプレッドシート:</span>
+                ${attempt.shared_spreadsheetUrl ? `
+                  <a href="${attempt.shared_spreadsheetUrl}" target="_blank" class="text-[#dfb76c] hover:underline font-bold flex items-center space-x-1 mt-1">
+                    <span>指導スプレッドシートを開く</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                ` : '<span class="text-rose-400">スプレッドシートURL未設定</span>'}
+              </div>
+              <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20 md:col-span-2">
+                <span class="text-[10px] text-gray-400 block font-bold">■ 予定面談日時:</span>
+                <span class="text-white font-bold block mt-1">${attempt.shared_mendanDate || '調整中'}</span>
+              </div>
+            </div>
+          `;
+        }
+      } 
+      else if (examNum === 5 && attempt.shared_spreadsheetUrlMR5) {
+        hasSharedData = true;
+        sharedHtml += `
+          <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20">
+            <span class="text-[10px] text-gray-400 block font-bold mb-1">■ 指導生徒データベース（スプレッドシート）:</span>
+            <a href="${attempt.shared_spreadsheetUrlMR5}" target="_blank" class="text-[#dfb76c] hover:underline font-bold flex items-center space-x-1">
+              <span>担当受講生データベースを開く</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        `;
+      } 
+      else if (examNum === 7) {
+        if (attempt.shared_finalMendanUrl || attempt.shared_finalMendanDate || attempt.shared_finalSpreadsheetUrl) {
+          hasSharedData = true;
+          sharedHtml += `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20">
+                <span class="text-[10px] text-gray-400 block font-bold">■ 最終面接用 接続リンク:</span>
+                ${attempt.shared_finalMendanUrl ? `
+                  <a href="${attempt.shared_finalMendanUrl}" target="_blank" class="text-amber-400 hover:underline font-bold flex items-center space-x-1 mt-1">
+                    <span>面接ルームへ入室</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                ` : '<span class="text-rose-400">面接リンク未設定</span>'}
+              </div>
+              <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20">
+                <span class="text-[10px] text-gray-400 block font-bold">■ 最終役員査定スプレッドシート(指示スプシ):</span>
+                ${attempt.shared_finalSpreadsheetUrl ? `
+                  <a href="${attempt.shared_finalSpreadsheetUrl}" target="_blank" class="text-[#dfb76c] hover:underline font-bold flex items-center space-x-1 mt-1">
+                    <span>共有指示スプシを開く</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                ` : '<span class="text-rose-400">指示スプレッドシートURL未設定</span>'}
+              </div>
+              <div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20 md:col-span-2">
+                <span class="text-[10px] text-gray-400 block font-bold">■ 面接実施日程:</span>
+                <span class="text-white font-bold block mt-1">${attempt.shared_finalMendanDate || '未調整'}</span>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      if (hasSharedData) {
+        sharedLinksPanel.classList.remove('hidden');
+        sharedLinksContent.innerHTML = sharedHtml;
+      } else {
+        sharedLinksPanel.classList.add('hidden');
+      }
 
       // フィードバック表示
       if (attempt && attempt.status === "graded") {
@@ -1109,34 +1415,114 @@
         document.getElementById('feedback-status-badge').className = "text-xs font-bold text-[#dfb76c]";
         document.getElementById('feedback-status-badge').innerText = "■ 運営審査中...";
         document.getElementById('feedback-score-badge').innerText = `審査中`;
-        document.getElementById('feedback-comment-content').innerText = "ギルド運営にて提出されたレポートを審査中です。しばらくお待ちください。";
+        document.getElementById('feedback-comment-content').innerText = "ギルド運営にて、レポートまたは対面指導面談の選考審査を行っています。合否査定が配信されるまでしばらくお待ちください。";
       } else {
         feedbackPanel.classList.add('hidden');
       }
 
-      // 設問フィールド表示
-      fieldsArea.innerHTML = generateFormFields(examNum);
+      // 2. MR8特別推薦用の受諾フォーム
+      if (examNum === 8) {
+        workspaceForm.classList.add('hidden'); // フォームは非表示
 
-      // 値反映
-      if (attempt) {
-        fillWorkspaceAnswers(attempt);
-      }
-
-      // 編集可否
-      const submitBtn = document.querySelector('#workspace-form button[type="submit"]');
-      const formInputs = fieldsArea.querySelectorAll('input, textarea, select');
-      
-      if (attempt && (attempt.status === "submitted" || (attempt.status === "graded" && attempt.result === "pass"))) {
-        formInputs.forEach(el => el.disabled = true);
-        submitBtn.style.display = "none";
-      } else {
-        formInputs.forEach(el => el.disabled = false);
-        submitBtn.style.display = "flex";
+        if (attempt.status === "recommended") {
+          r8AcceptArea.classList.remove('hidden');
+        } else if (attempt.status === "graded" && attempt.result === "pass") {
+          r8AcceptArea.classList.remove('hidden');
+          r8AcceptArea.innerHTML = `
+            <div class="w-16 h-16 rounded-full bg-[#dfb76c]/10 border-2 border-emerald-500 flex items-center justify-center mx-auto text-[#dfb76c] drop-shadow-[0_0_12px_rgba(16,185,129,0.4)] animate-pulse">
+              <i data-lucide="shield-check" class="w-8 h-8 text-emerald-400"></i>
+            </div>
+            <div class="space-y-2">
+              <h5 class="text-lg font-black text-emerald-400 tracking-widest font-cinzel">🛡️ LEGENDARY PARTNER ONBOARDED</h5>
+              <p class="text-xs text-gray-200 leading-relaxed max-w-md mx-auto">
+                就任誠におめでとうございます！<br>
+                最高峰たる<strong>「MR8トップギルドパートナー（ギルドマスター）」</strong>への推薦受託が完了し、あなたの名前は伝説 of 銘板に刻まれました。今後の活躍を期待しています。
+              </p>
+            </div>
+          `;
+        }
+      } 
+      // MR4, MR7は解答用紙がないため、入力欄を生成せず面接待機中の画面にする
+      else if (examNum === 4 || examNum === 7) {
+        workspaceForm.classList.add('hidden'); // フォーム送信不要
+        if (attempt.status === "approved") {
+          fieldsArea.innerHTML = `
+            <div class="p-6 rounded-xl border border-[#dfb76c]/30 bg-[#0d0905] text-center space-y-3">
+              <i data-lucide="users" class="w-8 h-8 text-[#dfb76c] mx-auto opacity-70"></i>
+              <h5 class="text-xs font-bold text-white">🤝 对面査定・面接フェーズ（受験中）</h5>
+              <p class="text-[11px] text-gray-400 leading-relaxed max-w-sm mx-auto">
+                本クエストにはオンライン提出用フォームはありません。運営から提示されている上記の「共有リンク」および「日時」を確認し、面談・面接に参加してください。
+              </p>
+              <button 
+                type="button"
+                onclick="submitNoPaperExam(${examNum})"
+                class="mx-auto bg-[#1c130c] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c]/40 text-[#dfb76c] py-2 px-6 rounded-xl text-xs transition-all font-bold tracking-wider"
+              >
+                対面面談・面接の準備を完了する
+              </button>
+            </div>
+          `;
+          workspaceForm.classList.remove('hidden'); 
+          document.getElementById('workspace-action-area').style.display = 'none'; 
+        } else {
+          document.getElementById('workspace-action-area').style.display = 'none';
+        }
+      } 
+      else {
+        // 通常の設問フォーム
+        document.getElementById('workspace-action-area').style.display = 'flex';
+        fieldsArea.innerHTML = generateFormFields(examNum);
       }
 
       workspace.style.display = "block";
       lucide.createIcons();
       workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // MR4やMR7の実技用「準備完了・提出」
+    function submitNoPaperExam(examNum) {
+      if (!appState.currentUser) return;
+      const userKey = appState.currentUser.key;
+
+      const existingAttempt = appState.students[userKey].examAttempts[examNum] || {};
+      existingAttempt.status = "submitted";
+      existingAttempt.timestamp = new Date().toLocaleString();
+
+      appState.students[userKey].examAttempts[examNum] = existingAttempt;
+      saveDatabase();
+      updateStudentUI();
+      closeWorkspace();
+
+      if (appState.isAdminAuthenticated) {
+        renderAdminStudentList();
+      }
+
+      showToast("進捗送信", `マーケターランク${examNum} への受験準備、対面セッションの進行待機状態になりました。`, "success");
+    }
+
+    // 生徒：MR8推薦状を受け入れて就任
+    function acceptR8Recommendation() {
+      if (!appState.currentUser) return;
+      const userKey = appState.currentUser.key;
+      const attempt = appState.students[userKey].examAttempts[8];
+
+      if (!attempt || attempt.status !== "recommended") {
+        showToast("エラー", "推薦状が存在しないか、すでに処理されています。", "error");
+        return;
+      }
+
+      attempt.status = "graded";
+      attempt.score = 100;
+      attempt.result = "pass";
+      attempt.feedback = "推薦状の受託完了。晴れてマーケターランク8 (MR8)トップギルドパートナーとして就任しました！";
+      
+      appState.students[userKey].currentRank = 8;
+      saveDatabase();
+
+      showToast("👑 伝説へ", "ギルドマスター・トップギルドパートナーへの就任が完了しました！", "success");
+      
+      updateStudentUI();
+      openWorkspace(8); 
     }
 
     // ワークスペースクローズ
@@ -1158,9 +1544,26 @@
           }
         }
       });
+
+      // MR6文字数カウンター同期
+      if (appState.activeExamNum === 6) {
+        const essays = ['essay_q1', 'essay_q2', 'essay_q3'];
+        essays.forEach(id => {
+          const area = form.querySelector(`textarea[name="${id}"]`);
+          const badge = document.getElementById(`count-badge-${id}`);
+          if (area && badge) {
+            badge.innerText = `文字数: ${area.value.length} / 300字以上`;
+            if (area.value.length >= 300) {
+              badge.className = "text-[10px] text-emerald-400 font-mono";
+            } else {
+              badge.className = "text-[10px] text-rose-400 font-mono animate-pulse";
+            }
+          }
+        });
+      }
     }
 
-    // フォーム送信（修正：確実に管理画面へ届くよう連動）
+    // フォーム送信
     function handleExamSubmit(event) {
       event.preventDefault();
 
@@ -1173,11 +1576,41 @@
         attemptData[key] = value;
       });
 
+      // MR6の論述設問(essay_q1, essay_q2, essay_q3)に対する300文字制限チェック
+      if (examNum === 6) {
+        const targetEssays = [
+          { key: "essay_q1", title: "論述Q1" },
+          { key: "essay_q2", title: "論述Q2" },
+          { key: "essay_q3", title: "論述Q3" }
+        ];
+
+        for (let entry of targetEssays) {
+          const content = attemptData[entry.key] || "";
+          if (content.length < 300) {
+            showToast(
+              "⚠️ 文字数が足りません", 
+              `${entry.title}の内容が300字に達していません。(現在: ${content.length}文字 / 必要文字数: 300文字以上)`, 
+              "error"
+            );
+            return;
+          }
+        }
+      }
+
+      const existingAttempt = appState.students[appState.currentUser.key].examAttempts[examNum] || {};
+      
       attemptData.status = "submitted";
       attemptData.timestamp = new Date().toLocaleString();
       attemptData.score = null;
       attemptData.result = null;
       attemptData.feedback = null;
+
+      // 共有データを上書きしないように引継ぐ
+      Object.keys(existingAttempt).forEach(key => {
+        if (key.startsWith('shared_')) {
+          attemptData[key] = existingAttempt[key];
+        }
+      });
 
       appState.students[appState.currentUser.key].examAttempts[examNum] = attemptData;
       saveDatabase();
@@ -1185,7 +1618,6 @@
       updateStudentUI();
       closeWorkspace();
 
-      // 管理画面のリストを即時再レンダリングさせて、新着を届ける
       if (appState.isAdminAuthenticated) {
         renderAdminStudentList();
       }
@@ -1243,7 +1675,6 @@
       event.preventDefault();
       const pw = document.getElementById('admin-password').value;
 
-      // パスワードを固定・画面上のヒント排除
       if (pw === "guild@akihibimari") {
         appState.isAdminAuthenticated = true;
         document.getElementById('admin-lock-screen').style.display = "none";
@@ -1254,23 +1685,10 @@
       }
     }
 
-    // ダッシュボード更新
+    // 管理ダッシュボード本体の初期化表示
     function showAdminDashboard() {
       document.getElementById('admin-dashboard').style.display = "block";
       renderAdminStudentList();
-    }
-
-    // 運営用：全出題内容の一覧トグル
-    function toggleExamMasterList() {
-      const list = document.getElementById('exam-master-list');
-      const chevron = document.getElementById('master-list-chevron');
-      if (list.classList.contains('hidden')) {
-        list.classList.remove('hidden');
-        chevron.style.transform = "rotate(180deg)";
-      } else {
-        list.classList.add('hidden');
-        chevron.style.transform = "rotate(0deg)";
-      }
     }
 
     // 生徒リスト描画
@@ -1278,7 +1696,6 @@
       const container = document.getElementById('admin-student-list');
       container.innerHTML = "";
 
-      // 最新のローカルストレージデータを読み込んで反映させる
       loadDatabase();
 
       const keys = Object.keys(appState.students);
@@ -1293,15 +1710,11 @@
         const student = appState.students[key];
         const attempts = student.examAttempts;
 
-        // 各種試験/申請ボタンのバッジ生成
         let badgeHtml = "";
-        
-        // 未承認の申請がないか・未採点がないか
         let pendingApproval = false;
         let pendingGrading = false;
 
-        // 全ランクMR2〜MR7をチェック可能
-        for (let r = 2; r <= 7; r++) {
+        for (let r = 2; r <= 8; r++) {
           const att = attempts[r];
           let color = "bg-[#080503] text-gray-600 border border-gray-900";
           let labelText = `MR${r}`;
@@ -1314,12 +1727,15 @@
             } else if (att.status === 'approved') {
               color = "bg-[#142d1f] text-emerald-400 border border-emerald-500/40";
               labelText = `MR${r}:承認済`;
+            } else if (att.status === 'recommended') {
+              color = "bg-amber-600 text-black border border-amber-400 font-bold";
+              labelText = `MR${r}:推薦中`;
             } else if (att.status === 'submitted') {
               color = "bg-amber-500 text-black border border-amber-400 font-bold animate-pulse";
               labelText = `MR${r}:採点待`;
               pendingGrading = true;
             } else if (att.status === 'graded' && att.result === 'pass') {
-              color = "bg-emerald-900 text-emerald-300 border border-emerald-500/50";
+              color = "bg-emerald-950 text-emerald-300 border border-emerald-500/50";
               labelText = `MR${r}:合格`;
             } else if (att.status === 'graded' && att.result === 'fail') {
               color = "bg-rose-950 text-rose-400 border border-rose-500/30";
@@ -1331,7 +1747,7 @@
             <button 
               type="button"
               onclick="openAdminReview('${key}', ${r})" 
-              class="text-[9px] px-1.5 py-1 rounded transition-all ${color} hover:opacity-85"
+              class="text-[9px] px-1 py-1 rounded transition-all ${color} hover:opacity-85 font-mono"
             >
               ${labelText}
             </button>
@@ -1349,21 +1765,26 @@
                   <i data-lucide="user" class="w-3.5 h-3.5 text-[#dfb76c]"></i>
                   <span>${student.name}</span>
                 </span>
-                <span class="text-[9px] text-gray-500 block mt-0.5">生年月日ID: ${student.birthday}</span>
+                <span class="text-[9px] text-gray-500 block mt-0.5">ユーザー名: ${student.username}</span>
               </div>
               <span class="text-[10px] bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/20 px-2.5 py-0.5 rounded font-mono font-bold">
                 MR${student.currentRank}
               </span>
             </div>
 
-            <!-- ランク試練ショートカット -->
+            <!-- カルテサマリー（担当・入学日） -->
+            <div class="flex justify-between text-[9px] text-gray-400 bg-black/40 p-1.5 rounded my-1">
+              <span>担当: <strong class="text-white">${student.mentor || "未指定"}</strong></span>
+              <span>入学: <strong class="text-[#dfb76c]">${student.admissionDate || "未登録"}</strong></span>
+            </div>
+
             <div class="border-t border-[#3c2a1c] pt-2 mt-2">
               <div class="flex justify-between items-center mb-1">
                 <span class="text-[9px] text-gray-400 block">■ 各マーケターランク審査状態:</span>
                 ${pendingApproval ? '<span class="text-[8px] text-amber-400 bg-amber-500/15 px-1 rounded animate-pulse font-bold border border-amber-500/30">新着申請あり</span>' : ''}
                 ${pendingGrading ? '<span class="text-[8px] text-rose-400 bg-rose-500/15 px-1 rounded animate-pulse font-bold border border-rose-500/30">解答到着</span>' : ''}
               </div>
-              <div class="grid grid-cols-6 gap-1">
+              <div class="grid grid-cols-7 gap-1">
                 ${badgeHtml}
               </div>
             </div>
@@ -1374,50 +1795,140 @@
       lucide.createIcons();
     }
 
-    // 生徒選択のみ（試験ボタンをクリックしていない場合）
+    // 生徒基本情報（カルテ編集）のロード
+    function loadStudentBasicForm(student) {
+      document.getElementById('admin-edit-realname').value = student.name || "";
+      document.getElementById('admin-edit-username').value = student.username || "";
+      document.getElementById('admin-edit-password').value = student.password || "";
+      document.getElementById('admin-edit-admission').value = student.admissionDate || "";
+      document.getElementById('admin-edit-mentor').value = student.mentor || "";
+    }
+
+    // 生徒基本情報（カルテ編集）の保存・追加
+    function saveStudentBasicInfo() {
+      const studentKey = appState.adminSelectedStudentKey;
+      if (!studentKey) {
+        showToast("エラー", "生徒が選択されていません。", "error");
+        return;
+      }
+
+      const originalStudent = appState.students[studentKey];
+      if (!originalStudent) return;
+
+      const newRealName = document.getElementById('admin-edit-realname').value.trim();
+      const newUsername = document.getElementById('admin-edit-username').value.trim().toLowerCase();
+      const newPassword = document.getElementById('admin-edit-password').value.trim();
+      const newAdmission = document.getElementById('admin-edit-admission').value.trim();
+      const newMentor = document.getElementById('admin-edit-mentor').value.trim();
+
+      if (!newRealName || !newUsername || !newPassword) {
+        showToast("入力エラー", "氏名、ユーザー名、パスワードは必須項目です。", "error");
+        return;
+      }
+
+      // パスワードは8文字以内
+      if (newPassword.length > 8) {
+        showToast("入力エラー", "パスワードは最大8文字までです。", "error");
+        return;
+      }
+
+      const newKey = btoa(encodeURIComponent(newUsername));
+
+      // ユーザー名が変更されて、かつ別の生徒のキーと衝突する場合
+      if (newKey !== studentKey && appState.students[newKey]) {
+        showToast("登録不可", "変更後のユーザー名はすでに他の生徒に使用されています。", "error");
+        return;
+      }
+
+      // 既存データをコピーし、上書き
+      const updatedStudent = {
+        ...originalStudent,
+        name: newRealName,
+        username: newUsername,
+        password: newPassword,
+        admissionDate: newAdmission,
+        mentor: newMentor
+      };
+
+      // ユーザー名(Key)が変更された場合は、古いキーを削除
+      if (newKey !== studentKey) {
+        delete appState.students[studentKey];
+        appState.adminSelectedStudentKey = newKey; // 選択キーを更新
+      }
+
+      appState.students[newKey] = updatedStudent;
+      saveDatabase();
+
+      // 現在ログインしている生徒自身の情報が書き換えられた場合、セッションデータも更新
+      if (appState.currentUser && appState.currentUser.key === studentKey) {
+        appState.currentUser.key = newKey;
+        appState.currentUser.data = updatedStudent;
+      }
+
+      showToast("カルテ保存完了", "生徒の基本情報を更新・記録しました。", "success");
+
+      // 画面更新
+      renderAdminStudentList();
+      
+      // 査定表示のリロード
+      if (appState.adminSelectedExamNum) {
+        openAdminReview(newKey, appState.adminSelectedExamNum);
+      } else {
+        selectStudentOnly(newKey);
+      }
+    }
+
+    // 生徒選択のみ（基本情報を閲覧・編集する場合）
     function selectStudentOnly(studentKey) {
       appState.adminSelectedStudentKey = studentKey;
       appState.adminSelectedExamNum = null;
       
       const student = appState.students[studentKey];
+      if (!student) return;
       
       document.getElementById('admin-review-placeholder').style.display = "none";
       document.getElementById('admin-review-content').style.display = "block";
       
       document.getElementById('review-rank-badge').innerText = `CARTE`;
-      document.getElementById('review-student-title').innerText = `${student.name} さんの指導カルテ`;
-      document.getElementById('review-timestamp').innerText = `現在ランク: MR${student.currentRank}`;
+      document.getElementById('review-student-title').innerText = `${student.name} さんの基本カルテ`;
+      document.getElementById('review-timestamp').innerText = `入学日: ${student.admissionDate || "未設定"} / 現在ランク: MR${student.currentRank}`;
       
       const statusLabel = document.getElementById('review-current-status');
       statusLabel.className = "text-xs font-bold text-gray-400 bg-gray-900 px-2 py-0.5 rounded";
-      statusLabel.innerText = "閲覧モード";
+      statusLabel.innerText = "基本カルテ編集";
 
       document.getElementById('admin-approval-area').classList.add('hidden');
       document.getElementById('admin-answers-area').classList.add('hidden');
       document.getElementById('admin-grading-area').classList.add('hidden');
 
+      // 基本情報フォームへの値セット
+      loadStudentBasicForm(student);
+
       document.getElementById('review-fields-preview').innerHTML = `
         <div class="text-center py-6 space-y-2">
           <i data-lucide="info" class="w-8 h-8 text-[#dfb76c] mx-auto opacity-70"></i>
-          <p class="text-gray-400 text-xs font-bold">下部の「MR2〜MR7」いずれかの試練バッジをクリックすると、試験問題のチェックや解答データの審査ができます。</p>
+          <p class="text-gray-400 text-xs font-bold">基本情報は上部フォームから編集できます。各マーケターランク(MR)の提出物選考や、指示リンク設定、特別推薦の発行は、下部の「MR2〜MR8」ボタンをクリックしてください。</p>
         </div>
       `;
       
       renderAdminStudentList();
     }
 
-    // 運営用：審査または承認画面ロード（切り替え不具合を完全修正！）
+    // 運営用：審査または承認画面ロード (MR4, MR7, MR8推薦に対応)
     function openAdminReview(studentKey, examNum) {
       appState.adminSelectedStudentKey = studentKey;
       appState.adminSelectedExamNum = examNum;
 
       const student = appState.students[studentKey];
-      const attempt = student.examAttempts[examNum] || { status: "not_started" };
-
       if (!student) return;
+
+      const attempt = student.examAttempts[examNum] || { status: "not_started" };
 
       document.getElementById('admin-review-placeholder').style.display = "none";
       document.getElementById('admin-review-content').style.display = "block";
+
+      // 基本情報フォームへの同期
+      loadStudentBasicForm(student);
 
       // ヘッダー情報
       document.getElementById('review-rank-badge').innerText = `MR${examNum}`;
@@ -1425,85 +1936,343 @@
       
       const statusLabel = document.getElementById('review-current-status');
 
-      // ステータス判定
-      if (attempt.status === 'not_started') {
-        // まだ挑戦していない -> 「試験内容プレビュー」として設問をすべて見せる
-        statusLabel.className = "text-xs font-bold text-gray-500 bg-[#080503] px-2.5 py-1 rounded border border-gray-800";
-        statusLabel.innerText = "未挑戦 (設問確認モード)";
+      // 運営側リンク先行設定フィールドの展開 (MR3, MR4, MR5, MR7に対応)
+      const setupBlock = document.getElementById('admin-links-setup-fields');
+      const setupContainer = document.getElementById('admin-setup-inputs-container');
+      const info = ranks[examNum];
 
-        document.getElementById('admin-approval-area').classList.add('hidden');
-        document.getElementById('admin-answers-area').classList.remove('hidden');
-        document.getElementById('admin-grading-area').classList.add('hidden'); 
-        document.getElementById('preview-mode-tag').innerText = "（未受験・設問チェック中）";
+      setupBlock.classList.add('hidden');
+      setupContainer.innerHTML = "";
 
-        renderFieldsPreview(examNum, {}, true); 
-      } 
-      else if (attempt.status === 'applying') {
-        // 申請中 -> 承認ボタンを表示
-        statusLabel.className = "text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20";
-        statusLabel.innerText = "受験申請中";
+      if (info.adminFields) {
+        setupBlock.classList.remove('hidden');
+        info.adminFields.forEach(field => {
+          const keyName = `shared_${field.name}`;
+          const currentVal = attempt[keyName] || "";
+          setupContainer.innerHTML += `
+            <div>
+              <label class="block text-[10px] text-gray-400 mb-0.5">${field.label}</label>
+              <input 
+                type="text" 
+                id="setup-field-${field.name}"
+                placeholder="${field.placeholder}"
+                value="${currentVal}"
+                class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#dfb76c]"
+              >
+            </div>
+          `;
+        });
+      }
 
-        document.getElementById('admin-approval-area').classList.remove('hidden');
-        document.getElementById('admin-answers-area').classList.remove('hidden');
-        document.getElementById('admin-grading-area').classList.add('hidden');
-        document.getElementById('preview-mode-tag').innerText = "（未受験・設問チェック中）";
+      // 表示切り替え準備
+      const adminApprovalArea = document.getElementById('admin-approval-area');
+      const adminAnswersArea = document.getElementById('admin-answers-area');
+      const adminGradingArea = document.getElementById('admin-grading-area');
+      const approvalBoxTitle = document.getElementById('approval-box-title');
+      const approvalBoxDesc = document.getElementById('approval-box-description');
+      const previewModeTag = document.getElementById('preview-mode-tag');
 
-        // 承認ボタンエリアのリセット
-        document.getElementById('approval-btn-container').innerHTML = `
-          <button 
-            onclick="approveExamChallenge()" 
-            class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow flex items-center justify-center space-x-1.5"
-          >
-            <i data-lucide="check-circle" class="w-4 h-4"></i>
-            <span>受験を承認する（クエスト解放）</span>
-          </button>
-        `;
+      // =====================================
+      // MR8：役員特別推薦状発行フロー
+      // =====================================
+      if (examNum === 8) {
+        adminAnswersArea.classList.add('hidden'); // 解答はないので非表示
+        adminApprovalArea.classList.remove('hidden');
+        adminGradingArea.classList.add('hidden');
 
-        renderFieldsPreview(examNum, {}, true);
-      } 
-      else if (attempt.status === 'approved') {
-        // 承認済み未提出
-        statusLabel.className = "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20";
-        statusLabel.innerText = "挑戦承認済 (回答待ち)";
+        // まだ推薦していない、または未受験状態
+        if (attempt.status === "not_started" || !attempt.status) {
+          statusLabel.className = "text-xs font-bold text-gray-400 bg-[#080503] px-2.5 py-1 rounded border border-gray-800";
+          statusLabel.innerText = "推薦待機中 (Standby)";
 
-        document.getElementById('admin-approval-area').classList.add('hidden');
-        document.getElementById('admin-answers-area').classList.remove('hidden');
-        document.getElementById('admin-grading-area').classList.add('hidden');
-        document.getElementById('preview-mode-tag').innerText = "（未提出・白紙）";
+          approvalBoxTitle.innerText = "🏆 トップギルドパートナー(MR8) 推薦状発行所";
+          approvalBoxDesc.innerText = "この生徒はMR7をクリアしています。全生徒を統括するギルドパートナー(MR8)へ特別推薦状を送る場合は、以下の推薦理由・誓約コメントを設定して「特別推薦状を送信する」を押してください。";
+          
+          setupBlock.classList.remove('hidden');
+          setupContainer.innerHTML = `
+            <div>
+              <label class="block text-[10px] text-gray-400 mb-0.5">推薦状への記載文（指導フィードバックに相当）</label>
+              <textarea 
+                id="setup-field-r8-recommendation-text" 
+                rows="4" 
+                placeholder="ギルド運営役員会推薦：当スクールへの絶大な貢献、および卓越した指導実績を称え、トップギルドパートナーとして就任することを特別推薦いたします。"
+                class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#dfb76c]"
+              ></textarea>
+            </div>
+          `;
 
-        renderFieldsPreview(examNum, {}, true);
-      } 
-      else {
-        // 提出済み or 採点完了 -> 採点フォームと解答プレビュー
-        document.getElementById('admin-approval-area').classList.add('hidden');
-        document.getElementById('admin-answers-area').classList.remove('hidden');
-        document.getElementById('admin-grading-area').classList.remove('hidden');
-        document.getElementById('preview-mode-tag').innerText = "（解答済データ）";
+          document.getElementById('approval-btn-container').innerHTML = `
+            <button 
+              onclick="sendR8Recommendation()" 
+              class="w-full bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:to-yellow-500 text-black font-black py-2.5 rounded-xl text-xs transition-all shadow-lg flex items-center justify-center space-x-1.5"
+            >
+              <i data-lucide="award" class="w-4 h-4"></i>
+              <span>特別推薦状を生徒へ送信する</span>
+            </button>
+          `;
+        } 
+        else if (attempt.status === "recommended") {
+          statusLabel.className = "text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20 animate-pulse";
+          statusLabel.innerText = "特別推薦状 受託待ち";
 
-        if (attempt.status === 'submitted') {
-          statusLabel.className = "text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20 animate-pulse";
-          statusLabel.innerText = "未採点 (審査中)";
+          approvalBoxTitle.innerText = "特別推薦状の送信を完了しています";
+          approvalBoxDesc.innerText = "現在、受講生側での特別推薦の開封・受託待ちの状態です。受講生が承諾すると自動的にギルドマスター（MR8）に認定就任されます。";
+          
+          document.getElementById('approval-btn-container').innerHTML = `
+            <div class="w-full text-center py-2 text-xs text-gray-400 font-bold border border-[#dfb76c]/30 rounded-xl bg-[#110a06]">
+              生徒ポータルで推薦の開封待機中...
+            </div>
+          `;
+        } 
+        else if (attempt.status === "graded") {
+          statusLabel.className = "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20";
+          statusLabel.innerText = "MR8 認定・就任完了！";
 
-          document.getElementById('review-score').value = "85";
-          document.getElementById('review-result').value = "pass";
-          document.getElementById('review-feedback').value = "";
-        } else {
-          // すでに採点完了
-          statusLabel.className = attempt.result === 'pass'
-            ? "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20"
-            : "text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20";
-          statusLabel.innerText = attempt.result === 'pass' ? `クリア! (${attempt.score}点)` : `要再提出 (${attempt.score}点)`;
-
-          document.getElementById('review-score').value = attempt.score || "80";
-          document.getElementById('review-result').value = attempt.result || "fail";
-          document.getElementById('review-feedback').value = attempt.feedback || "";
+          approvalBoxTitle.innerText = "🎉 トップギルドパートナー認定済";
+          approvalBoxDesc.innerText = "受講生は特別推薦状を受諾し、最高峰マーケター(MR8)パートナーへの就任が完了しています。";
+          
+          document.getElementById('approval-btn-container').innerHTML = `
+            <div class="w-full text-center py-2.5 text-xs text-emerald-400 font-black border-2 border-emerald-500/40 rounded-xl bg-[#082212] flex items-center justify-center space-x-2 animate-pulse">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <span>LEGENDARY PARTNER CERTIFIED</span>
+            </div>
+          `;
         }
+      } 
+      // =====================================
+      // MR2〜MR7の通常運営フロー
+      // =====================================
+      else {
+        // ステータス判定
+        if (attempt.status === 'not_started' || !attempt.status) {
+          statusLabel.className = "text-xs font-bold text-gray-500 bg-[#080503] px-2.5 py-1 rounded border border-gray-800";
+          statusLabel.innerText = "未挑戦 (設問確認モード)";
 
-        renderFieldsPreview(examNum, attempt, false);
+          adminApprovalArea.classList.remove('hidden');
+          approvalBoxTitle.innerText = `指令リンク情報・設定センター`;
+          approvalBoxDesc.innerText = `受講生側が受注（受験）する前に、共有するリンク情報・日時等をここで先行保存・編集することができます。`;
+          
+          document.getElementById('approval-btn-container').innerHTML = `
+            <button 
+              onclick="saveAdminSharedLinksOnly()" 
+              class="w-full bg-slate-800 hover:bg-slate-700 border border-[#dfb76c]/50 text-[#dfb76c] font-bold py-2.5 rounded-xl text-xs transition-all shadow flex items-center justify-center space-x-1.5"
+            >
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>指令情報を先行保存する (生徒へリアルタイム同期)</span>
+            </button>
+          `;
+
+          adminAnswersArea.classList.remove('hidden');
+          adminGradingArea.classList.add('hidden'); 
+          previewModeTag.innerText = (examNum === 4 || examNum === 7) ? "（対面審査フェーズ・設問なし）" : "（未受験・設問チェック中）";
+
+          renderFieldsPreview(examNum, {}, true); 
+        } 
+        else if (attempt.status === 'applying') {
+          // 申請中 -> 承認ボタンを表示
+          statusLabel.className = "text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20";
+          statusLabel.innerText = "受験申請中";
+
+          adminApprovalArea.classList.remove('hidden');
+          approvalBoxTitle.innerText = `マーケターランク昇格への挑戦申請を受理しました`;
+          approvalBoxDesc.innerText = `受講生側で昇格クエストを受注（受験）できるように許可を与えるには、以下の指令情報を設定した上で「受験を承認する」をクリックしてください。`;
+          
+          document.getElementById('approval-btn-container').innerHTML = `
+            <button 
+              onclick="approveExamChallenge()" 
+              class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] hover:to-[#dfb76c] text-black font-black py-2.5 rounded-xl text-xs transition-all shadow flex items-center justify-center space-x-1.5"
+            >
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>受験を承認する（クエスト解放）</span>
+            </button>
+          `;
+
+          adminAnswersArea.classList.remove('hidden');
+          adminGradingArea.classList.add('hidden');
+          previewModeTag.innerText = (examNum === 4 || examNum === 7) ? "（対面審査フェーズ・設問なし）" : "（未受験・設問チェック中）";
+
+          renderFieldsPreview(examNum, {}, true);
+        } 
+        else if (attempt.status === 'approved') {
+          // 承認済み未提出
+          statusLabel.className = "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20";
+          statusLabel.innerText = "挑戦承認済 (回答待ち)";
+
+          adminApprovalArea.classList.remove('hidden');
+          approvalBoxTitle.innerText = `指令リンク情報・設定センター（承認済）`;
+          approvalBoxDesc.innerText = `受講生側で回答執筆、または面接待機中の期間です。共有リンク情報・日時等をここでいつでも修正・上書き保存できます。`;
+          
+          document.getElementById('approval-btn-container').innerHTML = `
+            <button 
+              onclick="saveAdminSharedLinksOnly()" 
+              class="w-full bg-slate-800 hover:bg-slate-700 border border-[#dfb76c]/50 text-[#dfb76c] font-bold py-2.5 rounded-xl text-xs transition-all shadow flex items-center justify-center space-x-1.5"
+            >
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>指令情報を更新・上書き保存する</span>
+            </button>
+          `;
+
+          adminAnswersArea.classList.remove('hidden');
+          adminGradingArea.classList.add('hidden');
+          previewModeTag.innerText = (examNum === 4 || examNum === 7) ? "（対面審査フェーズ・設問なし）" : "（未提出・白紙）";
+
+          renderFieldsPreview(examNum, {}, true);
+        } 
+        else {
+          // 提出済み or 採点完了 -> 採点フォームと解答プレビューを表示
+          adminApprovalArea.classList.add('hidden');
+          adminAnswersArea.classList.remove('hidden');
+          adminGradingArea.classList.remove('hidden');
+          previewModeTag.innerText = (examNum === 4 || examNum === 7) ? "（対面審査・レポート提出なし）" : "（解答済データ）";
+
+          // フィードバック採点のテキストを対面用に最適化
+          if (examNum === 4 || examNum === 7) {
+            document.getElementById('admin-feedback-section-title').innerText = "✍️ 実技・役員対面面接 査定合否レポート送信";
+            document.getElementById('admin-comment-label').innerHTML = "対面審査・面接フィードバックコメント <span class='text-rose-500'>*</span>";
+          } else {
+            document.getElementById('admin-feedback-section-title').innerText = "✍️ ギルド査定フィードバック";
+            document.getElementById('admin-comment-label').innerHTML = "指導フィードバックコメント <span class='text-rose-500'>*</span>";
+          }
+
+          if (attempt.status === 'submitted') {
+            statusLabel.className = "text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20 animate-pulse";
+            statusLabel.innerText = "未採点 (審査中)";
+
+            document.getElementById('review-score').value = "85";
+            document.getElementById('review-result').value = "pass";
+            document.getElementById('review-feedback').value = "";
+          } else {
+            statusLabel.className = attempt.result === 'pass'
+              ? "text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20"
+              : "text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20";
+            statusLabel.innerText = attempt.result === 'pass' ? `クリア! (${attempt.score}点)` : `要再提出 (${attempt.score}点)`;
+
+            document.getElementById('review-score').value = attempt.score || "80";
+            document.getElementById('review-result').value = attempt.result || "fail";
+            document.getElementById('review-feedback').value = attempt.feedback || "";
+          }
+
+          renderFieldsPreview(examNum, attempt, false);
+        }
       }
 
       document.getElementById('review-timestamp').innerText = `最終アクション日時: ${attempt.timestamp || 'なし'}`;
       renderAdminStudentList();
+    }
+
+    // 運営用：MR8特別推薦を発行・送信
+    function sendR8Recommendation() {
+      const studentKey = appState.adminSelectedStudentKey;
+      if (!studentKey) return;
+
+      const recText = document.getElementById('setup-field-r8-recommendation-text').value.trim();
+      if (!recText) {
+        showToast("エラー", "推薦状に記載する文章を入力してください。", "error");
+        return;
+      }
+
+      if (!appState.students[studentKey].examAttempts[8]) {
+        appState.students[studentKey].examAttempts[8] = {};
+      }
+
+      const attempt = appState.students[studentKey].examAttempts[8];
+      attempt.status = "recommended";
+      attempt.timestamp = new Date().toLocaleString();
+      attempt.shared_r8_rec_message = recText; 
+
+      attempt.feedback = recText;
+
+      saveDatabase();
+      showToast("推薦状送信完了", `${appState.students[studentKey].name} さん宛てに、MR8推薦状を送信しました！`, "success");
+      
+      openAdminReview(studentKey, 8);
+    }
+
+    // 設問プレビューの出力 (MR4, MR7などの未提出・対面フェーズプレビュー対応)
+    function renderFieldsPreview(examNum, attempt, isBlank = false) {
+      const preview = document.getElementById('review-fields-preview');
+      preview.innerHTML = "";
+
+      const info = ranks[examNum];
+      if (!info) return;
+
+      if (examNum === 4 || examNum === 7) {
+        let comment = "";
+        if (examNum === 4) {
+          comment = "本試練（MR4）は、受講生が実際の対面面談練習をギルド運営・先輩に対して行う実技ロープレ審査です。生徒からのレポート送信はありません。";
+        } else {
+          comment = "本試練（MR7）は、指示された最終スプレッドシート（共有指令リンク）の査定と、役員役との直接完全面接で審査されます。生徒からのレポート送信はありません。";
+        }
+
+        preview.innerHTML = `
+          <div class="p-4 rounded-lg bg-[#0d0905] border border-[#dfb76c]/20 text-center text-xs space-y-2">
+            <i data-lucide="info" class="w-6 h-6 text-[#dfb76c] mx-auto"></i>
+            <h5 class="font-bold text-[#dfb76c]">対面 / 指示書実技審査クエスト</h5>
+            <p class="text-gray-400 text-[11px] leading-relaxed max-w-sm mx-auto">${comment}</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      if (!info.fields) return;
+
+      info.fields.forEach(field => {
+        const val = isBlank ? "" : (attempt[field.name] || "");
+        let displayVal = "";
+
+        if (isBlank) {
+          displayVal = `<span class="text-gray-600 italic">（受講生の回答待ち）</span>`;
+        } else if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
+          displayVal = `<a href="${val}" target="_blank" class="text-amber-400 hover:underline break-all flex items-center space-x-1">
+                          <span>${val}</span><i data-lucide="external-link" class="w-3.5 h-3.5 inline"></i>
+                        </a>`;
+        } else {
+          displayVal = `<p class="whitespace-pre-line text-gray-200 leading-relaxed">${val || '（未入力）'}</p>`;
+        }
+
+        const block = `
+          <div class="border-b border-[#3c2a1c] pb-3 mb-3 last:border-0 last:pb-0">
+            <span class="block text-[11px] font-bold text-[#dfb76c] mb-1">■ ${field.label}</span>
+            <div class="bg-[#080503] p-3 rounded-lg border border-gray-900/80">
+              ${displayVal}
+            </div>
+          </div>
+        `;
+        preview.innerHTML += block;
+      });
+      lucide.createIcons();
+    }
+
+    // 運営から入力された共有URLを先行保存するロジック
+    function saveAdminSharedLinksOnly() {
+      const studentKey = appState.adminSelectedStudentKey;
+      const examNum = appState.adminSelectedExamNum;
+      if (!studentKey || !examNum) return;
+
+      const info = ranks[examNum];
+      if (!appState.students[studentKey].examAttempts[examNum]) {
+        appState.students[studentKey].examAttempts[examNum] = {
+          status: "not_started",
+          timestamp: new Date().toLocaleString()
+        };
+      }
+
+      const attempt = appState.students[studentKey].examAttempts[examNum];
+
+      // 各入力値を引き抜いて保存
+      if (info.adminFields) {
+        info.adminFields.forEach(field => {
+          const inputEl = document.getElementById(`setup-field-${field.name}`);
+          if (inputEl) {
+            attempt[`shared_${field.name}`] = inputEl.value.trim();
+          }
+        });
+      }
+
+      saveDatabase();
+      showToast("保存完了", "運営共有指令リンク情報をデータベースへ保存しました。生徒側へ即時同期されます。", "success");
+      openAdminReview(studentKey, examNum);
     }
 
     // 挑戦申請の承認
@@ -1513,11 +2282,23 @@
 
       if (!studentKey || !examNum) return;
 
-      appState.students[studentKey].examAttempts[examNum].status = "approved";
-      appState.students[studentKey].examAttempts[examNum].timestamp = new Date().toLocaleString();
+      const info = ranks[examNum];
+      const attempt = appState.students[studentKey].examAttempts[examNum];
+
+      // 承認前に指令リンク情報を上書き反映
+      if (info.adminFields) {
+        info.adminFields.forEach(field => {
+          const inputEl = document.getElementById(`setup-field-${field.name}`);
+          if (inputEl) {
+            attempt[`shared_${field.name}`] = inputEl.value.trim();
+          }
+        });
+      }
+
+      attempt.status = "approved";
+      attempt.timestamp = new Date().toLocaleString();
       saveDatabase();
 
-      // ボタンを「承認完了！」のアニメーション状態に書き換える
       const btnContainer = document.getElementById('approval-btn-container');
       btnContainer.innerHTML = `
         <div class="w-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 animate-bounce shadow-inner">
@@ -1527,10 +2308,8 @@
       `;
       lucide.createIcons();
 
-      // 通知
       showToast("承認完了", `マーケターランク${examNum} への挑戦を承認しました。生徒側のポータルが即座にアンロックされます。`, "success");
 
-      // 1秒後にヘッダーや他の状態表示を自動リフレッシュ
       setTimeout(() => {
         openAdminReview(studentKey, examNum);
       }, 1000);
@@ -1542,11 +2321,11 @@
       const resultSelect = document.getElementById('review-result');
 
       if (score < 80) {
-        resultSelect.value = "fail"; // 自動で不合格に倒す
+        resultSelect.value = "fail"; 
       }
     }
 
-    // 採点サブミット（80点未満合格の誤送信ブロック制限付き）
+    // 採点サブミット
     function submitReview() {
       const studentKey = appState.adminSelectedStudentKey;
       const examNum = appState.adminSelectedExamNum;
@@ -1562,7 +2341,6 @@
         return;
       }
 
-      // 点数が80点未満の場合、誤って合格が選ばれていても強制的に不合格（要再提出）に変更
       if (score < 80 && result === 'pass') {
         result = 'fail';
         showToast(
@@ -1592,41 +2370,6 @@
       showToast("採点完了", "採点レポートおよびギルドフィードバックを生徒のポータルへ即座に送信しました。", "success");
     }
 
-    // 設問プレビューの出力（未提出時は白紙を表示）
-    function renderFieldsPreview(examNum, attempt, isBlank = false) {
-      const preview = document.getElementById('review-fields-preview');
-      preview.innerHTML = "";
-
-      const info = ranks[examNum];
-      if (!info || !info.fields) return;
-
-      info.fields.forEach(field => {
-        const val = isBlank ? "" : (attempt[field.name] || "");
-        let displayVal = "";
-
-        if (isBlank) {
-          displayVal = `<span class="text-gray-600 italic">（受講生の回答待ち - 設問内容: 「${field.placeholder}」）</span>`;
-        } else if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
-          displayVal = `<a href="${val}" target="_blank" class="text-amber-400 hover:underline break-all flex items-center space-x-1">
-                          <span>${val}</span><i data-lucide="external-link" class="w-3.5 h-3.5 inline"></i>
-                        </a>`;
-        } else {
-          displayVal = `<p class="whitespace-pre-line text-gray-200 leading-relaxed">${val || '（未入力）'}</p>`;
-        }
-
-        const block = `
-          <div class="border-b border-[#3c2a1c] pb-3 mb-3 last:border-0 last:pb-0">
-            <span class="block text-[11px] font-bold text-[#dfb76c] mb-1">■ ${field.label}</span>
-            <div class="bg-[#080503] p-3 rounded-lg border border-gray-900/80">
-              ${displayVal}
-            </div>
-          </div>
-        `;
-        preview.innerHTML += block;
-      });
-      lucide.createIcons();
-    }
-
     // デモ用生徒追加
     function initMockData() {
       appState.students = {
@@ -1638,25 +2381,49 @@
       showToast("受講生読込完了", "佐藤さん、木村さん等のテスト用カルテをギルドデータベースに同期しました。", "success");
     }
 
-    // 生徒用ワークスペースでの設問ジェネレータ
+    // 生徒用ワークスペースでの設問入力フォームジェネレータ
     function generateFormFields(rankNum) {
       const info = ranks[rankNum];
       if (!info || !info.fields) return "";
 
       let html = "";
       info.fields.forEach(field => {
+        const isCounterNeeded = field.minLength ? true : false;
+        const inputId = `workspace-input-${field.name}`;
+
         if (field.type === "url") {
           html += `
             <div class="mb-4">
               <label class="block text-xs font-bold text-gray-300 mb-1.5">${field.label} ${field.required ? '<span class="text-rose-500">*</span>' : ''}</label>
-              <input type="url" name="${field.name}" ${field.required ? 'required' : ''} placeholder="${field.placeholder}" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c] font-mono">
+              <input 
+                type="url" 
+                name="${field.name}" 
+                id="${inputId}"
+                ${field.required ? 'required' : ''} 
+                placeholder="${field.placeholder}" 
+                class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c] font-mono"
+              >
             </div>
           `;
         } else {
           html += `
             <div class="mb-4">
               <label class="block text-xs font-bold text-gray-300 mb-1.5">${field.label} ${field.required ? '<span class="text-rose-500">*</span>' : ''}</label>
-              <textarea name="${field.name}" rows="4" ${field.required ? 'required' : ''} placeholder="${field.placeholder}" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c]"></textarea>
+              <textarea 
+                name="${field.name}" 
+                id="${inputId}"
+                rows="5" 
+                ${field.required ? 'required' : ''} 
+                placeholder="${field.placeholder}" 
+                oninput="${isCounterNeeded ? `updateCharacterCount('${field.name}', ${field.minLength})` : ''}"
+                class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c]"
+              ></textarea>
+              ${isCounterNeeded ? `
+                <div class="flex justify-between items-center mt-1">
+                  <span class="text-[9px] text-gray-500">※この論述問題は最低 ${field.minLength} 文字以上の執筆が必要です。</span>
+                  <span id="count-badge-${field.name}" class="text-[10px] text-rose-400 font-mono animate-pulse">文字数: 0 / ${field.minLength}字以上</span>
+                </div>
+              ` : ''}
             </div>
           `;
         }
@@ -1664,7 +2431,23 @@
       return html;
     }
 
-    // トースト
+    // MR6等での文字数カウンターリアルタイム制御
+    function updateCharacterCount(fieldName, minLength) {
+      const area = document.getElementById(`workspace-input-${fieldName}`);
+      const badge = document.getElementById(`count-badge-${fieldName}`);
+      if (!area || !badge) return;
+
+      const len = area.value.length;
+      badge.innerText = `文字数: ${len} / ${minLength}字以上`;
+
+      if (len >= minLength) {
+        badge.className = "text-[10px] text-emerald-400 font-mono";
+      } else {
+        badge.className = "text-[10px] text-rose-400 font-mono animate-pulse";
+      }
+    }
+
+    // トースト通知表示
     function showToast(title, message, type = "info") {
       const toast = document.getElementById('toast-notification');
       const iconBg = document.getElementById('toast-icon-bg');
@@ -1691,13 +2474,21 @@
       toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
       setTimeout(() => {
         hideToast();
-      }, 6000);
+      }, 7000);
     }
 
     function hideToast() {
       const toast = document.getElementById('toast-notification');
-      toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      if (toast) {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }
     }
+
+    // 初期起動
+    window.onload = function() {
+      loadDatabase();
+      lucide.createIcons();
+    };
   </script>
 </body>
 </html>
