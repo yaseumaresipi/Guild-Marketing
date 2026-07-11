@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,6 +6,9 @@
   <title>Guild Marketing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
     .fc{font-family:'Cinzel',serif;}
@@ -17,6 +19,14 @@
     .pc{background-color:#140d08;border:1px solid #3c2a1c;}
     .qc{background:linear-gradient(180deg,#18100b 0%,#110905 100%);border:2px solid #3c2a1c;border-top:4px solid #dfb76c;transition:all 0.3s;}
     .qc:hover{transform:translateY(-4px);border-color:#dfb76c;box-shadow:0 10px 20px rgba(223,183,108,0.15);}
+    .abin{width:100%;background:#080503;border:1px solid #5a4231;border-radius:0.6rem;padding:0.55rem 0.7rem;font-size:12px;color:#fff;}
+    .abin:focus{outline:none;border-color:#dfb76c;}
+    details.abs{background:linear-gradient(135deg,#16100a,#0a0704);border:1px solid #3c2a1c;border-radius:1rem;}
+    details.abs[open]{border-color:#dfb76c;}
+    details.abs>summary{cursor:pointer;padding:0.9rem 1.1rem;font-size:12px;font-weight:900;color:#dfb76c;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+    details.abs>summary::after{content:'▼';font-size:9px;color:#8a6b3c;}
+    details.abs[open]>summary::after{content:'▲';}
+    .ablbl{display:block;font-size:10px;font-weight:700;color:#c9b28c;margin-bottom:4px;white-space:pre-line;}
     ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#080503}::-webkit-scrollbar-thumb{background:#dfb76c;border:2px solid #080503;border-radius:4px}
   </style>
 </head>
@@ -26,11 +36,26 @@
   <div class="max-w-7xl mx-auto flex justify-between items-center">
     <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
       <div class="w-12 h-12 flex-shrink-0 drop-shadow-[0_0_8px_rgba(223,183,108,0.7)]">
-        <svg viewBox="140 80 380 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-<path d="M0 0 C1.80307617 -0.00580078 1.80307617 -0.00580078 3.64257812 -0.01171875 C22.82170774 0.00920774 22.82170774 0.00920774 24.9375 2.125 C27.81061776 2.59782965 30.68030802 3.02781462 33.5625 3.4375 C44.85445625 5.13278426 55.42018797 7.56199579 65.9375 12.125 C68.09960992 12.8675693 70.26642607 13.59656253 72.4375 14.3125 C82.70439001 17.93546438 92.23187169 23.16778988 101.3515625 29.1015625 C102.84362209 30.06441869 104.3897885 30.94191228 105.9375 31.8125 C106.5975 32.245625 107.2575 32.67875 107.9375 33.125 C107.9375 33.785 107.9375 34.445 107.9375 35.125 C108.63875 35.3725 109.34 35.62 110.0625 35.875 C116.36631344 38.61578845 121.06756884 42.88657663 126 47.5625 C130.46597409 51.74865222 133.07413609 54.26262478 135.63671875 56.84375 C138.11763925 59.30361005 140.74020403 61.4440786 143.484375 63.59765625 C145.20151374 65.40249832 145.40057967 66.73595081 145.9375 69.125 C147.9212767 70.40936734 147.9212767 70.40936734 149.9375 71.125 C149.9375 71.785 149.9375 72.445 149.9375 73.125 C150.5975 73.125 151.2575 73.125 151.9375 73.125 C152.95101664 74.78348177 153.94870795 76.45165961 154.9375 78.125 C158.9375 82.125 158.9375 82.125 158.9375 85.125 C163.9375 93.125 163.9375 93.125 163.9375 93.125 C167.39970279 95.68535921 168.85735153 98.2481356 170.3125 100.8125 C176.9375 112.49099042 176.9375 112.49099042 176.9375 118.125 C183.93707102 131.10721943 188.76564731 143.75426309 190.54296875 157.640625 C196.39156852 184.76082346 196.76026921 215.04485105 189.9375 238.125 C188.3046875 246.18359375 188.3046875 246.18359375 187.9375 248.125 C185.30606919 254.83581129 184.46111837 259.35099578 182.9375 264.125 C180.6875 267.125 180.6875 267.125 177.15234375 276.85546875 C169.92351599 291.71978522 164.22702537 302.69581432 156.9375 311.125 C154.125 314.0625 154.125 314.0625 152.9375 317.125 C148.72867904 320.12516466 148.72867904 320.12516466 147.9375 322.125 C144.69924558 326.80005419 143.53390015 326.86613932 140.9375 328.125 C138.8001463 332.39330741 137.53331039 333.5223964 135.4375 335.1875 C129.9375 341.125 129.9375 341.125 127.9375 341.125 C124.82774248 346.23361381 122.42022303 347.98891183 120.0625 349.8125 C112.9375 355.125 112.9375 355.125 109.9375 355.125 C107.72859029 359.48680262 106.67829502 360.13479846 104.125 361.4375 C98.9375 364.125 98.9375 364.125 92.0625 367.9375 C85.9375 371.125 85.9375 371.125 82.9375 371.125 C79.07149807 374.58604748 75.2029581 376.0390974 71.328125 377.4765625 C52.5766858 384.83768299 40.92520031 386.60263554 29.21557617 388.63183594 C17.81903124 391.62802811 9.3768072 391.27846447 1.15112305 391.25537109 C-16.47168583 391.26851143 -26.50332397 390.38489745 -37.0625 388.125 C-48.8125 385.625 -48.8125 385.625 -51.84765625 384.98046875 C-61.39908475 382.83809132 -66.0625 381.125 -66.0625 381.125 C-80.13336453 377.26535634 -90.97416279 370.28439073 -101.0625 365.125 C-109.35465678 359.72408222 -114.62101614 356.14232292 -119.875 351.9375 C-132.79817901 341.59565911 -132.79817901 341.59565911 -137.0625 337.125 C-141.92240745 332.61370368 -143.73992698 329.97015195 -146.0625 327.125 C-150.0625 324.125 -150.0625 324.125 -150.0625 321.125 C-155.09384807 318.48389174 -157.11057828 315.51686398 -159.0625 312.125 C-163.0625 307.125 -163.0625 307.125 -163.0625 304.125 C-168.0625 298.375 -168.0625 298.375 -168.0625 296.125 C-172.98928249 290.57420563 -175.2293733 285.12432374 -177.0625 279.125 C-189.1045822 254.32105696 -189.1045822 254.32105696 -190.5703125 245.51171875 C-194.125 229.8125 -194.125 229.8125 -196.0625 222.125 C-197.19094384 212.5509489 -197.19094384 212.5509489 -197.1953125 207.609375 C-197.20471633 184.06637169 -196.79524464 173.94485842 -194.59765625 163.73828125 C-193.0625 154.875 -193.0625 154.875 -190.0625 143.125 C-184.0625 125.125 -184.0625 125.125 -181.0625 121.125 C-179.95259206 114.60602291 -178.34108197 111.43492274 -176.375 107.9375 C-171.59801519 99.28901384 -170.11297493 96.55008495 -168.625 93.8125 C-165.0625 87.125 -165.0625 87.125 -163.0625 87.125 C-160.84198694 81.62647814 -158.92315795 79.00005057 -156.6875 76.0625 C-148.0625 66.125 -148.0625 66.125 -146.0625 66.125 C-143.68872733 61.46644815 -141.532146 59.47977875 -139.0625 57.125 C-134.0625 52.125 -134.0625 52.125 -132.0625 52.125 C-129.71401778 47.52760191 -127.74725439 46.00432807 -125.0625 44.125 C-119.5859375 39.2578125 -119.5859375 39.2578125 -116.4375 37.25 C-106.5 30.5 -106.5 30.5 -92.0625 22.125 C-81.51702866 16.58542397 -74.42293609 13.69682841 -66.6328125 11.265625 C-54.63495838 6.86734745 -49.95259455 5.91919165 -45.125 5 C-38.38626179 3.66977088 -34.24048432 3.00188851 -29.99609375 2.5703125 C-16.78516576 -0.16019416 -8.35182894 -0.02695588 0 0 Z " fill="#181717" transform="translate(337.0625,79.875)"/>
-<path d="M0 0 C19.66978971 0.02471375 36.84838457 2.63722393 52.75 10.4375 C64.74963453 15.2613401 72.99468013 21.19923782 81.17089844 27.26953125 C91.54392753 34.84721528 96.92532618 40.36385008 101.75 46.4375 C106.14605497 50.665639 107.11037201 52.05482281 108.6875 54.5625 C111.75 59.4375 111.75 59.4375 115.59375 65.6171875 C118.875 70.25 118.875 70.25 122.890625 81.41796875 C124.11722255 85.72778649 125.92072275 89.73016308 127.76171875 93.80859375 C128.75 96.4375 128.75 96.4375 128.75 100.4375 C131.5428444 106.05573205 131.92148223 111.51699649 131.953125 117.1875 C132.13042868 143.25010576 131.09546799 153.00016743 128.75 163.4375 C125.75 178.4375 125.75 178.4375 124.75 180.4375 C117.75036775 205.1024505 93.57736765 227.24989429 75.5859375 239.671875 C70.75 241.4375 70.75 241.4375 69.75 244.4375 C39.05457073 258.43132709 22.31977592 262.62500802 3.13378906 262.62280273 C-15.23480112 262.71495455 -26.06656107 261.25209586 -37.375 257.0625 C-47.25 253.4375 -47.25 253.4375 -50.37109375 252.30078125 C-66.16977765 245.64257292 -72.25 239.4375 -72.25 239.4375 C-80.4579063 234.75668009 -80.4579063 234.75668009 -82.25 232.4375 C-86.98548994 228.01879871 -89.25158721 225.64802934 -91.6875 223.125 C-97.25 217.4375 -97.25 217.4375 -99.87109375 214.93359375 C-105.875 206.8125 -105.875 206.8125 -110.91796875 199.80078125 C-113.25 192.4375 -113.25 192.4375 -115.25 192.4375 C-121.21484375 177.0390625 -121.21484375 177.0390625 -124.25 164.4375 C-129.44900225 141.09633515 -129.4375 129.75 -129.4375 129.75 C-129.43820371 114.65942056 -129.43820371 114.65942056 -128.25 108.4375 C-126.4375 105.75 -126.4375 105.75 -120.40625 81.875 C-113.71923212 66.15737494 -110.475028 60.86838363 -106.25 55.4375 C-100.24398902 47.44662189 -95.38803495 42.37008206 -90.375 37.3125 C-83.25 30.4375 -83.25 30.4375 -81.25 30.4375 C-74.63872992 23.6891328 -71.25 21.4375 -71.25 21.4375 C-59.98014611 14.29618598 -57.49753216 13.80783261 -54.25 13.4375 C-48.46569529 8.54534765 -42.64531224 6.55425559 -36.4375 4.8125 C-22.89162238 1.08707948 -11.76069736 -0.0022889 0 0 Z " fill="#C6B698" transform="translate(332.25,143.5625)"/>
-<path d="M0 0 C0.66 0 1.32 0 2 0 C4.09215336 29.72663041 7.9375 37.75 7.9375 37.75 C12.16552711 46.28953416 15.41513649 51.12166961 18.79296875 56.01171875 C20 58 20 58 20 60 C22 60 22 60 23 64 C25 64 25 64 26 68 C28.41796875 68.8125 28.41796875 68.8125 31 70 C32.2578125 72.3203125 32.2578125 72.3203125 35 81 C39.21319051 92.40848761 39.21336501 99.29477953 39.25 106.75 C39.35868953 119.05143404 37.3524614 126.60326337 33.4375 134.875 C28.49983601 144.92125066 26.20160759 146.79839241 24 149 C19.33203125 155.42578125 19.33203125 155.42578125 18 157 C15.505 158.11375 15.505 158.11375 15.25 158.6875 C10 166 10 166 -1 185 C-4.28061047 205.875 -4.28061047 205.875 -5 215 C-9.03133853 214.17266314 -10.92763152 212.52113581 -13.9375 209.6875 C-21.68359375 202.921875 -21.68359375 202.921875 -26.125 197.5625 C-29.75 191.3125 -29.75 191.3125 -31 185 C-34 184 -34 184 -35 178 C-37 178 -37 178 -39.6875 164.9375 C-40.09715194 156.39422179 -39.78230311 150.24638944 -39 144 C-37 144 -37 144 -37 144 C-35.61950734 136.43376318 -34.17168983 131.3305114 -32 126 C-30 126 -30 126 -30 126 C-28.88114562 120.57029572 -27.41369706 118.58558919 -25.33203125 115.83203125 C-20 107 -20 107 -18.3125 104.9375 C-16.34492145 100.03530879 -16 97 -16 97 C-13 88.42 -13 88.42 -13 71 C-12.01 71 -11.02 71 -10 71 C-6.59558519 84.22463422 -6.59558519 84.22463422 -4.94970703 87.88793945 C-3.734375 95.46484375 -3.734375 95.46484375 -3.7265625 105.22460938 C-4.01879648 114.19663596 -4.90028172 116.3159557 -6 119 C-6 120.32 -6 121.64 -6 123 C-4 123 -4 123 -3.75 121 C-2.58998383 116.35993532 -0.29404816 112.27050942 2.06640625 108.12890625 C4.65282197 102.23101265 4.21583238 95.57100915 4.25 89.25 C4.35947687 77.90343656 2.93325256 70.09718579 -2 63 C-10.97782316 49.61705827 -13.90719606 35.88321752 -11 20 C-8.484375 18.09375 -8.484375 18.09375 0 0 Z " fill="#552516" transform="translate(329,158)"/>
-<path d="M0 0 C5.55649937 2.30061905 8.125 5.25 8.125 5.25 C12 10 12 10 12.875 12.3671875 C17.12544559 18.83532474 19.875 21.875 19.875 21.875 C29.81229544 34.71386794 32.5625 43.5 32.5625 43.5 C39.7653937 62.64288568 39.37448628 73.24216288 36.93359375 81.69140625 C29.7011255 93.78762994 24 98 24 98 C19 102 19 102 19 102 C16.6015625 103.38671875 16.6015625 103.38671875 13.625 104.6875 C8 107 8 107 5 107 C5 109 5 109 4.12601562 109.21914063 C-20.89077309 114.38928241 -20.89077309 114.38928241 -38.375 128.5625 C-42 137 -42 137 -45 137 C-44 116 -44 116 -42 116 C-40.68 106.76 -40.68 106.76 -40 102 C-37 101 -37 101 -35 94 C-33 94 -33 94 -32.75 91.8125 C-28 84 -28 84 -26 83 C-22 72 -22 72 -18 72 C-14 64 -14 64 -8.6875 61.8125 C4.57633873 23.60868996 4.57633873 23.60868996 2 9 C0 2 0 2 0 0 Z " fill="#552515" transform="translate(373,252)"/>
+        <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+          <defs>
+            <linearGradient id="flameOuter" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f0d9a5"/><stop offset="55%" stop-color="#dfb76c"/><stop offset="100%" stop-color="#9a763a"/>
+            </linearGradient>
+            <linearGradient id="flameCore" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fff3d6"/><stop offset="100%" stop-color="#edd19b"/>
+            </linearGradient>
+            <g id="sideFlame">
+              <path d="M46 44 C40 52 32 58 27 68 C21 80 22 94 30 104 C34 109 38 112 42 114 C46 112 51 108 55 103 C62 94 63 81 58 71 C54 63 49 56 49 50 C48 47 47 45 46 44 Z" fill="url(#flameOuter)"/>
+              <path d="M42 74 C38 81 33 85 33 93 C33 101 37 106 42 108 C47 106 51 101 51 93 C51 85 46 81 42 74 Z" fill="#18100a"/>
+              <path d="M42 84 C39 88 37 91 37 96 C37 101 39 104 42 105 C45 104 47 101 47 96 C47 91 44 88 42 84 Z" fill="url(#flameCore)"/>
+            </g>
+          </defs>
+          <path d="M100 12 C96 26 84 34 78 48 C71 63 72 82 82 95 C88 103 94 108 100 110 C106 108 112 103 118 95 C128 82 129 63 122 48 C116 34 104 26 100 12 Z" fill="url(#flameOuter)"/>
+          <path d="M100 52 C94 62 87 68 87 80 C87 92 93 100 100 102 C107 100 113 92 113 80 C113 68 106 62 100 52 Z" fill="#18100a"/>
+          <path d="M100 68 C96 74 92 78 92 85 C92 92 95 97 100 98 C105 97 108 92 108 85 C108 78 104 74 100 68 Z" fill="url(#flameCore)"/>
+          <use href="#sideFlame"/>
+          <use href="#sideFlame" transform="translate(200,0) scale(-1,1)"/>
+          <path d="M28 122 Q100 132 172 122" stroke="#dfb76c" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
         </svg>
       </div>
       <div>
@@ -39,6 +64,16 @@
       </div>
     </div>
     <div class="flex items-center space-x-3">
+      <div class="relative">
+        <button id="nbellbtn" style="display:none" onclick="toggleNotif()" class="relative text-[#dfb76c] bg-[#110b07] border-2 border-[#dfb76c]/50 hover:border-[#dfb76c] p-2 rounded-xl">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span id="nbadge" style="display:none" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+        <div id="npanel" style="display:none" class="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto qp rounded-xl p-3 z-50 space-y-2">
+          <div class="text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-2">🔔 通知</div>
+          <div id="nlist"></div>
+        </div>
+      </div>
       <button onclick="toggleAdmin()" class="text-xs bg-[#110b07] border-2 border-[#dfb76c]/50 hover:border-[#dfb76c] text-[#dfb76c] px-4 py-2 rounded-xl flex items-center space-x-2 font-bold">
         <i data-lucide="shield-check" class="w-4 h-4"></i><span id="btn-admin-text">ギルド運営管理画面へ</span>
       </button>
@@ -70,13 +105,17 @@
           <label class="block text-xs font-bold text-gray-300 mb-1.5">受講生氏名 <span class="text-rose-500">*</span></label>
           <input type="text" id="irname" placeholder="ギルド 太郎" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c]">
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-300 mb-1.5">ユーザー名 <span class="text-rose-500">*</span></label>
+        <div id="fruser" style="display:none">
+          <label class="block text-xs font-bold text-gray-300 mb-1.5">ユーザー名（半角英数） <span class="text-rose-500">*</span></label>
           <input type="text" id="iusr" maxlength="10" placeholder="例: guildmarketer" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-300 mb-1.5">パスワード（4〜8文字） <span class="text-rose-500">*</span></label>
-          <input type="password" id="ipw" maxlength="8" placeholder="••••••••" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
+          <label class="block text-xs font-bold text-gray-300 mb-1.5">メールアドレス <span class="text-rose-500">*</span></label>
+          <input type="email" id="iemail" placeholder="example@mail.com" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1.5">パスワード（6文字以上） <span class="text-rose-500">*</span></label>
+          <input type="password" id="ipw" placeholder="••••••••" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
         </div>
         <button onclick="doAuth()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] text-black font-black py-3.5 rounded-xl text-xs tracking-widest"><span id="abtxt">ギルドに入室する</span></button>
         <button onclick="showReset()" class="w-full text-[10px] text-gray-500 hover:text-[#dfb76c] pt-1">パスワードを忘れた方はこちら</button>
@@ -85,34 +124,41 @@
     <div id="reset-form" style="display:none">
       <div class="text-center mb-6">
         <h2 class="text-xl font-black fc gg">パスワードリセット</h2>
-        <p class="text-[10px] text-gray-400 font-mono mt-1">登録時の情報で本人確認を行います</p>
+        <p class="text-[10px] text-gray-400 font-mono mt-1">登録メールアドレスに再設定リンクを送ります</p>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-gray-300 mb-1.5">ユーザー名 <span class="text-rose-500">*</span></label>
-          <input type="text" id="rsusr" maxlength="10" placeholder="例: guildmarketer" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
+          <label class="block text-xs font-bold text-gray-300 mb-1.5">メールアドレス <span class="text-rose-500">*</span></label>
+          <input type="email" id="rsemail" placeholder="example@mail.com" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-300 mb-1.5">登録時の氏名 <span class="text-rose-500">*</span></label>
-          <input type="text" id="rsname" placeholder="ギルド 太郎" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c]">
-        </div>
-        <div id="rsnew" style="display:none" class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-3">
-          <p class="text-[10px] text-emerald-400 font-bold">✅ 本人確認完了！新しいパスワードを設定してください。</p>
-          <input type="password" id="rspw" maxlength="8" placeholder="新しいパスワード（4〜8文字）" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-[#dfb76c] font-mono">
-          <button onclick="doReset()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-3 rounded-xl text-xs">新しいパスワードで再設定する</button>
-        </div>
-        <button id="bvrify" onclick="verifyReset()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-3.5 rounded-xl text-xs tracking-widest">本人確認する</button>
+        <button onclick="doReset()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-3.5 rounded-xl text-xs tracking-widest">リセットメールを送信する</button>
         <button onclick="hideReset()" class="w-full text-[10px] text-gray-500 hover:text-[#dfb76c] pt-1">← ログインに戻る</button>
       </div>
     </div>
+  </div>
+  <!-- Discord誘導 -->
+  <div class="qp rounded-2xl p-6 mt-6 text-center space-y-4" style="border-color:rgba(88,101,242,0.55)">
+    <div class="w-14 h-14 mx-auto rounded-2xl bg-[#5865F2]/15 border border-[#5865F2]/40 flex items-center justify-center">
+      <i data-lucide="messages-square" class="w-7 h-7" style="color:#8b9cff"></i>
+    </div>
+    <div>
+      <h3 class="text-base font-black fc tracking-widest" style="color:#8b9cff">DISCORD</h3>
+      <p class="text-xs text-gray-300 font-bold mt-1">公式Discordコミュニティ</p>
+      <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">メンバー同士の情報交換や、運営からのお知らせ・イベント告知はDiscordで行っています。<br>まだの方はぜひご参加ください！</p>
+    </div>
+    <a href="https://discord.gg/7MNKKVZZz" target="_blank" rel="noopener" class="inline-flex items-center justify-center space-x-2 w-full font-black py-3 rounded-xl text-xs tracking-wider text-white" style="background:linear-gradient(135deg,#5865F2 0%,#3b45c4 100%)">
+      <i data-lucide="external-link" class="w-4 h-4"></i><span>Discordに参加する</span>
+    </a>
   </div>
 </div>
 
 <!-- STUDENT PAGE -->
 <div id="pg-student" style="display:none" class="space-y-6">
-  <div class="flex space-x-2 border-b border-[#dfb76c]/20 mb-2">
+  <div class="flex flex-wrap space-x-2 border-b border-[#dfb76c]/20 mb-2">
     <button id="sm" onclick="sstab('mypage')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]">マイページ</button>
     <button id="sc" onclick="sstab('chapters')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">チャプター講義</button>
+    <button id="sb" onclick="sstab('abook')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">📖 冒険の書</button>
+    <button id="sk" onclick="sstab('mk')" style="display:none" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">👥 担当生徒</button>
   </div>
   <div id="smypage" class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -159,6 +205,8 @@
     <h3 class="text-base font-black text-gray-200 tracking-wider flex items-center space-x-2 fc"><i data-lucide="play-circle" class="w-5 h-5 text-[#dfb76c]"></i><span>GUILD CHAPTER LECTURES</span></h3>
     <div id="clist" class="space-y-6"></div>
   </div>
+  <div id="sabook" style="display:none" class="space-y-4"></div>
+  <div id="smk" style="display:none" class="space-y-4"></div>
 </div>
 
 <!-- EXAM PAGE -->
@@ -172,6 +220,7 @@
       <div class="flex justify-between items-center font-mono"><span id="wfbbadge" class="text-xs font-bold uppercase tracking-wider">選考結果</span><span id="wfbscore" class="text-sm font-bold">--- 点</span></div>
       <div class="bg-[#080503]/90 p-3 rounded-lg border border-[#dfb76c]/10"><span class="text-[10px] text-[#dfb76c] block font-bold mb-1">■ ギルド運営フィードバック:</span><p id="wfbtxt" class="text-xs text-gray-200 leading-relaxed whitespace-pre-line"></p></div>
     </div>
+    <div id="whist" style="display:none" class="space-y-2"></div>
     <div id="wshared" style="display:none" class="p-4 rounded-xl border-2 border-[#dfb76c]/40 bg-[#16100b] space-y-3">
       <h5 class="text-xs font-bold text-[#dfb76c] font-mono">🛡️ ギルド運営からの指令情報（閲覧用）</h5>
       <div id="wsharedcnt" class="space-y-2 text-xs"></div>
@@ -227,11 +276,11 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 <div><label class="block text-gray-400 mb-1 font-bold">受講生氏名</label><input type="text" id="aename" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
                 <div><label class="block text-gray-400 mb-1 font-bold">ユーザー名</label><input type="text" id="aeusr" maxlength="10" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div>
-                <div><label class="block text-gray-400 mb-1 font-bold">パスワード</label><input type="text" id="aepw" maxlength="8" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div>
                 <div><label class="block text-gray-400 mb-1 font-bold">入学日</label><input type="text" id="aeadm" placeholder="例: 2026/06/07" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
-                <div class="md:col-span-2"><label class="block text-gray-400 mb-1 font-bold">担当マーケター名</label><input type="text" id="aementor" placeholder="例: アキヒビ、まり" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
+                <div><label class="block text-gray-400 mb-1 font-bold">担当マーケター（ユーザー名で入力）</label><input type="text" id="aementor" placeholder="例: akihibi" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div>
               </div>
               <button onclick="saveStudent()" class="w-full bg-[#1e140d] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c] text-[#dfb76c] font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="save" class="w-4 h-4"></i><span>生徒の基本情報（カルテ）を上書き保存する</span></button>
+              <p class="text-[9px] text-gray-500">※パスワードは本人が「パスワードを忘れた方はこちら」からメールで再設定します。</p>
             </div>
             <div id="rvapprv" style="display:none" class="bg-amber-500/10 p-4 rounded-xl border-2 border-dashed border-[#dfb76c]/40 space-y-4">
               <div class="flex items-start space-x-2"><i data-lucide="shield-alert" class="w-5 h-5 text-[#dfb76c] flex-shrink-0 mt-0.5"></i><div><span id="rvat" class="text-xs font-bold text-white block">申請処理</span><p id="rvad" class="text-[10px] text-gray-400 mt-0.5"></p></div></div>
@@ -241,6 +290,7 @@
             <div id="rvanswers" style="display:none" class="space-y-3">
               <div class="flex justify-between items-center"><span class="text-xs font-bold text-[#dfb76c] flex items-center space-x-1"><i data-lucide="file-code" class="w-4 h-4"></i><span>📋 出題設問 ＆ 回答プレビュー</span></span><span id="rvptag" class="text-[10px] text-gray-500"></span></div>
               <div id="rvpreview" class="bg-[#080503] p-4 rounded-xl border border-[#3c2a1c] text-xs space-y-4 max-h-[350px] overflow-y-auto"></div>
+              <div id="rvhist"></div>
             </div>
             <div id="rvgrade" style="display:none" class="border-t border-[#3c2a1c] pt-4 space-y-4">
               <span id="rvgtitle" class="text-xs font-bold text-emerald-400 block">✍️ ギルド査定フィードバック</span>
@@ -293,29 +343,249 @@
   <button onclick="document.getElementById('toast').style.display='none'" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
 </div>
 <footer class="bg-[#050302] border-t-2 border-[#dfb76c]/20 py-4 text-center text-[10px] text-gray-500 font-mono">&copy; 2026 Guild Marketing. All Rights Reserved.</footer>
-
 <script>
+var firebaseConfig = {
+  apiKey: "AIzaSyDZ6D-XolZGIiU4r0pgpNKtPBb2LEKOpqI",
+  authDomain: "guild-marketing.firebaseapp.com",
+  projectId: "guild-marketing",
+  storageBucket: "guild-marketing.firebasestorage.app",
+  messagingSenderId: "393572109200",
+  appId: "1:393572109200:web:c763a9169e74216d46c115"
+};
+firebase.initializeApp(firebaseConfig);
+var fauth = firebase.auth();
+var fdb = firebase.firestore();
+
 var DB = {students:{}, chapters:[]};
-var CU = null, AA = false, CV = 'auth', AEN = null, ASK = null, ASE = null, ATB = 'login';
-var APW = '1';
+var MKS = {};
+var CU = null, AA = false, CV = 'auth', AEN = null, ASK = null, ASE = null, ATB = 'login', MKV = null;
+var APW = '1'; // ←必ず変更してください！
 
-// ストレージは使わず全部メモリで動作
-function dbS() { /* メモリのみ */ }
-function dbL(cb) { if(cb) cb(); }
-function lci() { try { lucide.createIcons(); } catch(e) {} }
+function g(id){ return document.getElementById(id); }
+function lci(){ try{ lucide.createIcons(); }catch(e){} }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function getRandCase() {
-  var g=["ビジネス・副業系","暮らし・お片付けライフハック系","恋愛・心理コミュニケーション系","時短ガジェット・AI便利ツール系"];
+function dbS(k){ if(k===undefined) k=CU; if(k && DB.students[k]) fdb.collection('students').doc(k).set(DB.students[k]); }
+function dbSCh(){ fdb.collection('meta').doc('chapters').set({list:DB.chapters}); }
+
+function pushNotif(key,msg){
+  fdb.collection('students').doc(key).update({
+    notifs: firebase.firestore.FieldValue.arrayUnion({msg:msg, ts:new Date().toLocaleString(), read:false})
+  }).catch(function(){});
+}
+
+// ===== リアルタイム監視 =====
+var unsubMe=null, unsubAll=null, unsubCh=null, unsubMK=null;
+function listenMe(uid){
+  if(unsubMe) unsubMe();
+  unsubMe = fdb.collection('students').doc(uid).onSnapshot(function(s){
+    if(s.exists){ DB.students[uid]=s.data(); if(CV==='student') updateUI(); renderNotif(); }
+  });
+}
+function listenAll(){
+  if(unsubAll) return;
+  unsubAll = fdb.collection('students').onSnapshot(function(qs){
+    var me = DB.students[CU];
+    DB.students = {};
+    qs.forEach(function(d){ DB.students[d.id]=d.data(); });
+    if(CU && !DB.students[CU] && me) DB.students[CU]=me;
+    if(AA && CV==='admin') renderSList();
+  });
+}
+function listenCh(){
+  if(unsubCh) return;
+  unsubCh = fdb.collection('meta').doc('chapters').onSnapshot(function(s){
+    DB.chapters = (s.exists && s.data().list) || [];
+    if(AA && CV==='admin') renderACh();
+    if(CV==='student' && g('schapters').style.display!=='none') renderChapters();
+  });
+}
+function listenMK(uname){
+  if(unsubMK){ unsubMK(); unsubMK=null; }
+  MKS = {};
+  unsubMK = fdb.collection('students').where('mentor','==',uname).onSnapshot(function(qs){
+    MKS = {};
+    qs.forEach(function(d){ if(d.id!==CU) MKS[d.id]=d.data(); });
+    var has = Object.keys(MKS).length>0;
+    g('sk').style.display = has ? 'block' : 'none';
+    if(CV==='student' && g('smk').style.display!=='none') renderMK();
+  });
+}
+
+fauth.onAuthStateChanged(function(user){
+  if(user){
+    fdb.collection('students').doc(user.uid).get().then(function(s){
+      if(s.exists){
+        CU = user.uid;
+        DB.students[CU] = s.data();
+        listenMe(CU); listenCh(); listenMK(s.data().username);
+        loginUser(CU);
+      }
+    });
+  }
+});
+
+// ===== トースト =====
+var toastT=null;
+function toast(title,msg,type){
+  g('ttitle').innerText=title; g('tmsg').innerText=msg;
+  var w=g('ticw'), ic=g('tic');
+  if(type==='success'){ w.className='p-2 rounded-lg bg-emerald-500/20 text-emerald-400'; ic.setAttribute('data-lucide','check-circle'); }
+  else if(type==='error'){ w.className='p-2 rounded-lg bg-rose-500/20 text-rose-400'; ic.setAttribute('data-lucide','alert-circle'); }
+  else { w.className='p-2 rounded-lg bg-amber-500/20 text-amber-400'; ic.setAttribute('data-lucide','shield-alert'); }
+  lci(); g('toast').style.display='flex';
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(function(){ g('toast').style.display='none'; },7000);
+}
+
+// ===== 通知ベル =====
+function renderNotif(){
+  if(!CU || !DB.students[CU]){ g('nbellbtn').style.display='none'; return; }
+  g('nbellbtn').style.display='block';
+  var ns = DB.students[CU].notifs || [];
+  var un = ns.filter(function(n){ return !n.read; }).length;
+  g('nbadge').style.display = un>0 ? 'block' : 'none';
+  g('nbadge').innerText = un;
+  var html='';
+  var arr = ns.slice().reverse().slice(0,30);
+  if(!arr.length) html='<div class="text-[10px] text-gray-500 text-center py-4">通知はありません</div>';
+  for(var i=0;i<arr.length;i++){
+    html += '<div class="p-2.5 rounded-lg '+(arr[i].read?'bg-[#080503] border border-[#3c2a1c]':'bg-[#dfb76c]/10 border border-[#dfb76c]/40')+'"><p class="text-[11px] text-gray-200 leading-relaxed">'+esc(arr[i].msg)+'</p><span class="text-[9px] text-gray-500 block mt-1">'+esc(arr[i].ts)+'</span></div>';
+  }
+  g('nlist').innerHTML = html;
+}
+function toggleNotif(){
+  var p=g('npanel');
+  var open = p.style.display==='none';
+  p.style.display = open ? 'block' : 'none';
+  if(open && CU && DB.students[CU]){
+    var ns = DB.students[CU].notifs || [];
+    var ch=false;
+    for(var i=0;i<ns.length;i++){ if(!ns[i].read){ ns[i].read=true; ch=true; } }
+    if(ch){ DB.students[CU].notifs=ns; dbS(); }
+  }
+}
+
+// ===== 画面切替 =====
+function showPg(name){
+  g('pg-auth').style.display='none'; g('pg-student').style.display='none';
+  g('pg-exam').style.display='none'; g('pg-admin').style.display='none';
+  g('pg-'+name).style.display='block';
+  window.scrollTo(0,0);
+}
+function setTab(tab){
+  ATB=tab; var isL=(tab==='login');
+  g('tl').className = isL ? "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c]" : "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400";
+  g('tr').className = isL ? "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400" : "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c]";
+  g('atitle').innerText = isL ? "Guild Marketing" : "新規メンバー登録";
+  g('asub').innerText = isL ? "Enter credentials to proceed" : "新規登録して入室";
+  g('abtxt').innerText = isL ? "ギルドに入室する" : "新規受講生登録を実行";
+  g('frname').style.display = isL ? 'none' : 'block';
+  g('fruser').style.display = isL ? 'none' : 'block';
+}
+function showReset(){ g('auth-form').style.display='none'; g('reset-form').style.display='block'; }
+function hideReset(){ g('reset-form').style.display='none'; g('auth-form').style.display='block'; }
+
+// ===== 認証 =====
+function doAuth(){
+  var em=g('iemail').value.trim(), p=g('ipw').value.trim();
+  if(!em){ toast("入力エラー","メールアドレスを入力してください。","error"); return; }
+  if(p.length<6){ toast("入力エラー","パスワードは6文字以上で入力してください。","error"); return; }
+  if(ATB==='login'){
+    fauth.signInWithEmailAndPassword(em,p).catch(function(){ toast("認証失敗","メールアドレスまたはパスワードが正しくありません。","error"); });
+  } else {
+    var rn=g('irname').value.trim(), u=g('iusr').value.trim().toLowerCase();
+    if(!rn){ toast("入力エラー","受講生の本名を入力してください。","error"); return; }
+    if(!u || !/^[a-zA-Z0-9]+$/.test(u)){ toast("入力エラー","ユーザー名は半角英数字で入力してください。","error"); return; }
+    fdb.collection('students').where('username','==',u).get().then(function(qs){
+      if(!qs.empty){ toast("登録不可","このユーザー名はすでに使われています。","info"); return; }
+      fauth.createUserWithEmailAndPassword(em,p).then(function(cr){
+        var data={username:u, name:rn, email:em, currentRank:1, admissionDate:new Date().toLocaleDateString('ja-JP'), mentor:"未割り当て", examAttempts:{}, abook:{}, notifs:[]};
+        return fdb.collection('students').doc(cr.user.uid).set(data);
+      }).then(function(){
+        toast("登録完了","受講生 "+rn+" さんのギルド登録が完了しました！","success");
+      }).catch(function(e){
+        var msg = (e && e.code==='auth/email-already-in-use') ? "このメールアドレスは登録済みです。" : "登録に失敗しました。";
+        toast("登録エラー",msg,"error");
+      });
+    });
+  }
+}
+function doReset(){
+  var em=g('rsemail').value.trim();
+  if(!em){ toast("入力エラー","メールアドレスを入力してください。","error"); return; }
+  fauth.sendPasswordResetEmail(em).then(function(){
+    toast("送信完了","パスワード再設定メールを送信しました。メールボックスをご確認ください。","success");
+    hideReset();
+  }).catch(function(){ toast("送信失敗","このメールアドレスは登録されていない可能性があります。","error"); });
+}
+function loginUser(k){
+  CU=k;
+  g('btn-logout').style.display='block';
+  CV='student'; showPg('student'); sstab('mypage'); updateUI(); renderNotif();
+}
+function doLogout(){
+  fauth.signOut();
+  if(unsubMe){unsubMe();unsubMe=null;}
+  if(unsubMK){unsubMK();unsubMK=null;}
+  CU=null; MKS={};
+  g('btn-logout').style.display='none'; g('hbadge').style.display='none'; g('nbellbtn').style.display='none'; g('npanel').style.display='none';
+  g('btn-admin-text').innerText="ギルド運営管理画面へ";
+  CV='auth'; showPg('auth');
+  toast("ログアウト","ギルドハウスを退出しました。","info");
+}
+function goHome(){
+  if(!CU) return;
+  CV='student'; g('btn-admin-text').innerText="ギルド運営管理画面へ";
+  showPg('student'); sstab('mypage'); updateUI();
+}
+
+// ===== 生徒タブ =====
+function sstab(tab){
+  var tabs={mypage:'sm',chapters:'sc',abook:'sb',mk:'sk'};
+  var pages={mypage:'smypage',chapters:'schapters',abook:'sabook',mk:'smk'};
+  for(var t in tabs){
+    g(pages[t]).style.display = (t===tab)?'block':'none';
+    g(tabs[t]).className = (t===tab) ? "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]" : "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200";
+  }
+  if(tab==='chapters') renderChapters();
+  if(tab==='abook') renderAB();
+  if(tab==='mk') renderMK();
+}
+
+function updateUI(){
+  if(!CU) return;
+  var d=DB.students[CU]; if(!d) return;
+  g('sname').innerText=d.name; g('susr').innerText="ID: "+d.username;
+  g('sadm').innerText=d.admissionDate||"未設定"; g('smentor').innerText=d.mentor||"未割り当て";
+  g('srank').innerText="MR"+d.currentRank; g('hrank').innerText="MR"+d.currentRank;
+  g('hname').innerText=d.name; g('hbadge').style.display='flex';
+  g('snext').innerText = d.currentRank===8?"MASTER":"MR"+(d.currentRank+1);
+  drawTL(d.currentRank); drawCards(d.currentRank, d.examAttempts||{});
+  renderNotif();
+}
+function drawTL(r){
+  for(var i=2;i<=8;i++){
+    var el=g("tl-"+i); if(!el) continue;
+    var d=el.querySelector('div');
+    if(i<=r){ el.className="p-2 rounded-xl bg-emerald-950/20 border border-emerald-500/40 text-center text-xs"; d.className="font-bold text-emerald-400"; }
+    else if(i===r+1){ el.className="p-2 rounded-xl bg-amber-950/20 border border-amber-500/50 text-center text-xs animate-pulse"; d.className="font-bold text-amber-400"; }
+    else { el.className="p-2 rounded-xl bg-gray-950 border border-gray-900 text-center text-xs opacity-50"; d.className="font-bold text-gray-500"; }
+  }
+}
+
+// ===== MR試験定義 =====
+function getRandCase(){
+  var gy=["ビジネス・副業系","暮らし・お片付けライフハック系","恋愛・心理コミュニケーション系","時短ガジェット・AI便利ツール系"];
   var h=["アカウント開設から3ヶ月","アカウント開設から半年","アカウント開設から1年","アカウント開設から2ヶ月（完全初心者）"];
   var f=["毎日投稿（非常に活発）","週2〜3回投稿（高クオリティ路線）","不定期（月に4〜5本程度）","平日は毎日投稿（土日は完全停止）"];
-  var sg=g[Math.floor(Math.random()*g.length)];
-  var sh=[h[0],h[1],h[2],h[3]].sort(function(){return Math.random()-0.5});
-  var sf=[f[0],f[1],f[2],f[3]].sort(function(){return Math.random()-0.5});
+  var sg=gy[Math.floor(Math.random()*gy.length)];
+  var sh=h.slice().sort(function(){return Math.random()-0.5});
+  var sf=f.slice().sort(function(){return Math.random()-0.5});
   return "■【共通指導ジャンル】: "+sg+"\n・生徒X：投稿歴 [ "+sh[0]+" ] / 投稿頻度 [ "+sf[0]+" ]\n・生徒Y：投稿歴 [ "+sh[1]+" ] / 投稿頻度 [ "+sf[1]+" ]\n・生徒Z：投稿歴 [ "+sh[2]+" ] / 投稿頻度 [ "+sf[2]+" ]";
 }
-var RC5 = getRandCase();
-
-var RK = {
+var RC5=getRandCase();
+var RK={
   2:{title:"マーケターランク 2 (MR2)",purpose:"自己アカウントの徹底言語化",desc:"将来的にコンサルをする側を狙うための、第一歩の設計。",criteria:"合格基準: 80点以上。",fields:[
     {n:"account_url",l:"あなたのアカウント URL",t:"url",req:true},
     {n:"design_target",l:"【設計シート】1. ターゲットについて",t:"ta",req:true},
@@ -355,458 +625,462 @@ var RK = {
   8:{title:"マーケターランク 8 (MR8)",purpose:"トップギルドパートナー (特別推薦・最終就任)",desc:"ギルドマーケティングのブランドを背負い、全受講生を統括する最高峰パートナー。",criteria:"合格基準: ギルド運営役員会からの特別推薦・就任受諾。",fields:[]}
 };
 
-function g(id) { return document.getElementById(id); }
-
-function showPg(name) {
-  g('pg-auth').style.display = 'none';
-  g('pg-student').style.display = 'none';
-  g('pg-exam').style.display = 'none';
-  g('pg-admin').style.display = 'none';
-  g('pg-' + name).style.display = 'block';
-  window.scrollTo(0, 0);
-}
-
-var toastT = null;
-function toast(title, msg, type) {
-  g('ttitle').innerText = title;
-  g('tmsg').innerText = msg;
-  var w = g('ticw'), ic = g('tic');
-  if(type === 'success') { w.className = 'p-2 rounded-lg bg-emerald-500/20 text-emerald-400'; ic.setAttribute('data-lucide','check-circle'); }
-  else if(type === 'error') { w.className = 'p-2 rounded-lg bg-rose-500/20 text-rose-400'; ic.setAttribute('data-lucide','alert-circle'); }
-  else { w.className = 'p-2 rounded-lg bg-amber-500/20 text-amber-400'; ic.setAttribute('data-lucide','shield-alert'); }
-  lci();
-  g('toast').style.display = 'flex';
-  if(toastT) clearTimeout(toastT);
-  toastT = setTimeout(function() { g('toast').style.display = 'none'; }, 7000);
-}
-
-function setTab(tab) {
-  ATB = tab;
-  var isL = (tab === 'login');
-  g('tl').className = isL ? "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c]" : "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400";
-  g('tr').className = isL ? "py-2.5 text-center text-xs font-bold rounded-lg border border-[#5a4231] bg-[#080503] text-gray-400" : "py-2.5 text-center text-xs font-bold rounded-lg border-2 border-[#dfb76c] bg-[#1a110a] text-[#dfb76c]";
-  g('atitle').innerText = isL ? "Guild Marketing" : "新規メンバー登録";
-  g('asub').innerText = isL ? "Enter credentials to proceed" : "新規IDとパスワードを登録して入室";
-  g('abtxt').innerText = isL ? "ギルドに入室する" : "新規受講生登録を実行";
-  g('frname').style.display = isL ? 'none' : 'block';
-}
-
-function showReset() { g('auth-form').style.display = 'none'; g('reset-form').style.display = 'block'; }
-function hideReset() { g('reset-form').style.display = 'none'; g('auth-form').style.display = 'block'; }
-
-function doAuth() {
-  var u = g('iusr').value.trim().toLowerCase();
-  var p = g('ipw').value.trim();
-  if(!u) { toast("入力エラー","ユーザー名を入力してください。","error"); return; }
-  if(!/^[a-zA-Z0-9]+$/.test(u)) { toast("入力エラー","ユーザー名は半角英数字で入力してください。","error"); return; }
-  if(p.length < 4 || p.length > 8) { toast("入力エラー","パスワードは4〜8文字で入力してください。","error"); return; }
-  var k = btoa(u);
-  if(ATB === 'login') {
-    var s = DB.students[k];
-    if(s && s.password === p) { loginUser(k); }
-    else toast("認証失敗","ユーザー名またはパスワードが正しくありません。","error");
-  } else {
-    var rn = g('irname').value.trim();
-    if(!rn) { toast("入力エラー","受講生の本名を入力してください。","error"); return; }
-    if(DB.students[k]) { toast("登録不可","このユーザー名はすでに使われています。","info"); return; }
-    DB.students[k] = {username:u, password:p, name:rn, currentRank:1, admissionDate:new Date().toLocaleDateString('ja-JP'), mentor:"未割り当て", examAttempts:{}};
-    dbS();
-    loginUser(k);
-    toast("登録完了","受講生 "+rn+" さんのギルド登録が完了しました！","success");
-  }
-}
-
-function verifyReset() {
-  var u = g('rsusr').value.trim().toLowerCase();
-  var rn = g('rsname').value.trim();
-  if(!u || !rn) { toast("入力エラー","ユーザー名と氏名を入力してください。","error"); return; }
-  var s = DB.students[btoa(u)];
-  if(!s) { toast("確認失敗","該当するユーザーが見つかりません。","error"); return; }
-  if(s.name !== rn) { toast("確認失敗","氏名が登録情報と一致しません。","error"); return; }
-  g('rsnew').style.display = 'block';
-  g('bvrify').style.display = 'none';
-  toast("本人確認完了","新しいパスワードを設定してください。","success");
-}
-
-function doReset() {
-  var u = g('rsusr').value.trim().toLowerCase();
-  var p = g('rspw').value.trim();
-  if(p.length < 4 || p.length > 8) { toast("入力エラー","パスワードは4〜8文字で入力してください。","error"); return; }
-  var k = btoa(u);
-  if(!DB.students[k]) return;
-  DB.students[k].password = p;
-  dbS();
-  toast("リセット完了","パスワードを更新しました。","success");
-  g('rsusr').value = ''; g('rsname').value = ''; g('rspw').value = '';
-  g('rsnew').style.display = 'none'; g('bvrify').style.display = 'block';
-  hideReset(); setTab('login');
-}
-
-function loginUser(k) {
-  CU = k;
-  g('btn-logout').style.display = 'block';
-  CV = 'student';
-  showPg('student');
-  updateUI();
-  toast("ギルド入室","受講生: "+DB.students[k].name+" ログイン完了。","success");
-}
-
-function doLogout() {
-  CU = null;
-  g('btn-logout').style.display = 'none';
-  g('hbadge').style.display = 'none';
-  g('btn-admin-text').innerText = "ギルド運営管理画面へ";
-  CV = 'auth'; showPg('auth');
-  toast("ログアウト","ギルドハウスを退出しました。","info");
-}
-
-function goHome() {
-  if(!CU) return;
-  CV = 'student';
-  g('btn-admin-text').innerText = "ギルド運営管理画面へ";
-  showPg('student');
-  g('smypage').style.display = 'block';
-  updateUI();
-}
-
-function updateUI() {
-  if(!CU) return;
-  var d = DB.students[CU];
-  if(!d) return;
-  g('sname').innerText = d.name;
-  g('susr').innerText = "ID: "+d.username;
-  g('sadm').innerText = d.admissionDate || "未設定";
-  g('smentor').innerText = d.mentor || "未割り当て";
-  g('srank').innerText = "MR"+d.currentRank;
-  g('hrank').innerText = "MR"+d.currentRank;
-  g('hname').innerText = d.name;
-  g('hbadge').style.display = 'flex';
-  g('snext').innerText = d.currentRank === 8 ? "MASTER" : "MR"+(d.currentRank+1);
-  drawTL(d.currentRank);
-  drawCards(d.currentRank, d.examAttempts || {});
-}
-
-function drawTL(r) {
-  for(var i = 2; i <= 8; i++) {
-    var el = g("tl-"+i);
-    if(!el) continue;
-    var d = el.querySelector('div');
-    if(i <= r) { el.className = "p-2 rounded-xl bg-emerald-950/20 border border-emerald-500/40 text-center text-xs"; d.className = "font-bold text-emerald-400"; }
-    else if(i === r+1) { el.className = "p-2 rounded-xl bg-amber-950/20 border border-amber-500/50 text-center text-xs animate-pulse"; d.className = "font-bold text-amber-400"; }
-    else { el.className = "p-2 rounded-xl bg-gray-950 border border-gray-900 text-center text-xs opacity-50"; d.className = "font-bold text-gray-500"; }
-  }
-}
-
-function drawCards(rank, atts) {
-  var c = g('egrid');
-  c.innerHTML = "";
-  for(var r = 2; r <= 8; r++) {
-    var info = RK[r];
-    var att = atts[r] || {};
-    var done = r <= rank, unlk = r <= rank+1;
-    var badge = "", btn = "", border = "border-[#3c2a1c]";
-    if(done) {
-      badge = '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">QUEST CLEARED!</span>';
-      btn = '<button onclick="openExam('+r+')" class="w-full bg-[#16100b] border border-[#dfb76c]/30 text-gray-300 py-2 rounded-xl text-xs font-bold">認定証 / フィードバックを見る</button>';
-      border = "border-emerald-500/20 bg-emerald-950/5";
-    } else if(unlk) {
-      if(r === 8) {
-        if(att.status === "recommended") {
-          badge = '<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-bounce">推薦到着！</span>';
-          btn = '<button onclick="openExam(8)" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs animate-pulse">👑 推薦状を開封する</button>';
-          border = "border-amber-400 bg-amber-950/10";
+// ===== クエストボード =====
+function drawCards(rank,atts){
+  var c=g('egrid'); c.innerHTML="";
+  for(var r=2;r<=8;r++){
+    var info=RK[r], att=atts[r]||{};
+    var done=r<=rank, unlk=r<=rank+1;
+    var badge="",btn="",border="border-[#3c2a1c]";
+    if(done){
+      badge='<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">QUEST CLEARED!</span>';
+      btn='<button onclick="openExam('+r+')" class="w-full bg-[#16100b] border border-[#dfb76c]/30 text-gray-300 py-2 rounded-xl text-xs font-bold">認定証 / フィードバックを見る</button>';
+      border="border-emerald-500/20 bg-emerald-950/5";
+    } else if(unlk){
+      if(r===8){
+        if(att.status==="recommended"){
+          badge='<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-bounce">推薦到着！</span>';
+          btn='<button onclick="openExam(8)" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs animate-pulse">👑 推薦状を開封する</button>';
+          border="border-amber-400 bg-amber-950/10";
         } else {
-          badge = '<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">RECOMMEND</span>';
-          btn = '<button disabled class="w-full bg-[#0d0805] text-gray-600 border border-[#2a1d13] py-2.5 rounded-xl text-xs cursor-not-allowed">ギルドからの推薦をお待ちください！</button>';
+          badge='<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">RECOMMEND</span>';
+          btn='<button disabled class="w-full bg-[#0d0805] text-gray-600 border border-[#2a1d13] py-2.5 rounded-xl text-xs cursor-not-allowed">ギルドからの推薦をお待ちください！</button>';
         }
-      } else if(att.status === "submitted") {
-        badge = '<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-pulse">選考中...</span>';
-        btn = '<button onclick="openExam('+r+')" class="w-full bg-[#1b120a] border border-amber-500/30 text-amber-400 py-2 rounded-xl text-xs font-bold">提出データ・採点状況を見る</button>';
-        border = "border-amber-500/30 bg-amber-950/5";
-      } else if(att.status === "applying") {
-        badge = '<span class="bg-[#2a1b10] text-[#dfb76c] border border-[#dfb76c]/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">承認申請中</span>';
-        btn = '<button disabled class="w-full bg-gray-950/80 text-gray-500 border border-[#3c2a1c] py-2 rounded-xl text-xs cursor-not-allowed">ギルド承認をお待ちください...</button>';
-        border = "border-[#dfb76c]/20";
-      } else if(att.status === "approved") {
-        badge = '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">挑戦許可</span>';
-        var bn = r===4 ? "🤝 練習面談の情報を見る" : r===7 ? "🛡️ 役員面談と指示書を見る" : "試練クエストを受注する";
-        btn = '<button onclick="openExam('+r+')" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs">'+bn+'</button>';
-        border = "border-emerald-500/20 bg-[#141d18]";
-      } else if(att.status === "graded" && att.result === "fail") {
-        badge = '<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">RE-SUBMIT</span>';
-        btn = '<button onclick="openExam('+r+')" class="w-full bg-gradient-to-r from-rose-700 to-rose-800 text-white font-bold py-2.5 rounded-xl text-xs">'+(r===4||r===7 ? "フィードバックを確認する" : "フィードバックを受けて再挑戦")+'</button>';
-        border = "border-rose-500/30 bg-rose-950/5";
+      } else if(att.status==="submitted"){
+        badge='<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-pulse">選考中...</span>';
+        btn='<button onclick="openExam('+r+')" class="w-full bg-[#1b120a] border border-amber-500/30 text-amber-400 py-2 rounded-xl text-xs font-bold">提出データ・採点状況を見る</button>';
+        border="border-amber-500/30 bg-amber-950/5";
+      } else if(att.status==="applying"){
+        badge='<span class="bg-[#2a1b10] text-[#dfb76c] border border-[#dfb76c]/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">承認申請中</span>';
+        btn='<button disabled class="w-full bg-gray-950/80 text-gray-500 border border-[#3c2a1c] py-2 rounded-xl text-xs cursor-not-allowed">ギルド承認をお待ちください...</button>';
+        border="border-[#dfb76c]/20";
+      } else if(att.status==="approved"){
+        badge='<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">挑戦許可</span>';
+        var bn=r===4?"🤝 練習面談の情報を見る":r===7?"🛡️ 役員面談と指示書を見る":"試練クエストを受注する";
+        btn='<button onclick="openExam('+r+')" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs">'+bn+'</button>';
+        border="border-emerald-500/20 bg-[#141d18]";
+      } else if(att.status==="graded" && att.result==="fail"){
+        badge='<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">RE-SUBMIT</span>';
+        btn='<button onclick="openExam('+r+')" class="w-full bg-gradient-to-r from-rose-700 to-rose-800 text-white font-bold py-2.5 rounded-xl text-xs">'+(r===4||r===7?"フィードバックを確認する":"フィードバックを受けて再挑戦")+'</button>';
+        border="border-rose-500/30 bg-rose-950/5";
       } else {
-        badge = '<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">STANDBY</span>';
-        btn = '<button onclick="applyChallenge('+r+')" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs font-bold">マーケターランク昇格に挑戦を申請する</button>';
+        badge='<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">STANDBY</span>';
+        btn='<button onclick="applyChallenge('+r+')" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs font-bold">マーケターランク昇格に挑戦を申請する</button>';
       }
     } else {
-      badge = '<span class="bg-gray-950 text-gray-700 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-900">LOCKED</span>';
-      btn = '<button disabled class="w-full bg-[#0d0805] text-gray-700 py-2.5 rounded-xl text-xs cursor-not-allowed">MR'+(r-1)+'をクリアしてください</button>';
-      border = "border-gray-950 bg-gray-950/10 opacity-45";
+      badge='<span class="bg-gray-950 text-gray-700 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-900">LOCKED</span>';
+      btn='<button disabled class="w-full bg-[#0d0805] text-gray-700 py-2.5 rounded-xl text-xs cursor-not-allowed">MR'+(r-1)+'をクリアしてください</button>';
+      border="border-gray-950 bg-gray-950/10 opacity-45";
     }
     c.innerHTML += '<div class="qc rounded-xl p-5 flex flex-col justify-between '+border+'"><div class="space-y-3"><div class="flex justify-between items-center"><span class="text-xs fc font-bold text-[#dfb76c]">MR STAGE '+r+'</span>'+badge+'</div><div><h4 class="text-base font-bold text-white">'+info.title+'</h4><p class="text-[10px] text-[#dfb76c]/80 font-mono">'+info.purpose+'</p></div><div class="bg-[#090604] p-3 rounded-lg border border-[#3c2a1c] text-[9px] text-gray-500">GUILD QUEST DETAILS — 挑戦を開始するまで設問は開示されません。</div></div><div class="mt-4">'+btn+'</div></div>';
   }
   lci();
 }
-
-function applyChallenge(r) {
+function applyChallenge(r){
   if(!CU) return;
-  var d = DB.students[CU];
-  if(!d.examAttempts) d.examAttempts = {};
-  d.examAttempts[r] = {status:"applying", timestamp:new Date().toLocaleString()};
+  var d=DB.students[CU];
+  if(!d.examAttempts) d.examAttempts={};
+  d.examAttempts[r]={status:"applying",timestamp:new Date().toLocaleString(),history:(d.examAttempts[r]&&d.examAttempts[r].history)||[]};
   dbS(); updateUI();
-  if(AA) renderSList();
   toast("申請完了","マーケターランク"+r+"の挑戦申請を送信しました。","success");
 }
 
-function openExam(r) {
+// ===== 試験画面 =====
+function histHtml(hist){
+  if(!hist || !hist.length) return "";
+  var html='<div class="p-4 rounded-xl border border-[#3c2a1c] bg-[#0d0905] space-y-2"><h5 class="text-[10px] font-black text-[#dfb76c]">📜 提出・採点履歴</h5>';
+  for(var i=hist.length-1;i>=0;i--){
+    var h=hist[i];
+    if(h.type==='submitted') html+='<div class="text-[10px] text-gray-400 flex justify-between border-b border-[#1c130c] pb-1"><span>📤 解答提出（第'+(h.no||'?')+'回）</span><span>'+esc(h.ts)+'</span></div>';
+    else html+='<div class="text-[10px] flex justify-between border-b border-[#1c130c] pb-1 '+(h.result==='pass'?'text-emerald-400':'text-rose-400')+'"><span>'+(h.result==='pass'?'✅ 合格':'❌ 要再提出')+'（'+h.score+'点）</span><span class="text-gray-500">'+esc(h.ts)+'</span></div>';
+  }
+  return html+'</div>';
+}
+function openExam(r){
   if(!CU) return;
-  AEN = r;
-  var d = DB.students[CU];
-  var info = RK[r];
-  var att = (d.examAttempts || {})[r] || {};
+  AEN=r;
+  var d=DB.students[CU], info=RK[r], att=(d.examAttempts||{})[r]||{};
+  g('wtitle').innerText=info.title;
+  g('wsub').innerText="MR EXAM LEVEL "+r+" - "+info.purpose;
+  g('wdesc').innerHTML='<div class="font-bold text-[#dfb76c] mb-1">【クエスト指令】</div><p class="mb-2 text-xs text-gray-300">'+info.desc+'</p><div class="text-[10px] text-[#dfb76c]/80 border-t border-[#3c2a1c] pt-1.5">'+info.criteria+'</div>';
 
-  g('wtitle').innerText = info.title;
-  g('wsub').innerText = "MR EXAM LEVEL "+r+" - "+info.purpose;
-  g('wdesc').innerHTML = '<div class="font-bold text-[#dfb76c] mb-1">【クエスト指令】</div><p class="mb-2 text-xs text-gray-300">'+info.desc+'</p><div class="text-[10px] text-[#dfb76c]/80 border-t border-[#3c2a1c] pt-1.5">'+info.criteria+'</div>';
+  var sh="";
+  if(r===3 && att.shared_tensakuUrl) sh='<div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold mb-1">■ 添削対象アカウント:</span><a href="'+esc(att.shared_tensakuUrl)+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold">'+esc(att.shared_tensakuUrl)+'</a></div>';
+  else if(r===4 && (att.shared_mendanUrl||att.shared_spreadsheetUrl||att.shared_mendanDate)) sh='<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 面談リンク:</span>'+(att.shared_mendanUrl?'<a href="'+esc(att.shared_mendanUrl)+'" target="_blank" class="text-amber-400 hover:underline font-bold mt-1 block">面談室へ入室する</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 指導カルテスプシ:</span>'+(att.shared_spreadsheetUrl?'<a href="'+esc(att.shared_spreadsheetUrl)+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold mt-1 block">スプシを開く</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20 md:col-span-2"><span class="text-[10px] text-gray-400 block font-bold">■ 予定面談日時:</span><span class="text-white font-bold block mt-1">'+esc(att.shared_mendanDate||'調整中')+'</span></div></div>';
+  else if(r===5 && att.shared_spreadsheetUrlMR5) sh='<div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold mb-1">■ 指導生徒DB:</span><a href="'+esc(att.shared_spreadsheetUrlMR5)+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold">担当受講生データベースを開く</a></div>';
+  else if(r===7 && (att.shared_finalMendanUrl||att.shared_finalMendanDate||att.shared_finalSpreadsheetUrl)) sh='<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 最終面接リンク:</span>'+(att.shared_finalMendanUrl?'<a href="'+esc(att.shared_finalMendanUrl)+'" target="_blank" class="text-amber-400 hover:underline font-bold mt-1 block">面接ルームへ入室</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 指示スプシ:</span>'+(att.shared_finalSpreadsheetUrl?'<a href="'+esc(att.shared_finalSpreadsheetUrl)+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold mt-1 block">共有指示スプシを開く</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20 md:col-span-2"><span class="text-[10px] text-gray-400 block font-bold">■ 面接実施日程:</span><span class="text-white font-bold block mt-1">'+esc(att.shared_finalMendanDate||'未調整')+'</span></div></div>';
+  if(sh){ g('wshared').style.display='block'; g('wsharedcnt').innerHTML=sh; } else g('wshared').style.display='none';
 
-  var sh = "";
-  if(r===3 && att.shared_tensakuUrl) sh = '<div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold mb-1">■ 添削対象アカウント:</span><a href="'+att.shared_tensakuUrl+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold">'+att.shared_tensakuUrl+'</a></div>';
-  else if(r===4 && (att.shared_mendanUrl||att.shared_spreadsheetUrl||att.shared_mendanDate)) sh = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 面談リンク:</span>'+(att.shared_mendanUrl?'<a href="'+att.shared_mendanUrl+'" target="_blank" class="text-amber-400 hover:underline font-bold mt-1 block">面談室へ入室する</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 指導カルテスプシ:</span>'+(att.shared_spreadsheetUrl?'<a href="'+att.shared_spreadsheetUrl+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold mt-1 block">スプシを開く</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20 md:col-span-2"><span class="text-[10px] text-gray-400 block font-bold">■ 予定面談日時:</span><span class="text-white font-bold block mt-1">'+(att.shared_mendanDate||'調整中')+'</span></div></div>';
-  else if(r===5 && att.shared_spreadsheetUrlMR5) sh = '<div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold mb-1">■ 指導生徒DB:</span><a href="'+att.shared_spreadsheetUrlMR5+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold">担当受講生データベースを開く</a></div>';
-  else if(r===7 && (att.shared_finalMendanUrl||att.shared_finalMendanDate||att.shared_finalSpreadsheetUrl)) sh = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 最終面接リンク:</span>'+(att.shared_finalMendanUrl?'<a href="'+att.shared_finalMendanUrl+'" target="_blank" class="text-amber-400 hover:underline font-bold mt-1 block">面接ルームへ入室</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20"><span class="text-[10px] text-gray-400 block font-bold">■ 指示スプシ:</span>'+(att.shared_finalSpreadsheetUrl?'<a href="'+att.shared_finalSpreadsheetUrl+'" target="_blank" class="text-[#dfb76c] hover:underline font-bold mt-1 block">共有指示スプシを開く</a>':'<span class="text-rose-400">未設定</span>')+'</div><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/20 md:col-span-2"><span class="text-[10px] text-gray-400 block font-bold">■ 面接実施日程:</span><span class="text-white font-bold block mt-1">'+(att.shared_finalMendanDate||'未調整')+'</span></div></div>';
-
-  if(sh) { g('wshared').style.display = 'block'; g('wsharedcnt').innerHTML = sh; }
-  else g('wshared').style.display = 'none';
-
-  var fb = g('wfb');
-  if(att.status === "graded") {
-    fb.style.display = 'block';
+  var fb=g('wfb');
+  if(att.status==="graded"){
+    fb.style.display='block';
     fb.className = att.result==='pass' ? "p-4 rounded-xl border border-emerald-500/20 bg-emerald-950/10 space-y-2" : "p-4 rounded-xl border border-rose-500/20 bg-rose-950/10 space-y-2";
     g('wfbbadge').className = att.result==='pass' ? "text-xs font-bold text-emerald-400" : "text-xs font-bold text-rose-400";
     g('wfbbadge').innerText = att.result==='pass' ? "■ クエスト達成: 合格！" : "■ クエスト失敗: 再提出要請";
-    g('wfbscore').innerText = att.score+" 点";
-    g('wfbtxt').innerText = att.feedback || "";
-  } else if(att.status === "submitted") {
-    fb.style.display = 'block';
-    fb.className = "p-4 rounded-xl border border-[#dfb76c]/20 bg-[#1c130c] space-y-2";
-    g('wfbbadge').className = "text-xs font-bold text-[#dfb76c]";
-    g('wfbbadge').innerText = "■ 運営審査中...";
-    g('wfbscore').innerText = "審査中";
-    g('wfbtxt').innerText = "ギルド運営にて選考審査を行っています。";
-  } else {
-    fb.style.display = 'none';
-  }
+    g('wfbscore').innerText=att.score+" 点"; g('wfbtxt').innerText=att.feedback||"";
+  } else if(att.status==="submitted"){
+    fb.style.display='block';
+    fb.className="p-4 rounded-xl border border-[#dfb76c]/20 bg-[#1c130c] space-y-2";
+    g('wfbbadge').className="text-xs font-bold text-[#dfb76c]"; g('wfbbadge').innerText="■ 運営審査中...";
+    g('wfbscore').innerText="審査中"; g('wfbtxt').innerText="ギルド運営にて選考審査を行っています。";
+  } else fb.style.display='none';
 
-  g('wr8').style.display = 'none';
-  g('wformarea').style.display = 'block';
+  var hh=histHtml(att.history);
+  g('whist').style.display = hh ? 'block' : 'none';
+  g('whist').innerHTML = hh;
 
-  if(r === 8) {
-    g('wformarea').style.display = 'none';
-    if(att.status === "recommended") g('wr8').style.display = 'block';
-    else if(att.status === "graded" && att.result === "pass") {
-      g('wr8').style.display = 'block';
-      g('wr8').innerHTML = '<div class="w-16 h-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500 flex items-center justify-center mx-auto"><i data-lucide="shield-check" class="w-8 h-8 text-emerald-400"></i></div><h5 class="text-lg font-black text-emerald-400 fc">LEGENDARY PARTNER ONBOARDED</h5><p class="text-xs text-gray-200 max-w-md mx-auto">就任誠におめでとうございます！MR8トップギルドパートナーへの推薦受託が完了しました。</p>';
+  g('wr8').style.display='none'; g('wformarea').style.display='block';
+  if(r===8){
+    g('wformarea').style.display='none';
+    if(att.status==="recommended") g('wr8').style.display='block';
+    else if(att.status==="graded" && att.result==="pass"){
+      g('wr8').style.display='block';
+      g('wr8').innerHTML='<div class="w-16 h-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500 flex items-center justify-center mx-auto"><i data-lucide="shield-check" class="w-8 h-8 text-emerald-400"></i></div><h5 class="text-lg font-black text-emerald-400 fc">LEGENDARY PARTNER ONBOARDED</h5><p class="text-xs text-gray-200 max-w-md mx-auto">就任誠におめでとうございます！MR8トップギルドパートナーへの推薦受託が完了しました。</p>';
     }
-  } else if(r === 4 || r === 7) {
-    if(att.status === "approved") {
-      g('wfields').innerHTML = '<div class="p-6 rounded-xl border border-[#dfb76c]/30 bg-[#0d0905] text-center space-y-3"><h5 class="text-xs font-bold text-white">🤝 対面査定・面接フェーズ（受験中）</h5><p class="text-[11px] text-gray-400 max-w-sm mx-auto">本クエストにはオンライン提出フォームはありません。上記「共有リンク」および「日時」を確認し、面談・面接に参加してください。</p><button onclick="submitNoPaper('+r+')" class="mx-auto bg-[#1c130c] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c]/40 text-[#dfb76c] py-2 px-6 rounded-xl text-xs font-bold">対面面談・面接の準備を完了する</button></div>';
-      g('wsubmit').style.display = 'none';
-    } else {
-      g('wsubmit').style.display = 'none';
-    }
+  } else if(r===4||r===7){
+    if(att.status==="approved"){
+      g('wfields').innerHTML='<div class="p-6 rounded-xl border border-[#dfb76c]/30 bg-[#0d0905] text-center space-y-3"><h5 class="text-xs font-bold text-white">🤝 対面査定・面接フェーズ（受験中）</h5><p class="text-[11px] text-gray-400 max-w-sm mx-auto">本クエストにはオンライン提出フォームはありません。上記「共有リンク」および「日時」を確認し、面談・面接に参加してください。</p><button onclick="submitNoPaper('+r+')" class="mx-auto bg-[#1c130c] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c]/40 text-[#dfb76c] py-2 px-6 rounded-xl text-xs font-bold">対面面談・面接の準備を完了する</button></div>';
+      g('wsubmit').style.display='none';
+    } else { g('wfields').innerHTML=""; g('wsubmit').style.display='none'; }
   } else {
-    g('wsubmit').style.display = 'flex';
-    g('wfields').innerHTML = buildFields(r);
-    if(att.status === "graded" && att.result === "fail") {
-      var flds = info.fields || [];
-      for(var i = 0; i < flds.length; i++) {
-        var el = g(flds[i].n+'_fi');
-        if(el && att[flds[i].n]) el.value = att[flds[i].n];
-      }
+    g('wsubmit').style.display='flex';
+    g('wfields').innerHTML=buildFields(r);
+    if(att.status==="graded" && att.result==="fail"){
+      var flds=info.fields||[];
+      for(var i=0;i<flds.length;i++){ var el=g(flds[i].n+'_fi'); if(el && att[flds[i].n]) el.value=att[flds[i].n]; }
     }
   }
-
-  lci();
-  showPg('exam');
+  lci(); showPg('exam');
 }
-
-function buildFields(r) {
-  var info = RK[r];
-  if(!info || !info.fields || !info.fields.length) return "";
-  var html = "";
-  for(var i = 0; i < info.fields.length; i++) {
-    var f = info.fields[i];
-    var lbl = '<label class="block text-xs font-bold text-gray-300 mb-1.5">'+f.l+(f.req?' <span class="text-rose-500">*</span>':'')+'</label>';
-    if(f.t === "url") {
-      html += '<div class="mb-4">'+lbl+'<input type="url" id="'+f.n+'_fi" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c] font-mono"></div>';
-    } else {
-      html += '<div class="mb-4">'+lbl+'<textarea id="'+f.n+'_fi" rows="5"'+(f.min?' oninput="ucc(\''+f.n+'\','+f.min+')"':'')+' class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c]"></textarea>'+(f.min?'<div class="flex justify-between mt-1"><span class="text-[9px] text-gray-500">※最低'+f.min+'文字以上</span><span id="cc_'+f.n+'" class="text-[10px] text-rose-400 font-mono animate-pulse">文字数: 0 / '+f.min+'字以上</span></div>':'')+'</div>';
-    }
+function buildFields(r){
+  var info=RK[r]; if(!info||!info.fields||!info.fields.length) return "";
+  var html="";
+  for(var i=0;i<info.fields.length;i++){
+    var f=info.fields[i];
+    var lbl='<label class="block text-xs font-bold text-gray-300 mb-1.5">'+f.l+(f.req?' <span class="text-rose-500">*</span>':'')+'</label>';
+    if(f.t==="url") html+='<div class="mb-4">'+lbl+'<input type="url" id="'+f.n+'_fi" class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c] font-mono"></div>';
+    else html+='<div class="mb-4">'+lbl+'<textarea id="'+f.n+'_fi" rows="5"'+(f.min?' oninput="ucc(\''+f.n+'\','+f.min+')"':'')+' class="w-full bg-[#080503] border-2 border-[#5a4231] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#dfb76c]"></textarea>'+(f.min?'<div class="flex justify-between mt-1"><span class="text-[9px] text-gray-500">※最低'+f.min+'文字以上</span><span id="cc_'+f.n+'" class="text-[10px] text-rose-400 font-mono animate-pulse">文字数: 0 / '+f.min+'字以上</span></div>':'')+'</div>';
   }
   return html;
 }
-
-function ucc(n, min) {
-  var el = g(n+'_fi'), b = g('cc_'+n);
-  if(!el || !b) return;
-  var l = el.value.length;
-  b.innerText = "文字数: "+l+" / "+min+"字以上";
-  b.className = l >= min ? "text-[10px] text-emerald-400 font-mono" : "text-[10px] text-rose-400 font-mono animate-pulse";
+function ucc(n,min){
+  var el=g(n+'_fi'), b=g('cc_'+n); if(!el||!b) return;
+  var l=el.value.length;
+  b.innerText="文字数: "+l+" / "+min+"字以上";
+  b.className = l>=min ? "text-[10px] text-emerald-400 font-mono" : "text-[10px] text-rose-400 font-mono animate-pulse";
 }
-
-function submitNoPaper(r) {
+function submitNoPaper(r){
   if(!CU) return;
-  var d = DB.students[CU];
-  if(!d.examAttempts) d.examAttempts = {};
-  var att = d.examAttempts[r] || {};
-  att.status = "submitted"; att.timestamp = new Date().toLocaleString();
-  d.examAttempts[r] = att;
+  var d=DB.students[CU];
+  if(!d.examAttempts) d.examAttempts={};
+  var att=d.examAttempts[r]||{};
+  if(!att.history) att.history=[];
+  att.history.push({type:'submitted',ts:new Date().toLocaleString(),no:att.history.filter(function(h){return h.type==='submitted'}).length+1});
+  att.status="submitted"; att.timestamp=new Date().toLocaleString();
+  d.examAttempts[r]=att;
   dbS(); updateUI(); closeExam();
-  if(AA) renderSList();
   toast("進捗送信","マーケターランク"+r+"への受験準備完了。","success");
 }
-
-function acceptR8() {
+function acceptR8(){
   if(!CU) return;
-  var d = DB.students[CU];
-  var att = (d.examAttempts || {})[8];
-  if(!att || att.status !== "recommended") return;
-  att.status = "graded"; att.score = 100; att.result = "pass";
-  att.feedback = "推薦状の受託完了。晴れてMR8トップギルドパートナーとして就任しました！";
-  d.currentRank = 8;
-  dbS();
-  toast("👑 伝説へ","ギルドマスター・トップギルドパートナーへの就任が完了しました！","success");
+  var d=DB.students[CU], att=(d.examAttempts||{})[8];
+  if(!att||att.status!=="recommended") return;
+  att.status="graded"; att.score=100; att.result="pass";
+  att.feedback="推薦状の受託完了。晴れてMR8トップギルドパートナーとして就任しました！";
+  d.currentRank=8; dbS();
+  toast("👑 伝説へ","トップギルドパートナーへの就任が完了しました！","success");
   updateUI(); openExam(8);
 }
-
-function closeExam() {
-  AEN = null; CV = 'student';
-  showPg('student');
-  g('smypage').style.display = 'block';
-  updateUI();
-}
-
-function submitExam() {
+function closeExam(){ AEN=null; CV='student'; showPg('student'); sstab('mypage'); updateUI(); }
+function submitExam(){
   if(!CU) return;
-  var r = AEN, info = RK[r], d = DB.students[CU], data = {};
-  var flds = info.fields || [];
-  for(var i = 0; i < flds.length; i++) {
-    var el = g(flds[i].n+'_fi');
-    if(el) data[flds[i].n] = el.value;
-  }
-  if(r === 6) {
-    var essays = [["essay_q1","論述Q1"],["essay_q2","論述Q2"],["essay_q3","論述Q3"]];
-    for(var j = 0; j < essays.length; j++) {
-      if((data[essays[j][0]] || "").length < 300) {
-        toast("⚠️ 文字数が足りません", essays[j][1]+"の内容が300字に達していません。(現在: "+(data[essays[j][0]]||"").length+"文字)","error");
-        return;
-      }
+  var r=AEN, info=RK[r], d=DB.students[CU], data={};
+  var flds=info.fields||[];
+  for(var i=0;i<flds.length;i++){ var el=g(flds[i].n+'_fi'); if(el) data[flds[i].n]=el.value; }
+  if(r===6){
+    var es=[["essay_q1","論述Q1"],["essay_q2","論述Q2"],["essay_q3","論述Q3"]];
+    for(var j=0;j<es.length;j++){
+      if((data[es[j][0]]||"").length<300){ toast("⚠️ 文字数が足りません",es[j][1]+"の内容が300字に達していません。(現在: "+(data[es[j][0]]||"").length+"文字)","error"); return; }
     }
   }
-  for(var k = 0; k < flds.length; k++) {
-    if(flds[k].req && !(data[flds[k].n]||"").trim()) { toast("入力エラー","必須項目を入力してください。","error"); return; }
-  }
-  if(!d.examAttempts) d.examAttempts = {};
-  var ex = d.examAttempts[r] || {};
-  var att = JSON.parse(JSON.stringify(data));
-  att.status = "submitted"; att.timestamp = new Date().toLocaleString();
-  att.score = null; att.result = null; att.feedback = null;
-  var exKeys = Object.keys(ex);
-  for(var m = 0; m < exKeys.length; m++) {
-    if(exKeys[m].indexOf('shared_') === 0) att[exKeys[m]] = ex[exKeys[m]];
-  }
-  d.examAttempts[r] = att;
+  for(var k=0;k<flds.length;k++){ if(flds[k].req && !(data[flds[k].n]||"").trim()){ toast("入力エラー","必須項目を入力してください。","error"); return; } }
+  if(!d.examAttempts) d.examAttempts={};
+  var ex=d.examAttempts[r]||{};
+  var att=JSON.parse(JSON.stringify(data));
+  att.status="submitted"; att.timestamp=new Date().toLocaleString();
+  att.score=null; att.result=null; att.feedback=null;
+  att.history = ex.history||[];
+  att.history.push({type:'submitted',ts:att.timestamp,no:att.history.filter(function(h){return h.type==='submitted'}).length+1});
+  var eks=Object.keys(ex);
+  for(var m=0;m<eks.length;m++){ if(eks[m].indexOf('shared_')===0) att[eks[m]]=ex[eks[m]]; }
+  d.examAttempts[r]=att;
   dbS(); updateUI(); closeExam();
-  if(AA) renderSList();
   toast("提出完了","マーケターランク"+r+"への解答を運営宛に提出しました。","success");
 }
 
-function sstab(tab) {
-  var isM = (tab === 'mypage');
-  g('smypage').style.display = isM ? 'block' : 'none';
-  g('schapters').style.display = isM ? 'none' : 'block';
-  g('sm').className = isM ? "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]" : "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200";
-  g('sc').className = isM ? "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200" : "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]";
-  if(!isM) renderChapters();
+// ===== チャプター =====
+function renderChapters(){
+  var c=g('clist'); if(!c) return;
+  if(!DB.chapters.length){ c.innerHTML='<div class="text-center py-16 text-gray-500"><p class="text-sm font-bold">チャプター講義はまだ登録されていません。</p></div>'; return; }
+  var html="";
+  for(var i=0;i<DB.chapters.length;i++){
+    var ch=DB.chapters[i];
+    var m=ch.url && ch.url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    var e=m?"https://player.vimeo.com/video/"+m[1]:null;
+    html+='<div class="qp rounded-2xl p-5 space-y-3"><div class="flex items-start space-x-3"><span class="text-xs font-black font-mono bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1 rounded-lg flex-shrink-0">CHAPTER '+ch.number+'</span><div><h4 class="text-sm font-bold text-white">'+esc(ch.title)+'</h4><p class="text-xs text-gray-400 mt-1">'+esc(ch.description||'')+'</p></div></div>';
+    if(e) html+='<div class="rounded-xl overflow-hidden border border-[#3c2a1c]" style="padding:56.25% 0 0 0;position:relative;"><iframe src="'+e+'" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+    else html+='<div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">動画URLが正しく設定されていません。</div>';
+    html+='</div>';
+  }
+  c.innerHTML=html;
 }
 
-function renderChapters() {
-  var c = g('clist');
-  if(!c) return;
-  if(!DB.chapters.length) {
-    c.innerHTML = '<div class="text-center py-16 text-gray-500"><p class="text-sm font-bold">チャプター講義はまだ登録されていません。</p></div>';
-    return;
+// ===== 冒険の書 =====
+var ABQ = {
+  p:["あなたのフルネームと読み仮名","ご年齢","性別","お住まい","運用されていくアカウントの現在のフォロワー数","運用されていくアカウントの現在の収益額","運用されていくアカウントの現在の集客数\n（例：リスト・・・100人/月、営業数・・・70）","運用されていくアカウント内の投稿で現在の最高再生回数","運用されていくアカウント内で最高再生回数が取れている投稿のURL","運用されていくアカウントの現在のLIVEでの最高同接人数","その他実績があれば教えてください"],
+  gq:["SNSで発信したいと思われたキッカケは何ですか？\n（例：在庫を抱えず時間や場所に縛られない生活がしたいから）","ギルドに入りたいと思われたキッカケは具体的には何ですか？\n（例：コンサル業で月に100万円稼ぎたいから）","最終的に達成したい未来とはどんな未来ですか？","近い将来達成したい未来とはどんな未来ですか？\n（例：1年以内にSNSだけで食べていけるようになる）","顔出しはできますか？（はい／いいえ）","どんな収益方法で成果を出したいですか？\n（例：広告収益と企業案件とSNSコンサル）","運用開始後1年で達成したい月収益額(集客数でも可)はどのくらいですか？\n（例：30万円/月）","運用開始後1年間で達成したい目標フォロワー数は何人ですか？\n（例：2万人）","運用開始後3ヶ月で達成したい目標フォロワー数は何人ですか？\n（例：5,000人）","週あたりに取れる時間は何時間ですか？\n（例：30時間）","頑張れば1週間に何日投稿できますか？\n（例：毎日投稿）"],
+  sq:["これまで身を置かれたお仕事の業種は何ですか？(バイト含めすべて)","これまでの人生で、人から褒められたことや感謝された経験は何ですか？","あなたが人生でこれまで克服したことは何ですか？","あなたのコンプレックスは何ですか？","あなたの好きなこと、得意なこと、情熱を注げることは何ですか？","演技は得意ですか？","自信のある身体のパーツはどこですか？","趣味は何ですか？","あなたはどういう性格の人ですか？","友達からご自身の印象についてなんと言われることが多いですか？","あなたの人生の中で自慢できることは何ですか？","あなたが人生で大事にしている事or物は何ですか？","1年後世界が終わるなら何をしますか？","人生で1番お金や時間を使ったものは何ですか？"],
+  tq:["年齢","性別","年収","職業","学歴","休日の過ごし方","趣味","好きなTV番組","スマホを触る時間帯の予想","悩み"],
+  road:[["ステップ1","叶えたいゴールを明確にする","理想の未来を最短で手に入れるためのゴール設定をしよう"],["ステップ2","ジャンルとコンセプト設計","ゴールから逆算してジャンルやコンセプトを決めよう"],["ステップ3","リサーチ","リサーチして需要を知り、参考になる成功例を探そう"],["ステップ4","台本作成と動画編集","再現性のある台本作成と撮影編集でスキルアップ"],["ステップ5","PDCAを回す","学びながら分析して正しい考え方でPDCAを回そう"],["ステップ6","いよいよマネタイズ","スキルと実績を糧に収益を手に入れよう"]],
+  baLabels:[["フォロワー数",4],["収益額",5],["集客数",6],["最高再生回数",7],["LIVE最高同接",9]]
+};
+function abv(ab,id){ return esc((ab&&ab[id])||''); }
+function abIn(ab,id,ph){ return '<input type="text" id="ab_'+id+'" value="'+abv(ab,id)+'" placeholder="'+esc(ph||'')+'" class="abin">'; }
+function abTa(ab,id,rows){ return '<textarea id="ab_'+id+'" rows="'+(rows||2)+'" class="abin">'+abv(ab,id)+'</textarea>'; }
+function abQTable(ab,qs,prefix){
+  var h='<div class="space-y-3">';
+  for(var i=0;i<qs.length;i++) h+='<div><label class="ablbl">'+esc(qs[i])+'</label>'+abTa(ab,prefix+(i+1))+'</div>';
+  return h+'</div>';
+}
+function abSaveBtn(){ return '<button onclick="saveAB()" class="w-full mt-3 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2 rounded-xl text-[11px]">💾 冒険の書を保存する</button>'; }
+
+function renderAB(){
+  var c=g('sabook'); if(!c||!CU) return;
+  var d=DB.students[CU]; var ab=d.abook||{};
+  var pr=abProgress(d);
+  var html='<div class="qp rounded-2xl p-5 flex items-center justify-between"><div><h3 class="text-base font-black fc gg">📖 冒険の書</h3><p class="text-[10px] text-gray-400 mt-1">あなただけの成長記録。使えば使うほど宝物が育ちます。</p></div><div class="text-right"><span class="text-2xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span><span class="text-[9px] text-gray-500 block">全体進捗達成率</span></div></div>';
+
+  // 1 使用方法
+  html+='<details class="abs"><summary>１．『冒険の書』のご使用方法</summary><div class="p-4 pt-0 text-[11px] text-gray-300 leading-relaxed space-y-2"><p>・この『冒険の書』のご記入がいただけていない場合はサービスを適切にご利用いただけない場合がございます。効果が半減しないように必ずエピソード(動画教材)と一緒にお使いください。</p><p>・このワークシートも冒険の書同様、外部への流出や漏洩は必ず避けてお使いください。</p><p>・なるべく毎日もしくは毎週を目処に、面談の前日までには必ずこの『冒険の書』の更新をお願いします。</p><p>・当ギルドに所属されている間は必ず使用し続けてください。使用すればするほどあなただけの宝物があなたと共に成長します。</p></div></details>';
+
+  // 2 ロードマップ
+  html+='<details class="abs"><summary>２．ロードマップ</summary><div class="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-2">';
+  for(var i=0;i<ABQ.road.length;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-[10px] font-black text-[#dfb76c] font-mono">'+ABQ.road[i][0]+'</span><p class="text-[11px] font-bold text-white mt-0.5">'+ABQ.road[i][1]+'</p><p class="text-[10px] text-gray-400 mt-0.5">'+ABQ.road[i][2]+'</p></div>';
+  html+='</div></details>';
+
+  // 3 事前調査
+  html+='<details class="abs"><summary>３．事前調査</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.p,'p')+abSaveBtn()+'</div></details>';
+
+  // 4 Before&After
+  html+='<details class="abs"><summary>４．毎日見るBefore&After</summary><div class="p-4 pt-0 space-y-2"><p class="text-[10px] text-gray-500">Beforeは「３．事前調査」の回答から自動反映されます。Afterはあなたの現在値を記入して更新しましょう！</p><div class="grid grid-cols-3 gap-2 text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-1"><span>項目</span><span>Before（自動）</span><span>After（記入）</span></div>';
+  for(var i=0;i<ABQ.baLabels.length;i++){
+    var lb=ABQ.baLabels[i][0], src='p'+(ABQ.baLabels[i][1]+1);
+    html+='<div class="grid grid-cols-3 gap-2 items-center"><span class="text-[10px] text-gray-300 font-bold">'+lb+'</span><div class="p-2 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[11px] text-gray-400 min-h-[34px]">'+(abv(ab,src)||'<span class="text-gray-600 italic">事前調査 未記入</span>')+'</div>'+abIn(ab,'ba'+i)+'</div>';
   }
-  var html = "";
-  for(var i = 0; i < DB.chapters.length; i++) {
-    var ch = DB.chapters[i];
-    var m = ch.url && ch.url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    var e = m ? "https://player.vimeo.com/video/"+m[1] : null;
-    html += '<div class="qp rounded-2xl p-5 space-y-3"><div class="flex items-start space-x-3"><span class="text-xs font-black font-mono bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1 rounded-lg flex-shrink-0">CHAPTER '+ch.number+'</span><div><h4 class="text-sm font-bold text-white">'+ch.title+'</h4><p class="text-xs text-gray-400 mt-1">'+(ch.description||'')+'</p></div></div>';
-    if(e) html += '<div class="rounded-xl overflow-hidden border border-[#3c2a1c]" style="padding:56.25% 0 0 0;position:relative;"><iframe src="'+e+'" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
-    else html += '<div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">動画URLが正しく設定されていません。</div>';
-    html += '</div>';
+  html+=abSaveBtn()+'</div></details>';
+
+  // 5 ゴール設計
+  html+='<details class="abs"><summary>５．ゴール設計</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.gq,'g')+abSaveBtn()+'</div></details>';
+
+  // 6 ジャンル選定
+  html+='<details class="abs"><summary>６．ジャンル選定</summary><div class="p-4 pt-0 space-y-2"><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span>運用していくアカウントのジャンルは</span><span class="inline-block w-48">'+abIn(ab,'j1','ジャンル')+'</span><span>で、</span></div><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span class="inline-block w-64">'+abIn(ab,'j2','コンセプト')+'</span><span>をコンセプトに活動します！！</span></div>'+abSaveBtn()+'</div></details>';
+
+  // 7 自己分析
+  html+='<details class="abs"><summary>７．自己分析</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.sq,'s')+abSaveBtn()+'</div></details>';
+
+  // 8 ターゲット
+  html+='<details class="abs"><summary>８．ターゲット</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.tq,'t')+abSaveBtn()+'</div></details>';
+
+  // 9 ベンチマーク
+  html+='<details class="abs"><summary>９．ベンチマーク情報（5枠）</summary><div class="p-4 pt-0 space-y-3">';
+  for(var i=1;i<=5;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] font-mono">BENCHMARK '+i+'</span><label class="ablbl">アカウント名</label>'+abIn(ab,'b'+i+'n')+'<label class="ablbl">参考ポイント</label>'+abTa(ab,'b'+i+'p')+'<label class="ablbl">URL</label>'+abIn(ab,'b'+i+'u','https://...')+'</div>';
+  html+=abSaveBtn()+'</div></details>';
+
+  // 10 台本見本
+  html+='<details class="abs"><summary>１０．台本見本（閲覧用）</summary><div class="p-4 pt-0 space-y-4">'+abScriptSample()+'</div></details>';
+
+  // 11 台本FB依頼
+  html+='<details class="abs"><summary>１１．台本FB依頼（3枠）</summary><div class="p-4 pt-0 space-y-3">';
+  for(var i=1;i<=3;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] font-mono">台本FB依頼 '+i+'</span><label class="ablbl">文章構成参考元投稿のURL</label>'+abIn(ab,'sc'+i+'a','https://...')+'<label class="ablbl">内容参考元投稿のURL</label>'+abIn(ab,'sc'+i+'b','https://...')+'<label class="ablbl">参考元投稿の台本</label>'+abTa(ab,'sc'+i+'c',4)+'<label class="ablbl">オリジナル台本と撮影予定シーン</label>'+abTa(ab,'sc'+i+'d',4)+'</div>';
+  html+=abSaveBtn()+'</div></details>';
+
+  // 12 動画FB依頼
+  html+='<details class="abs"><summary>１２．動画FB依頼（45枠）</summary><div class="p-4 pt-0 space-y-3"><p class="text-[10px] text-gray-500">担当サポーターからのFB欄は、担当マーケターが記入します。</p>'+abVideoRows(ab,false,null)+abSaveBtn()+'</div></details>';
+
+  // 13 マネタイズ方針
+  html+='<details class="abs"><summary>１３．マネタイズ方針</summary><div class="p-4 pt-0 space-y-2"><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span>狙っている収益方法は</span><span class="inline-block w-48">'+abIn(ab,'m1','収益方法')+'</span><span>で、</span><span class="inline-block w-20">'+abIn(ab,'m2','◯◯')+'</span><span>ヶ月以内に</span><span class="inline-block w-40">'+abIn(ab,'m3','目標')+'</span><span>達成します！！</span></div>'+abSaveBtn()+'</div></details>';
+
+  // 14 ポートフォリオ
+  html+='<details class="abs"><summary>１４．ポートフォリオ用記録（20枠）</summary><div class="p-4 pt-0 space-y-2"><div class="grid grid-cols-12 gap-2 text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-1"><span class="col-span-3">日付</span><span class="col-span-4">実績</span><span class="col-span-5">詳細情報</span></div>';
+  for(var i=1;i<=20;i++) html+='<div class="grid grid-cols-12 gap-2"><div class="col-span-3">'+abIn(ab,'pf'+i+'d','2026/07/12')+'</div><div class="col-span-4">'+abIn(ab,'pf'+i+'a')+'</div><div class="col-span-5">'+abIn(ab,'pf'+i+'i')+'</div></div>';
+  html+=abSaveBtn()+'</div></details>';
+
+  // 15 進捗確認
+  html+='<details class="abs" open><summary>１５．進捗確認（自動）</summary><div class="p-4 pt-0 space-y-3"><div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/30"><span class="text-xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span><span class="text-[9px] text-gray-500 block">全体進捗達成率</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-white">'+esc(d.admissionDate||'---')+'</span><span class="text-[9px] text-gray-500 block">開始日（入学日）</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><div class="w-full">'+abIn(ab,'startDate','運用スタート日を記入')+'</div><span class="text-[9px] text-gray-500 block mt-1">運用スタート</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-emerald-400 font-mono">MR'+d.currentRank+'</span><span class="text-[9px] text-gray-500 block">現在ランク</span></div></div><div class="space-y-1.5">';
+  for(var i=0;i<pr.phases.length;i++){
+    html+='<div><div class="flex justify-between text-[10px] text-gray-400"><span>'+pr.phases[i][0]+'</span><span class="font-mono">'+pr.phases[i][1]+'%</span></div><div class="h-2 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.phases[i][1]+'%"></div></div></div>';
   }
-  c.innerHTML = html;
+  html+='</div>'+abSaveBtn()+'</div></details>';
+
+  c.innerHTML=html;
+}
+function abScriptSample(){
+  function blk(t,x){ return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line leading-relaxed">'+esc(x)+'</div></div>'; }
+  var h='<div class="space-y-3"><span class="text-[10px] font-black text-white">■ 見本1（構成×内容の掛け合わせ例）</span>';
+  h+=blk("文章構成参考元投稿のURL","https://www.tiktok.com/@nenohana26/video/7495045281134677266?_r=1&_t=ZS-8vDxpa4Vnwl");
+  h+=blk("内容参考元投稿のURL","https://www.tiktok.com/@mamahome_194/video/7480836176732015879");
+  h+=blk("参考元投稿の台本","従業員)支配人すみません\n休憩入るので賄い作ってもらっていいですか？\n支配人)わかったよ、このチャーハン作ってからな\n従業員)早く休憩行きたいので、急いでもらっていいですか？\n支配人)わかった\nなに食べたい？\n従業員)ロールカツでお願いします\n支配人)わかった\nすぐ作るわ\n〜調理シーン〜\n支配人)はい、できたよ\n休憩行っておいで\n従業員)うわっ美味そっ\nロールカツ？\n一個照り焼きで1個カツやん\n一回の食事で二回楽しめるって最高やな\nしかも中にチーズ入ってる\nうれし・・・\nにしても巻き具合上手・・・\n支配人)なんで上からやねん");
+  h+=blk("オリジナル台本と撮影予定シーン","従業員)〇〇社長すみません\n〇〇汚れあるんで、落とし方教えてもらってもいいですか？\n(〇〇＝ケチャップ、コーヒーなど)\n支配人)OKこの作業終わってからな\n従業員)私そろそろ休憩なんで、急いでもらっていいですか？\n支配人)わかった、どの車種？\n従業員)〇〇の〇〇部分お願いします\n(〇〇＝車種名のシート、ライトなど)\n支配人)わかった、すぐ落とすわ\n〜汚れを落とすシーンとBGM〜\n支配人)はいできたで、やり方覚えた？\n従業員)うわ、新車みたいに綺麗に落ちてるやん\nてか作業はっや\n(褒め褒めシャワー)\nそれにしてもさっすが社長\n支配人)褒めてくれるのはええけど次からしてもらうで？");
+  h+='</div><div class="space-y-3 border-t border-[#3c2a1c] pt-3"><span class="text-[10px] font-black text-white">■ 見本2（グルメ紹介系の例）</span>';
+  h+=blk("文章構成参考元投稿のURL","https://www.tiktok.com/@tokyo_foods/video/7520962323570265361");
+  h+=blk("内容参考元投稿のURL","https://www.tiktok.com/@shunmaile2025/video/7461538211819441415");
+  h+=blk("参考元投稿の台本","女性も入れる(ターゲット)\nこれがウワサの飲めるハンバーグだって\nハンバーグ専門店のふく吉は\n今飲めるハンバーグが\n食べられると話題のお店で\n個室もあって\n女性もお一人様でもとっても入りやすいお店なんだよね\nここのハンバーグは\n国産和牛100%使用の\n極上のハンバーグ\nチーズを流し入れるハンバーグは\n女性1番人気\nツナギを一切入れてないから\n中から肉汁が溢れ出す\n炊き方にもこだわった\n京都八代目儀兵衛の米が\nまた最高に美味い\n食べ終わったら残った肉汁の海で\n店員さんがガーリックライスを作ってくれる");
+  h+=blk("オリジナル台本と撮影予定シーン","大阪にきたら絶対行きたい\nこれが今話題の旨味広がる柔らか牛タン食べ比べ！\n牛タン専門店の本町肉倶楽部 たんべえは\nたくさんの牛タンが\n食べ比べできる超人気店で\n個室の数も多く\nデートでも使いやすいお店！\nここの牛タンは冷蔵で徹底管理されていて\n厳選されたお肉を独自ルートで仕入れてるから\n極上のタンを堪能できる\n特に牛タン七種盛りは\nたんべえ自慢のタンを全種味わえて\n注文必須\nここはメインのお肉だけじゃなくて\n韓国料理を中心とした\nサイドメニューも充実してて\nしかも最高に美味い\n各席に排煙ロースターが\n備え付けられているので\nデートや仕事帰りでも気軽に寄れる\nこのクオリティでこの値段はコスパ最強すぎ");
+  return h+'</div>';
+}
+function abVideoRows(ab,isMk,studentKey){
+  var h='<div class="space-y-2 max-h-[500px] overflow-y-auto pr-1">';
+  for(var i=1;i<=45;i++){
+    var fbv=abv(ab,'v'+i+'f');
+    h+='<details class="abs"><summary>No.'+i+'　'+(abv(ab,'v'+i+'l')?'🎬':'')+(fbv?'✅FB済':'')+'</summary><div class="p-3 pt-0 space-y-2">';
+    if(isMk){
+      h+='<label class="ablbl">自己評価や詳細（生徒記入）</label><div class="p-2 rounded bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line min-h-[30px]">'+(abv(ab,'v'+i+'e')||'—')+'</div>';
+      h+='<label class="ablbl">動画リンク</label><div class="p-2 rounded bg-[#080503] border border-[#3c2a1c] text-[10px]">'+(ab['v'+i+'l']?'<a href="'+abv(ab,'v'+i+'l')+'" target="_blank" class="text-amber-400 hover:underline break-all">'+abv(ab,'v'+i+'l')+'</a>':'—')+'</div>';
+      h+='<label class="ablbl">担当サポーターからのFB（あなたが記入）</label><textarea id="mkfb_'+i+'" rows="3" class="abin">'+fbv+'</textarea>';
+      h+='<button onclick="saveMkFb(\''+studentKey+'\','+i+')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-1.5 rounded-lg text-[10px]">このFBを送信する</button>';
+      h+='<div class="text-[9px] text-gray-500">経験メモ・所要時間: '+(abv(ab,'v'+i+'m')||'—')+' / FB確認状況: '+(abv(ab,'v'+i+'c')||'未確認')+'</div>';
+    } else {
+      h+='<label class="ablbl">自己評価や詳細</label>'+abTa(ab,'v'+i+'e');
+      h+='<label class="ablbl">動画リンク</label>'+abIn(ab,'v'+i+'l','https://...');
+      h+='<label class="ablbl">担当サポーターからのFB（閲覧用）</label><div class="p-2 rounded bg-[#080503] border '+(fbv?'border-emerald-500/40':'border-[#3c2a1c]')+' text-[10px] text-gray-200 whitespace-pre-line min-h-[30px]">'+(fbv||'<span class="text-gray-600 italic">まだFBはありません</span>')+'</div>';
+      h+='<div class="grid grid-cols-2 gap-2"><div><label class="ablbl">FB状況</label><select id="ab_v'+i+'s" class="abin"><option'+(abv(ab,'v'+i+'s')==='未依頼'?' selected':'')+'>未依頼</option><option'+(abv(ab,'v'+i+'s')==='依頼中'?' selected':'')+'>依頼中</option><option'+(abv(ab,'v'+i+'s')==='FB済'?' selected':'')+'>FB済</option></select></div><div><label class="ablbl">FB確認状況</label><select id="ab_v'+i+'c" class="abin"><option'+(abv(ab,'v'+i+'c')==='未確認'?' selected':'')+'>未確認</option><option'+(abv(ab,'v'+i+'c')==='確認済'?' selected':'')+'>確認済</option></select></div></div>';
+      h+='<label class="ablbl">経験メモ・1本あたりの所要時間</label>'+abIn(ab,'v'+i+'m');
+    }
+    h+='</div></details>';
+  }
+  return h+'</div>';
+}
+function saveAB(){
+  if(!CU) return;
+  var d=DB.students[CU];
+  if(!d.abook) d.abook={};
+  var els=document.querySelectorAll('#sabook [id^="ab_"]');
+  for(var i=0;i<els.length;i++){ d.abook[els[i].id.substring(3)]=els[i].value; }
+  dbS();
+  toast("保存完了","冒険の書を保存しました！","success");
+  renderAB();
+}
+function abProgress(d){
+  var ab=d.abook||{};
+  function rate(pre,n){ var f=0; for(var i=1;i<=n;i++){ if((ab[pre+i]||'').trim()) f++; } return Math.round(f/n*100); }
+  var pP=rate('p',11), pG=rate('g',11), pS=rate('s',14), pT=rate('t',10);
+  var pJ=Math.round((((ab.j1||'').trim()?1:0)+((ab.j2||'').trim()?1:0))/2*100);
+  var bF=0; for(var i=1;i<=5;i++){ if((ab['b'+i+'n']||'').trim()||(ab['b'+i+'u']||'').trim()) bF++; } var pB=Math.round(bF/5*100);
+  var vF=0; for(var i=1;i<=45;i++){ if((ab['v'+i+'l']||'').trim()) vF++; } var pV=Math.round(vF/45*100);
+  var pM=Math.round((((ab.m1||'').trim()?1:0)+((ab.m2||'').trim()?1:0)+((ab.m3||'').trim()?1:0))/3*100);
+  var pR=Math.round((d.currentRank-1)/7*100);
+  var total=Math.round((pP+pG+pS+pT+pJ+pB+pV+pM+pR)/9);
+  return {total:total,phases:[["事前調査",pP],["ゴール設計",pG],["ジャンル・コンセプト",pJ],["自己分析",pS],["ターゲット",pT],["ベンチマーク",pB],["動画制作（45本）",pV],["マネタイズ方針",pM],["MRランク進捗",pR]]};
 }
 
-// ADMIN
-function toggleAdmin() {
-  if(CV !== "admin") {
-    CV = "admin";
-    g('btn-admin-text').innerText = "受講生マイページへ";
+// ===== マーケターページ =====
+function renderMK(){
+  var c=g('smk'); if(!c) return;
+  var keys=Object.keys(MKS);
+  if(!keys.length){ c.innerHTML='<div class="qp rounded-2xl p-8 text-center text-xs text-gray-500">あなたが担当マーケターになっている生徒はいません。</div>'; return; }
+  var html='<div class="qp rounded-2xl p-5"><h3 class="text-base font-black fc gg">👥 担当生徒一覧</h3><p class="text-[10px] text-gray-400 mt-1">あなたが担当マーケターとして割り当てられている生徒の進捗を確認できます。</p></div>';
+  if(MKV && MKS[MKV]){
+    html+=mkDetail(MKV, MKS[MKV]);
+  } else {
+    html+='<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+    for(var i=0;i<keys.length;i++){
+      var s=MKS[keys[i]];
+      var badges='';
+      for(var r=2;r<=8;r++){
+        var a=(s.examAttempts||{})[r];
+        var cls="bg-[#080503] text-gray-600 border border-gray-900", lbl="MR"+r;
+        if(a){
+          if(a.status==='applying'){cls="bg-amber-500/20 text-amber-300 border border-amber-500/50";lbl="MR"+r+":申請";}
+          else if(a.status==='approved'){cls="bg-[#142d1f] text-emerald-400 border border-emerald-500/40";lbl="MR"+r+":挑戦中";}
+          else if(a.status==='submitted'){cls="bg-amber-500 text-black border border-amber-400 font-bold";lbl="MR"+r+":採点待";}
+          else if(a.status==='graded'&&a.result==='pass'){cls="bg-emerald-950 text-emerald-300 border border-emerald-500/50";lbl="MR"+r+":合格";}
+          else if(a.status==='graded'&&a.result==='fail'){cls="bg-rose-950 text-rose-400 border border-rose-500/30";lbl="MR"+r+":再提出";}
+        }
+        badges+='<span class="text-[8px] px-1 py-0.5 rounded font-mono '+cls+'">'+lbl+'</span>';
+      }
+      var pr=abProgress(s);
+      html+='<div class="qc rounded-xl p-4 space-y-3 cursor-pointer" onclick="mkOpen(\''+keys[i]+'\')"><div class="flex justify-between items-center"><div><span class="text-sm font-black text-white">'+esc(s.name)+'</span><span class="text-[9px] text-gray-500 block">@'+esc(s.username)+' / 入学: '+esc(s.admissionDate||'—')+'</span></div><span class="text-xs bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2 py-1 rounded font-mono font-bold">MR'+s.currentRank+'</span></div><div class="flex flex-wrap gap-1">'+badges+'</div><div><div class="flex justify-between text-[9px] text-gray-400"><span>冒険の書 進捗</span><span class="font-mono">'+pr.total+'%</span></div><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.total+'%"></div></div></div><button class="w-full bg-[#130d09] border border-[#dfb76c]/30 text-[#dfb76c] py-1.5 rounded-lg text-[10px] font-bold">詳細・動画FBを書く →</button></div>';
+    }
+    html+='</div>';
+  }
+  c.innerHTML=html; lci();
+}
+function mkOpen(key){ MKV=key; renderMK(); window.scrollTo(0,0); }
+function mkBack(){ MKV=null; renderMK(); }
+function mkDetail(key,s){
+  var pr=abProgress(s);
+  var html='<button onclick="mkBack()" class="text-xs text-gray-400 hover:text-white bg-[#080503] border border-[#3c2a1c] px-3 py-1.5 rounded-lg font-bold">← 担当生徒一覧に戻る</button>';
+  html+='<div class="qp rounded-2xl p-5 space-y-4"><div class="flex justify-between items-center"><div><h4 class="text-lg font-black text-white">'+esc(s.name)+' さん</h4><span class="text-[10px] text-gray-500">@'+esc(s.username)+' / 入学: '+esc(s.admissionDate||'—')+' / 現在 MR'+s.currentRank+'</span></div><span class="text-xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span></div>';
+  html+='<div class="space-y-1.5">';
+  for(var i=0;i<pr.phases.length;i++) html+='<div><div class="flex justify-between text-[10px] text-gray-400"><span>'+pr.phases[i][0]+'</span><span class="font-mono">'+pr.phases[i][1]+'%</span></div><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.phases[i][1]+'%"></div></div></div>';
+  html+='</div>';
+  // 試験状況
+  html+='<div class="border-t border-[#3c2a1c] pt-3"><span class="text-[10px] font-black text-[#dfb76c]">■ MR試験の状況</span><div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">';
+  for(var r=2;r<=8;r++){
+    var a=(s.examAttempts||{})[r];
+    var st = !a||!a.status||a.status==='not_started' ? "未挑戦" : a.status==='applying' ? "承認申請中" : a.status==='approved' ? "挑戦中（回答待ち）" : a.status==='submitted' ? "提出済・採点待ち" : a.status==='recommended' ? "推薦状 受託待ち" : (a.result==='pass' ? "✅ 合格（"+a.score+"点）" : "❌ 要再提出（"+a.score+"点）");
+    html+='<div class="p-2.5 rounded-lg bg-[#080503] border border-[#3c2a1c] flex justify-between text-[10px]"><span class="font-bold text-gray-300">MR'+r+'</span><span class="text-gray-400">'+st+'</span></div>';
+  }
+  html+='</div></div></div>';
+  // 動画FB
+  html+='<div class="qp rounded-2xl p-5 space-y-3"><h5 class="text-sm font-black text-[#dfb76c]">🎬 動画FB依頼（サポーターFBを記入できます）</h5>'+abVideoRows(s.abook||{},true,key)+'</div>';
+  return html;
+}
+function saveMkFb(key,i){
+  var el=g('mkfb_'+i); if(!el) return;
+  var txt=el.value;
+  var upd={};
+  upd['abook.v'+i+'f']=txt;
+  upd['abook.v'+i+'s']='FB済';
+  fdb.collection('students').doc(key).update(upd).then(function(){
+    if(MKS[key]){ if(!MKS[key].abook) MKS[key].abook={}; MKS[key].abook['v'+i+'f']=txt; MKS[key].abook['v'+i+'s']='FB済'; }
+    pushNotif(key,"🎬 動画No."+i+" に担当マーケターからFBが届きました！冒険の書を確認しましょう。");
+    toast("FB送信完了","動画No."+i+"のフィードバックを送信しました。","success");
+  }).catch(function(){ toast("送信失敗","FBの保存に失敗しました。","error"); });
+}
+
+// ===== 管理画面 =====
+function toggleAdmin(){
+  if(CV!=="admin"){
+    CV="admin"; g('btn-admin-text').innerText="受講生マイページへ";
     showPg('admin');
-    if(AA) showDash();
-    else { g('alock').style.display = 'block'; g('adash').style.display = 'none'; }
+    if(AA) showDash(); else { g('alock').style.display='block'; g('adash').style.display='none'; }
   } else {
-    g('btn-admin-text').innerText = "ギルド運営管理画面へ";
-    if(CU) {
-      CV = 'student';
-      // 最新データを強制再読み込み
-      dbL(function() {
-        showPg('student');
-        g('smypage').style.display = 'block';
-        updateUI();
-      });
-    } else { CV = 'auth'; showPg('auth'); }
+    g('btn-admin-text').innerText="ギルド運営管理画面へ";
+    if(CU){ CV='student'; showPg('student'); sstab('mypage'); updateUI(); }
+    else { CV='auth'; showPg('auth'); }
   }
 }
-
-function doAdminAuth() {
-  if(g('apwinp').value === APW) {
-    AA = true;
-    g('alock').style.display = 'none';
-    showDash();
+function doAdminAuth(){
+  if(g('apwinp').value===APW){
+    AA=true; g('alock').style.display='none'; showDash();
     toast("認証完了","ギルド特権アクセスが許可されました。","success");
-  } else {
-    toast("認証失敗","認証パスワードが正しくありません。","error");
-  }
+  } else toast("認証失敗","認証パスワードが正しくありません。","error");
 }
+function showDash(){ listenAll(); listenCh(); g('adash').style.display='block'; renderSList(); renderACh(); renderDList(); }
 
-function showDash() {
-  g('adash').style.display = 'block';
-  renderSList(); renderACh(); renderDList();
-}
-
-function renderSList() {
-  var c = g('aslist');
-  c.innerHTML = "";
-  var keys = Object.keys(DB.students);
-  g('acnt').innerText = "TOTAL: "+keys.length+" STUDENTS";
-  if(!keys.length) {
-    c.innerHTML = '<div class="text-xs text-gray-500 text-center py-6">生徒データが存在しません。</div>';
-    renderDList(); return;
-  }
-  for(var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    var s = DB.students[key];
-    var badges = "", pend = false, grad = false;
-    for(var r = 2; r <= 8; r++) {
-      var a = (s.examAttempts || {})[r];
-      var cls = "bg-[#080503] text-gray-600 border border-gray-900", lbl = "MR"+r;
-      if(a) {
+function renderSList(){
+  var c=g('aslist'); c.innerHTML="";
+  var keys=Object.keys(DB.students);
+  g('acnt').innerText="TOTAL: "+keys.length+" STUDENTS";
+  if(!keys.length){ c.innerHTML='<div class="text-xs text-gray-500 text-center py-6">生徒データが存在しません。</div>'; renderDList(); return; }
+  for(var i=0;i<keys.length;i++){
+    var key=keys[i], s=DB.students[key];
+    var badges="",pend=false,grad=false;
+    for(var r=2;r<=8;r++){
+      var a=(s.examAttempts||{})[r];
+      var cls="bg-[#080503] text-gray-600 border border-gray-900", lbl="MR"+r;
+      if(a){
         if(a.status==='applying'){cls="bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold";lbl="MR"+r+":申請";pend=true;}
         else if(a.status==='approved'){cls="bg-[#142d1f] text-emerald-400 border border-emerald-500/40";lbl="MR"+r+":承認済";}
         else if(a.status==='recommended'){cls="bg-amber-600 text-black border border-amber-400 font-bold";lbl="MR"+r+":推薦中";}
@@ -814,254 +1088,233 @@ function renderSList() {
         else if(a.status==='graded'&&a.result==='pass'){cls="bg-emerald-950 text-emerald-300 border border-emerald-500/50";lbl="MR"+r+":合格";}
         else if(a.status==='graded'&&a.result==='fail'){cls="bg-rose-950 text-rose-400 border border-rose-500/30";lbl="MR"+r+":不合格";}
       }
-      badges += '<button onclick="openRv(\''+key+'\','+r+')" class="text-[9px] px-1 py-1 rounded '+cls+' hover:opacity-85 font-mono">'+lbl+'</button>';
+      badges+='<button onclick="openRv(\''+key+'\','+r+')" class="text-[9px] px-1 py-1 rounded '+cls+' hover:opacity-85 font-mono">'+lbl+'</button>';
     }
-    var sel = (ASK === key);
-    c.innerHTML += '<div class="p-3.5 rounded-xl border transition-all '+(sel?'border-[#dfb76c] bg-[#dfb76c]/5':'border-[#3c2a1c] bg-[#080503]/40 hover:border-[#dfb76c]/40')+'"><div class="flex justify-between items-start mb-2"><div class="cursor-pointer flex-grow" onclick="selStudent(\''+key+'\')"><span class="text-xs font-black text-white hover:text-[#dfb76c] flex items-center space-x-1"><i data-lucide="user" class="w-3.5 h-3.5 text-[#dfb76c]"></i><span>'+s.name+'</span></span><span class="text-[9px] text-gray-500 block mt-0.5">@'+s.username+'</span></div><span class="text-[10px] bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/20 px-2.5 py-0.5 rounded font-mono font-bold">MR'+s.currentRank+'</span></div><div class="flex justify-between text-[9px] text-gray-400 bg-black/40 p-1.5 rounded my-1"><span>担当: <strong class="text-white">'+(s.mentor||"未指定")+'</strong></span><span>入学: <strong class="text-[#dfb76c]">'+(s.admissionDate||"未登録")+'</strong></span></div><div class="border-t border-[#3c2a1c] pt-2 mt-2"><div class="flex justify-between items-center mb-1"><span class="text-[9px] text-gray-400">■ 各MRランク審査状態:</span>'+(pend?'<span class="text-[8px] text-amber-400 bg-amber-500/15 px-1 rounded font-bold border border-amber-500/30">新着申請あり</span>':'')+(grad?'<span class="text-[8px] text-rose-400 bg-rose-500/15 px-1 rounded font-bold border border-rose-500/30">解答到着</span>':'')+'</div><div class="grid grid-cols-7 gap-1">'+badges+'</div></div></div>';
+    var sel=(ASK===key);
+    c.innerHTML+='<div class="p-3.5 rounded-xl border transition-all '+(sel?'border-[#dfb76c] bg-[#dfb76c]/5':'border-[#3c2a1c] bg-[#080503]/40 hover:border-[#dfb76c]/40')+'"><div class="flex justify-between items-start mb-2"><div class="cursor-pointer flex-grow" onclick="selStudent(\''+key+'\')"><span class="text-xs font-black text-white hover:text-[#dfb76c] flex items-center space-x-1"><i data-lucide="user" class="w-3.5 h-3.5 text-[#dfb76c]"></i><span>'+esc(s.name)+'</span></span><span class="text-[9px] text-gray-500 block mt-0.5">@'+esc(s.username)+'</span></div><span class="text-[10px] bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/20 px-2.5 py-0.5 rounded font-mono font-bold">MR'+s.currentRank+'</span></div><div class="flex justify-between text-[9px] text-gray-400 bg-black/40 p-1.5 rounded my-1"><span>担当: <strong class="text-white">'+esc(s.mentor||"未指定")+'</strong></span><span>入学: <strong class="text-[#dfb76c]">'+esc(s.admissionDate||"未登録")+'</strong></span></div><div class="border-t border-[#3c2a1c] pt-2 mt-2"><div class="flex justify-between items-center mb-1"><span class="text-[9px] text-gray-400">■ 各MRランク審査状態:</span>'+(pend?'<span class="text-[8px] text-amber-400 bg-amber-500/15 px-1 rounded font-bold border border-amber-500/30">新着申請あり</span>':'')+(grad?'<span class="text-[8px] text-rose-400 bg-rose-500/15 px-1 rounded font-bold border border-rose-500/30">解答到着</span>':'')+'</div><div class="grid grid-cols-7 gap-1">'+badges+'</div></div></div>';
   }
   lci(); renderDList();
 }
-
-function loadSF(s) {
-  g('aename').value = s.name||""; g('aeusr').value = s.username||"";
-  g('aepw').value = s.password||""; g('aeadm').value = s.admissionDate||"";
-  g('aementor').value = s.mentor||"";
+function loadSF(s){
+  g('aename').value=s.name||""; g('aeusr').value=s.username||"";
+  g('aeadm').value=s.admissionDate||""; g('aementor').value=s.mentor||"";
 }
-
-function saveStudent() {
-  if(!ASK) { toast("エラー","生徒が選択されていません。","error"); return; }
-  var orig = DB.students[ASK];
-  var name = g('aename').value.trim(), uname = g('aeusr').value.trim().toLowerCase();
-  var pw = g('aepw').value.trim(), adm = g('aeadm').value.trim(), mentor = g('aementor').value.trim();
-  if(!name||!uname||!pw) { toast("入力エラー","氏名、ユーザー名、パスワードは必須です。","error"); return; }
-  if(pw.length > 8) { toast("入力エラー","パスワードは最大8文字までです。","error"); return; }
-  var nk = btoa(uname);
-  if(nk !== ASK && DB.students[nk]) { toast("登録不可","変更後のユーザー名はすでに他の生徒に使用されています。","error"); return; }
-  var upd = JSON.parse(JSON.stringify(orig));
-  upd.name = name; upd.username = uname; upd.password = pw; upd.admissionDate = adm; upd.mentor = mentor;
-  if(nk !== ASK) { delete DB.students[ASK]; ASK = nk; }
-  DB.students[nk] = upd; dbS();
-  if(CU === ASK) CU = nk;
+function saveStudent(){
+  if(!ASK){ toast("エラー","生徒が選択されていません。","error"); return; }
+  var s=DB.students[ASK];
+  var name=g('aename').value.trim(), uname=g('aeusr').value.trim().toLowerCase();
+  var adm=g('aeadm').value.trim(), mentor=g('aementor').value.trim();
+  if(!name||!uname){ toast("入力エラー","氏名とユーザー名は必須です。","error"); return; }
+  var keys=Object.keys(DB.students);
+  for(var i=0;i<keys.length;i++){ if(keys[i]!==ASK && DB.students[keys[i]].username===uname){ toast("登録不可","このユーザー名は他の生徒が使用中です。","error"); return; } }
+  s.name=name; s.username=uname; s.admissionDate=adm; s.mentor=mentor;
+  dbS(ASK);
   toast("カルテ保存完了","生徒の基本情報を更新しました。","success");
   renderSList();
-  if(ASE) openRv(nk, ASE); else selStudent(nk);
+  if(ASE) openRv(ASK,ASE); else selStudent(ASK);
 }
-
-function delStudent(key) {
-  var s = DB.students[key]; if(!s) return;
-  delete DB.students[key]; dbS();
-  if(ASK === key) { ASK = null; ASE = null; g('arv').style.display = 'none'; g('aph').style.display = 'block'; }
+function delStudent(key){
+  var s=DB.students[key]; if(!s) return;
+  delete DB.students[key];
+  fdb.collection('students').doc(key).delete();
+  if(ASK===key){ ASK=null; ASE=null; g('arv').style.display='none'; g('aph').style.display='block'; }
   renderSList();
   toast("削除完了",s.name+" さんのデータを削除しました。","info");
 }
-
-function renderDList() {
-  var c = g('adlist'); if(!c) return;
-  var keys = Object.keys(DB.students);
-  if(!keys.length) { c.innerHTML = '<div class="text-xs text-gray-500 text-center py-4">生徒データが存在しません。</div>'; return; }
-  var html = "";
-  for(var i = 0; i < keys.length; i++) {
-    var k = keys[i], s = DB.students[k];
-    html += '<div class="flex items-center justify-between p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-rose-500/30 transition-all"><div class="flex items-center space-x-2"><i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i><div><span class="text-xs font-bold text-white">'+s.name+'</span><span class="text-[9px] text-gray-500 block">@'+s.username+' / MR'+s.currentRank+'</span></div></div><button onclick="delStudent(\''+k+'\')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center space-x-1"><i data-lucide="trash-2" class="w-3 h-3"></i><span>削除</span></button></div>';
+function renderDList(){
+  var c=g('adlist'); if(!c) return;
+  var keys=Object.keys(DB.students);
+  if(!keys.length){ c.innerHTML='<div class="text-xs text-gray-500 text-center py-4">生徒データが存在しません。</div>'; return; }
+  var html="";
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i], s=DB.students[k];
+    html+='<div class="flex items-center justify-between p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-rose-500/30 transition-all"><div class="flex items-center space-x-2"><i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i><div><span class="text-xs font-bold text-white">'+esc(s.name)+'</span><span class="text-[9px] text-gray-500 block">@'+esc(s.username)+' / MR'+s.currentRank+'</span></div></div><button onclick="delStudent(\''+k+'\')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center space-x-1"><i data-lucide="trash-2" class="w-3 h-3"></i><span>削除</span></button></div>';
   }
-  c.innerHTML = html; lci();
+  c.innerHTML=html; lci();
 }
-
-function selStudent(key) {
-  ASK = key; ASE = null;
-  var s = DB.students[key]; if(!s) return;
-  g('aph').style.display = 'none'; g('arv').style.display = 'block';
-  g('rvrank').innerText = "CARTE"; g('rvtitle').innerText = s.name+" さんの基本カルテ";
-  g('rvts').innerText = "入学日: "+(s.admissionDate||"未設定")+" / 現在ランク: MR"+s.currentRank;
-  g('rvst').innerText = "基本カルテ編集";
-  g('rvapprv').style.display = 'none'; g('rvanswers').style.display = 'none'; g('rvgrade').style.display = 'none';
+function selStudent(key){
+  ASK=key; ASE=null;
+  var s=DB.students[key]; if(!s) return;
+  g('aph').style.display='none'; g('arv').style.display='block';
+  g('rvrank').innerText="CARTE"; g('rvtitle').innerText=s.name+" さんの基本カルテ";
+  g('rvts').innerText="入学日: "+(s.admissionDate||"未設定")+" / 現在ランク: MR"+s.currentRank;
+  g('rvst').innerText="基本カルテ編集";
+  g('rvapprv').style.display='none'; g('rvanswers').style.display='none'; g('rvgrade').style.display='none';
   loadSF(s);
-  g('rvpreview').innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">各MRバッジをクリックして評価シートを読み込んでください。</div>';
+  g('rvpreview').innerHTML='<div class="text-center py-6 text-gray-400 text-xs">各MRバッジをクリックして評価シートを読み込んでください。</div>';
+  g('rvhist').innerHTML='';
   renderSList();
 }
-
-function openRv(key, r) {
-  ASK = key; ASE = r;
-  var s = DB.students[key]; if(!s) return;
-  var att = (s.examAttempts || {})[r] || {status:"not_started"};
-  g('aph').style.display = 'none'; g('arv').style.display = 'block';
+function openRv(key,r){
+  ASK=key; ASE=r;
+  var s=DB.students[key]; if(!s) return;
+  var att=(s.examAttempts||{})[r]||{status:"not_started"};
+  g('aph').style.display='none'; g('arv').style.display='block';
   loadSF(s);
-  g('rvrank').innerText = "MR"+r; g('rvtitle').innerText = s.name+" さんの MR"+r+" 試練";
-  g('rvts').innerText = "最終アクション: "+(att.timestamp||'なし');
-  var info = RK[r];
-  var li = g('rvlinks'), lc = g('rvlinksinp');
-  li.style.display = 'none'; lc.innerHTML = "";
-  if(info.af) {
-    li.style.display = 'block';
-    for(var i = 0; i < info.af.length; i++) {
-      var f = info.af[i];
-      var v = att["shared_"+f.n] || "";
-      lc.innerHTML += '<div><label class="block text-[10px] text-gray-400 mb-0.5">'+f.l+'</label><input type="text" id="sf_'+f.n+'" placeholder="'+f.ph+'" value="'+v+'" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#dfb76c]"></div>';
+  g('rvrank').innerText="MR"+r; g('rvtitle').innerText=s.name+" さんの MR"+r+" 試練";
+  g('rvts').innerText="最終アクション: "+(att.timestamp||'なし');
+  var info=RK[r];
+  var li=g('rvlinks'), lc=g('rvlinksinp');
+  li.style.display='none'; lc.innerHTML="";
+  if(info.af){
+    li.style.display='block';
+    for(var i=0;i<info.af.length;i++){
+      var f=info.af[i], v=att["shared_"+f.n]||"";
+      lc.innerHTML+='<div><label class="block text-[10px] text-gray-400 mb-0.5">'+f.l+'</label><input type="text" id="sf_'+f.n+'" placeholder="'+f.ph+'" value="'+esc(v)+'" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#dfb76c]"></div>';
     }
   }
-  var st = g('rvst');
-  if(r === 8) {
-    g('rvanswers').style.display = 'none'; g('rvapprv').style.display = 'block'; g('rvgrade').style.display = 'none';
-    if(!att.status || att.status === "not_started") {
-      st.innerText = "推薦待機中"; g('rvat').innerText = "🏆 MR8推薦状発行所"; g('rvad').innerText = "MR7をクリアした生徒へMR8推薦状を送る場合は、推薦理由を設定して送信してください。";
-      li.style.display = 'block';
-      lc.innerHTML = '<div><label class="block text-[10px] text-gray-400 mb-0.5">推薦状への記載文</label><textarea id="sf_r8rec" rows="4" placeholder="ギルド運営役員会推薦：当スクールへの絶大な貢献、および卓越した指導実績を称え、トップギルドパートナーとして就任することを特別推薦いたします。" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#dfb76c]"></textarea></div>';
-      g('rvabtn').innerHTML = '<button onclick="sendR8()" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="award" class="w-4 h-4"></i><span>特別推薦状を生徒へ送信する</span></button>';
-    } else if(att.status === "recommended") {
-      st.innerText = "特別推薦状 受託待ち"; g('rvat').innerText = "特別推薦状の送信を完了しています"; g('rvad').innerText = "受講生側での開封・受託待ちの状態です。";
-      g('rvabtn').innerHTML = '<div class="w-full text-center py-2 text-xs text-gray-400 font-bold border border-[#dfb76c]/30 rounded-xl bg-[#110a06]">生徒ポータルで推薦の開封待機中...</div>';
+  g('rvhist').innerHTML=histHtml(att.history);
+  var st=g('rvst');
+  if(r===8){
+    g('rvanswers').style.display='none'; g('rvapprv').style.display='block'; g('rvgrade').style.display='none';
+    if(!att.status||att.status==="not_started"){
+      st.innerText="推薦待機中"; g('rvat').innerText="🏆 MR8推薦状発行所"; g('rvad').innerText="MR7をクリアした生徒へMR8推薦状を送る場合は、推薦理由を設定して送信してください。";
+      li.style.display='block';
+      lc.innerHTML='<div><label class="block text-[10px] text-gray-400 mb-0.5">推薦状への記載文</label><textarea id="sf_r8rec" rows="4" placeholder="ギルド運営役員会推薦：当スクールへの絶大な貢献、および卓越した指導実績を称え、トップギルドパートナーとして就任することを特別推薦いたします。" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#dfb76c]"></textarea></div>';
+      g('rvabtn').innerHTML='<button onclick="sendR8()" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="award" class="w-4 h-4"></i><span>特別推薦状を生徒へ送信する</span></button>';
+    } else if(att.status==="recommended"){
+      st.innerText="特別推薦状 受託待ち"; g('rvat').innerText="特別推薦状の送信を完了しています"; g('rvad').innerText="受講生側での開封・受託待ちの状態です。";
+      g('rvabtn').innerHTML='<div class="w-full text-center py-2 text-xs text-gray-400 font-bold border border-[#dfb76c]/30 rounded-xl bg-[#110a06]">生徒ポータルで推薦の開封待機中...</div>';
     } else {
-      st.innerText = "MR8 認定・就任完了！"; g('rvat').innerText = "🎉 トップギルドパートナー認定済"; g('rvad').innerText = "最高峰マーケター(MR8)パートナーへの就任が完了しています。";
-      g('rvabtn').innerHTML = '<div class="w-full text-center py-2.5 text-xs text-emerald-400 font-black border-2 border-emerald-500/40 rounded-xl bg-[#082212]">LEGENDARY PARTNER CERTIFIED ✓</div>';
+      st.innerText="MR8 認定・就任完了！"; g('rvat').innerText="🎉 トップギルドパートナー認定済"; g('rvad').innerText="最高峰マーケター(MR8)パートナーへの就任が完了しています。";
+      g('rvabtn').innerHTML='<div class="w-full text-center py-2.5 text-xs text-emerald-400 font-black border-2 border-emerald-500/40 rounded-xl bg-[#082212]">LEGENDARY PARTNER CERTIFIED ✓</div>';
     }
   } else {
-    var pre = !att.status || att.status==="not_started" || att.status==="applying" || att.status==="approved";
-    if(pre) {
-      g('rvapprv').style.display = 'block'; g('rvanswers').style.display = 'block'; g('rvgrade').style.display = 'none';
-      var ap = (att.status === "applying");
-      st.innerText = ap ? "受験申請中" : (att.status==="approved" ? "挑戦承認済 (回答待ち)" : "未挑戦");
-      g('rvat').innerText = ap ? "マーケターランク昇格への挑戦申請を受理しました" : "指令リンク情報・設定センター";
-      g('rvad').innerText = ap ? "指令情報を設定した上で「受験を承認する」をクリックしてください。" : "受講生側が受注する前に、共有するリンク情報等をここで先行保存・編集できます。";
+    var pre = !att.status||att.status==="not_started"||att.status==="applying"||att.status==="approved";
+    if(pre){
+      g('rvapprv').style.display='block'; g('rvanswers').style.display='block'; g('rvgrade').style.display='none';
+      var ap=(att.status==="applying");
+      st.innerText = ap?"受験申請中":(att.status==="approved"?"挑戦承認済 (回答待ち)":"未挑戦");
+      g('rvat').innerText = ap?"マーケターランク昇格への挑戦申請を受理しました":"指令リンク情報・設定センター";
+      g('rvad').innerText = ap?"指令情報を設定した上で「受験を承認する」をクリックしてください。":"受講生側が受注する前に、共有するリンク情報等をここで先行保存・編集できます。";
       g('rvabtn').innerHTML = ap ?
         '<button onclick="approveEx()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="check-circle" class="w-4 h-4"></i><span>受験を承認する（クエスト解放）</span></button>' :
         '<button onclick="saveLinks()" class="w-full bg-slate-800 hover:bg-slate-700 border border-[#dfb76c]/50 text-[#dfb76c] font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="save" class="w-4 h-4"></i><span>指令情報を先行保存する</span></button>';
-      g('rvptag').innerText = (r===4||r===7) ? "（対面審査フェーズ・設問なし）" : "（未受験・設問チェック中）";
-      drawPreview(r, {}, true);
+      g('rvptag').innerText = (r===4||r===7)?"（対面審査フェーズ・設問なし）":"（未受験・設問チェック中）";
+      drawPreview(r,{},true);
     } else {
-      g('rvapprv').style.display = 'none'; g('rvanswers').style.display = 'block'; g('rvgrade').style.display = 'block';
-      g('rvptag').innerText = (r===4||r===7) ? "（対面審査・レポート提出なし）" : "（解答済データ）";
-      g('rvgtitle').innerText = (r===4||r===7) ? "✍️ 実技・役員対面面接 査定合否レポート" : "✍️ ギルド査定フィードバック";
-      g('rvclabel').innerHTML = (r===4||r===7) ? "対面審査・面接フィードバックコメント <span class='text-rose-500'>*</span>" : "指導フィードバックコメント <span class='text-rose-500'>*</span>";
-      if(att.status === 'submitted') { st.innerText = "未採点 (審査中)"; g('rvscore').value = "85"; g('rvresult').value = "pass"; g('rvfb').value = ""; }
-      else { st.innerText = att.result==='pass' ? "クリア! ("+att.score+"点)" : "要再提出 ("+att.score+"点)"; g('rvscore').value = att.score||"80"; g('rvresult').value = att.result||"fail"; g('rvfb').value = att.feedback||""; }
-      drawPreview(r, att, false);
+      g('rvapprv').style.display='none'; g('rvanswers').style.display='block'; g('rvgrade').style.display='block';
+      g('rvptag').innerText = (r===4||r===7)?"（対面審査・レポート提出なし）":"（解答済データ）";
+      g('rvgtitle').innerText = (r===4||r===7)?"✍️ 実技・役員対面面接 査定合否レポート":"✍️ ギルド査定フィードバック";
+      g('rvclabel').innerHTML = (r===4||r===7)?"対面審査・面接フィードバックコメント <span class='text-rose-500'>*</span>":"指導フィードバックコメント <span class='text-rose-500'>*</span>";
+      if(att.status==='submitted'){ st.innerText="未採点 (審査中)"; g('rvscore').value="85"; g('rvresult').value="pass"; g('rvfb').value=""; }
+      else { st.innerText = att.result==='pass'?"クリア! ("+att.score+"点)":"要再提出 ("+att.score+"点)"; g('rvscore').value=att.score||"80"; g('rvresult').value=att.result||"fail"; g('rvfb').value=att.feedback||""; }
+      drawPreview(r,att,false);
     }
   }
   renderSList(); lci();
 }
-
-function sendR8() {
+function sendR8(){
   if(!ASK) return;
-  var txt = g('sf_r8rec').value.trim();
-  if(!txt) { toast("エラー","推薦状に記載する文章を入力してください。","error"); return; }
-  var s = DB.students[ASK];
-  if(!s.examAttempts) s.examAttempts = {};
-  if(!s.examAttempts[8]) s.examAttempts[8] = {};
-  var att = s.examAttempts[8];
-  att.status = "recommended"; att.timestamp = new Date().toLocaleString(); att.feedback = txt;
-  dbS(); toast("推薦状送信完了",s.name+" さん宛てに、MR8推薦状を送信しました！","success"); openRv(ASK, 8);
+  var txt=g('sf_r8rec').value.trim();
+  if(!txt){ toast("エラー","推薦状に記載する文章を入力してください。","error"); return; }
+  var s=DB.students[ASK];
+  if(!s.examAttempts) s.examAttempts={};
+  if(!s.examAttempts[8]) s.examAttempts[8]={};
+  var att=s.examAttempts[8];
+  att.status="recommended"; att.timestamp=new Date().toLocaleString(); att.feedback=txt;
+  dbS(ASK);
+  pushNotif(ASK,"👑 ギルド運営役員会よりMR8特別推薦状が届きました！マイページで開封してください。");
+  toast("推薦状送信完了",s.name+" さん宛てに、MR8推薦状を送信しました！","success");
+  openRv(ASK,8);
 }
-
-function drawPreview(r, att, isBlank) {
-  var p = g('rvpreview'); p.innerHTML = "";
-  var info = RK[r];
-  if(r===4||r===7) {
-    p.innerHTML = '<div class="p-4 rounded-lg bg-[#0d0905] border border-[#dfb76c]/20 text-center text-xs space-y-2"><p class="text-gray-400">'+(r===4?"本試練（MR4）は対面面談練習の実技ロープレ審査です。生徒からのレポート送信はありません。":"本試練（MR7）は指示されたスプレッドシートの査定と役員との直接完全面接で審査されます。生徒からのレポート送信はありません。")+'</p></div>';
+function drawPreview(r,att,isBlank){
+  var p=g('rvpreview'); p.innerHTML="";
+  var info=RK[r];
+  if(r===4||r===7){
+    p.innerHTML='<div class="p-4 rounded-lg bg-[#0d0905] border border-[#dfb76c]/20 text-center text-xs space-y-2"><p class="text-gray-400">'+(r===4?"本試練（MR4）は対面面談練習の実技ロープレ審査です。生徒からのレポート送信はありません。":"本試練（MR7）は指示されたスプレッドシートの査定と役員との直接完全面接で審査されます。生徒からのレポート送信はありません。")+'</p></div>';
     return;
   }
-  if(!info || !info.fields) return;
-  var html = "";
-  for(var i = 0; i < info.fields.length; i++) {
-    var f = info.fields[i];
-    var val = isBlank ? "" : (att[f.n] || "");
-    var dv = isBlank ? '<span class="text-gray-600 italic">（受講生の回答待ち）</span>' : (val && (val.indexOf('http://')===0||val.indexOf('https://')===0) ? '<a href="'+val+'" target="_blank" class="text-amber-400 hover:underline break-all">'+val+'</a>' : '<p class="whitespace-pre-line text-gray-200">'+(val||'（未入力）')+'</p>');
-    html += '<div class="border-b border-[#3c2a1c] pb-3 mb-3 last:border-0 last:pb-0"><span class="block text-[11px] font-bold text-[#dfb76c] mb-1">■ '+f.l+'</span><div class="bg-[#080503] p-3 rounded-lg border border-gray-900/80">'+dv+'</div></div>';
+  if(!info||!info.fields) return;
+  var html="";
+  for(var i=0;i<info.fields.length;i++){
+    var f=info.fields[i];
+    var val=isBlank?"":(att[f.n]||"");
+    var dv = isBlank ? '<span class="text-gray-600 italic">（受講生の回答待ち）</span>' : (val && (val.indexOf('http://')===0||val.indexOf('https://')===0) ? '<a href="'+esc(val)+'" target="_blank" class="text-amber-400 hover:underline break-all">'+esc(val)+'</a>' : '<p class="whitespace-pre-line text-gray-200">'+esc(val||'（未入力）')+'</p>');
+    html+='<div class="border-b border-[#3c2a1c] pb-3 mb-3 last:border-0 last:pb-0"><span class="block text-[11px] font-bold text-[#dfb76c] mb-1">■ '+f.l+'</span><div class="bg-[#080503] p-3 rounded-lg border border-gray-900/80">'+dv+'</div></div>';
   }
-  p.innerHTML = html;
+  p.innerHTML=html;
 }
-
-function saveLinks() {
-  var key = ASK, r = ASE; if(!key||!r) return;
-  var s = DB.students[key];
-  if(!s.examAttempts) s.examAttempts = {};
-  if(!s.examAttempts[r]) s.examAttempts[r] = {status:"not_started", timestamp:new Date().toLocaleString()};
-  var att = s.examAttempts[r];
-  var info = RK[r];
-  if(info.af) {
-    for(var i = 0; i < info.af.length; i++) {
-      var el = g("sf_"+info.af[i].n);
-      if(el) att["shared_"+info.af[i].n] = el.value.trim();
-    }
-  }
-  dbS(); toast("保存完了","運営共有指令リンク情報を保存しました。","success"); openRv(key, r);
+function saveLinks(){
+  var key=ASK, r=ASE; if(!key||!r) return;
+  var s=DB.students[key];
+  if(!s.examAttempts) s.examAttempts={};
+  if(!s.examAttempts[r]) s.examAttempts[r]={status:"not_started",timestamp:new Date().toLocaleString()};
+  var att=s.examAttempts[r], info=RK[r];
+  if(info.af){ for(var i=0;i<info.af.length;i++){ var el=g("sf_"+info.af[i].n); if(el) att["shared_"+info.af[i].n]=el.value.trim(); } }
+  dbS(key);
+  toast("保存完了","運営共有指令リンク情報を保存しました。","success");
+  openRv(key,r);
 }
-
-function approveEx() {
-  var key = ASK, r = ASE; if(!key||!r) return;
-  var s = DB.students[key];
-  if(!s.examAttempts) s.examAttempts = {};
-  var att = s.examAttempts[r] || {};
-  var info = RK[r];
-  if(info.af) {
-    for(var i = 0; i < info.af.length; i++) {
-      var el = g("sf_"+info.af[i].n);
-      if(el) att["shared_"+info.af[i].n] = el.value.trim();
-    }
-  }
-  att.status = "approved"; att.timestamp = new Date().toLocaleString();
-  s.examAttempts[r] = att; dbS();
-  if(CU) updateUI();
-  g('rvabtn').innerHTML = '<div class="w-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5"><i data-lucide="check" class="w-5 h-5"></i><span>ギルド挑戦承認 完了！</span></div>';
+function approveEx(){
+  var key=ASK, r=ASE; if(!key||!r) return;
+  var s=DB.students[key];
+  if(!s.examAttempts) s.examAttempts={};
+  var att=s.examAttempts[r]||{}, info=RK[r];
+  if(info.af){ for(var i=0;i<info.af.length;i++){ var el=g("sf_"+info.af[i].n); if(el) att["shared_"+info.af[i].n]=el.value.trim(); } }
+  att.status="approved"; att.timestamp=new Date().toLocaleString();
+  s.examAttempts[r]=att;
+  dbS(key);
+  pushNotif(key,"✅ マーケターランク"+r+"への挑戦が承認されました！クエストを受注できます。");
+  g('rvabtn').innerHTML='<div class="w-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5"><i data-lucide="check" class="w-5 h-5"></i><span>ギルド挑戦承認 完了！</span></div>';
   lci();
   toast("承認完了","マーケターランク"+r+"への挑戦を承認しました。","success");
-  setTimeout(function() { openRv(key, r); }, 1000);
+  setTimeout(function(){ openRv(key,r); },1000);
 }
-
-function submitReview() {
-  var key = ASK, r = ASE; if(!key||!r) return;
-  var score = parseInt(g('rvscore').value) || 0;
-  var res = g('rvresult').value;
-  var fb = g('rvfb').value.trim();
-  if(!fb) { toast("入力エラー","フィードバックコメントを入力してください。","error"); return; }
-  if(score < 80 && res === 'pass') { res = 'fail'; toast("合否設定を自動修正","点数が80点未満のため不合格として処理しました。","info"); }
-  var s = DB.students[key];
-  if(!s.examAttempts) s.examAttempts = {};
-  var att = s.examAttempts[r] || {};
-  att.status = "graded"; att.score = score; att.result = res; att.feedback = fb;
-  s.examAttempts[r] = att;
-  if(res === 'pass' && r > s.currentRank) s.currentRank = r;
-  dbS(); renderSList(); openRv(key, r);
+function submitReview(){
+  var key=ASK, r=ASE; if(!key||!r) return;
+  var score=parseInt(g('rvscore').value)||0;
+  var res=g('rvresult').value;
+  var fb=g('rvfb').value.trim();
+  if(!fb){ toast("入力エラー","フィードバックコメントを入力してください。","error"); return; }
+  if(score<80 && res==='pass'){ res='fail'; toast("合否設定を自動修正","点数が80点未満のため不合格として処理しました。","info"); }
+  var s=DB.students[key];
+  if(!s.examAttempts) s.examAttempts={};
+  var att=s.examAttempts[r]||{};
+  att.status="graded"; att.score=score; att.result=res; att.feedback=fb;
+  if(!att.history) att.history=[];
+  att.history.push({type:'graded',ts:new Date().toLocaleString(),score:score,result:res,feedback:fb});
+  s.examAttempts[r]=att;
+  if(res==='pass' && r>s.currentRank) s.currentRank=r;
+  dbS(key);
+  pushNotif(key, res==='pass' ? "🎉 MR"+r+"試験に合格しました！（"+score+"点）フィードバックを確認しましょう。" : "📝 MR"+r+"試験の採点が完了しました（"+score+"点・要再提出）。フィードバックを確認して再挑戦しましょう。");
+  renderSList(); openRv(key,r);
   toast("採点完了","採点レポートとフィードバックを生徒のポータルへ送信しました。","success");
 }
 
-function addChapter() {
-  var num = parseInt(g('chnum').value), title = g('chtitle').value.trim();
-  var url = g('churl').value.trim(), desc = g('chdesc').value.trim();
-  if(!num||!title||!url) { toast("入力エラー","番号・タイトル・URLは必須です。","error"); return; }
-  DB.chapters.push({number:num, title:title, url:url, description:desc});
+// ===== チャプター管理 =====
+function addChapter(){
+  var num=parseInt(g('chnum').value), title=g('chtitle').value.trim();
+  var url=g('churl').value.trim(), desc=g('chdesc').value.trim();
+  if(!num||!title||!url){ toast("入力エラー","番号・タイトル・URLは必須です。","error"); return; }
+  DB.chapters.push({number:num,title:title,url:url,description:desc});
   DB.chapters.sort(function(a,b){return a.number-b.number;});
-  dbS(); renderACh();
+  dbSCh(); renderACh();
   g('chnum').value=''; g('chtitle').value=''; g('churl').value=''; g('chdesc').value='';
   toast("追加完了","チャプター"+num+"「"+title+"」を追加しました。","success");
 }
-
-function renderACh() {
-  var c = g('achlist'); if(!c) return;
-  if(!DB.chapters.length) { c.innerHTML = '<div class="text-xs text-gray-500 text-center py-4">チャプターがまだ登録されていません。</div>'; return; }
-  var html = "";
-  for(var i = 0; i < DB.chapters.length; i++) {
-    var ch = DB.chapters[i];
-    html += '<div class="rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-[#dfb76c]/40 transition-all overflow-hidden"><div class="flex items-center justify-between p-3"><div class="flex items-center space-x-3 flex-grow min-w-0"><span class="text-xs font-black font-mono text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/20 px-2 py-0.5 rounded flex-shrink-0">CH.'+ch.number+'</span><div class="min-w-0"><span class="text-xs font-bold text-white block truncate">'+ch.title+'</span><span class="text-[10px] text-gray-500 block truncate">'+(ch.description||'説明なし')+'</span></div></div><div class="flex items-center space-x-2 flex-shrink-0 ml-2"><button onclick="toggleCE('+i+')" class="text-[#dfb76c] hover:text-white border border-[#dfb76c]/30 hover:bg-[#dfb76c]/10 px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center space-x-1"><i data-lucide="edit-2" class="w-3 h-3"></i><span>編集</span></button><button onclick="delCh('+i+')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div><div id="ce_'+i+'" style="display:none" class="border-t border-[#3c2a1c] p-3 space-y-2 bg-[#0d0905]"><div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs"><div><label class="block text-gray-400 mb-1">番号</label><input type="number" id="cen_'+i+'" value="'+ch.number+'" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div><div><label class="block text-gray-400 mb-1">タイトル</label><input type="text" id="cet_'+i+'" value="'+ch.title+'" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div><div><label class="block text-gray-400 mb-1">Vimeo URL</label><input type="text" id="ceu_'+i+'" value="'+ch.url+'" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div><div><label class="block text-gray-400 mb-1">説明文</label><input type="text" id="ced_'+i+'" value="'+(ch.description||'')+'" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div></div><div class="flex space-x-2"><button onclick="saveCE('+i+')" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-1.5 rounded-lg text-xs flex items-center justify-center space-x-1"><i data-lucide="save" class="w-3 h-3"></i><span>保存</span></button><button onclick="toggleCE('+i+')" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-1.5 rounded-lg text-xs">キャンセル</button></div></div></div>';
+function renderACh(){
+  var c=g('achlist'); if(!c) return;
+  if(!DB.chapters.length){ c.innerHTML='<div class="text-xs text-gray-500 text-center py-4">チャプターがまだ登録されていません。</div>'; return; }
+  var html="";
+  for(var i=0;i<DB.chapters.length;i++){
+    var ch=DB.chapters[i];
+    html+='<div class="rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-[#dfb76c]/40 transition-all overflow-hidden"><div class="flex items-center justify-between p-3"><div class="flex items-center space-x-3 flex-grow min-w-0"><span class="text-xs font-black font-mono text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/20 px-2 py-0.5 rounded flex-shrink-0">CH.'+ch.number+'</span><div class="min-w-0"><span class="text-xs font-bold text-white block truncate">'+esc(ch.title)+'</span><span class="text-[10px] text-gray-500 block truncate">'+esc(ch.description||'説明なし')+'</span></div></div><div class="flex items-center space-x-2 flex-shrink-0 ml-2"><button onclick="toggleCE('+i+')" class="text-[#dfb76c] hover:text-white border border-[#dfb76c]/30 hover:bg-[#dfb76c]/10 px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center space-x-1"><i data-lucide="edit-2" class="w-3 h-3"></i><span>編集</span></button><button onclick="delCh('+i+')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div><div id="ce_'+i+'" style="display:none" class="border-t border-[#3c2a1c] p-3 space-y-2 bg-[#0d0905]"><div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs"><div><label class="block text-gray-400 mb-1">番号</label><input type="number" id="cen_'+i+'" value="'+ch.number+'" class="abin"></div><div><label class="block text-gray-400 mb-1">タイトル</label><input type="text" id="cet_'+i+'" value="'+esc(ch.title)+'" class="abin"></div><div><label class="block text-gray-400 mb-1">Vimeo URL</label><input type="text" id="ceu_'+i+'" value="'+esc(ch.url)+'" class="abin font-mono"></div><div><label class="block text-gray-400 mb-1">説明文</label><input type="text" id="ced_'+i+'" value="'+esc(ch.description||'')+'" class="abin"></div></div><div class="flex space-x-2"><button onclick="saveCE('+i+')" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-1.5 rounded-lg text-xs">保存</button><button onclick="toggleCE('+i+')" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-1.5 rounded-lg text-xs">キャンセル</button></div></div></div>';
   }
-  c.innerHTML = html; lci();
+  c.innerHTML=html; lci();
 }
-
-function toggleCE(i) { var el = g("ce_"+i); el.style.display = el.style.display==='none'?'block':'none'; }
-function saveCE(i) {
+function toggleCE(i){ var el=g("ce_"+i); el.style.display = el.style.display==='none'?'block':'none'; }
+function saveCE(i){
   var num=parseInt(g("cen_"+i).value), title=g("cet_"+i).value.trim(), url=g("ceu_"+i).value.trim(), desc=g("ced_"+i).value.trim();
-  if(!num||!title||!url){toast("入力エラー","番号・タイトル・URLは必須です。","error");return;}
+  if(!num||!title||!url){ toast("入力エラー","番号・タイトル・URLは必須です。","error"); return; }
   DB.chapters[i]={number:num,title:title,url:url,description:desc};
   DB.chapters.sort(function(a,b){return a.number-b.number;});
-  dbS(); renderACh(); toast("編集完了","チャプター"+num+"「"+title+"」を更新しました。","success");
+  dbSCh(); renderACh();
+  toast("編集完了","チャプター"+num+"「"+title+"」を更新しました。","success");
 }
-function delCh(i) { DB.chapters.splice(i,1); dbS(); renderACh(); toast("削除完了","チャプターを削除しました。","info"); }
+function delCh(i){ DB.chapters.splice(i,1); dbSCh(); renderACh(); toast("削除完了","チャプターを削除しました。","info"); }
 
-window.onload = function() {
-  lci();
-  dbL(function() {
-    // DBロード完了後に何か追加処理があれば
-  });
-};
+window.onload=function(){ lci(); };
 </script>
 </body>
 </html>
