@@ -811,16 +811,6 @@ function renderChapters(){
   }
   c.innerHTML=html;
 }
-  var secs=c.querySelectorAll(':scope > details.abs');
-  for(var si=0;si<secs.length;si++){
-    (function(me){
-      me.addEventListener('toggle',function(){
-        if(me.open){
-          for(var sj=0;sj<secs.length;sj++){ if(secs[sj]!==me) secs[sj].open=false; }
-        }
-      });
-    })(secs[si]);
-  }
 
 // ===== 冒険の書 =====
 var ABQ = {
@@ -879,31 +869,31 @@ function renderAB(){
   html+='<details class="abs"><summary>８．ターゲット</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.tq,'t')+abSaveBtn()+'</div></details>';
 
   // 9 ベンチマーク
-  html+='<details class="abs"><summary>９．ベンチマーク情報</summary><div class="p-4 pt-0 space-y-3">';
+  html+='<details class="abs"><summary>９．ベンチマーク情報（5枠）</summary><div class="p-4 pt-0 space-y-3">';
   for(var i=1;i<=5;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] font-mono">BENCHMARK '+i+'</span><label class="ablbl">アカウント名</label>'+abIn(ab,'b'+i+'n')+'<label class="ablbl">参考ポイント</label>'+abTa(ab,'b'+i+'p')+'<label class="ablbl">URL</label>'+abIn(ab,'b'+i+'u','https://...')+'</div>';
   html+=abSaveBtn()+'</div></details>';
 
   // 10 台本見本
-  html+='<details class="abs"><summary>１０．台本見本</summary><div class="p-4 pt-0 space-y-4">'+abScriptSample()+'</div></details>';
+  html+='<details class="abs"><summary>１０．台本見本（閲覧用）</summary><div class="p-4 pt-0 space-y-4">'+abScriptSample()+'</div></details>';
 
   // 11 台本FB依頼
-  html+='<details class="abs"><summary>１１．台本FB依頼</summary><div class="p-4 pt-0 space-y-3">';
+  html+='<details class="abs"><summary>１１．台本FB依頼（3枠）</summary><div class="p-4 pt-0 space-y-3">';
   for(var i=1;i<=3;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] font-mono">台本FB依頼 '+i+'</span><label class="ablbl">文章構成参考元投稿のURL</label>'+abIn(ab,'sc'+i+'a','https://...')+'<label class="ablbl">内容参考元投稿のURL</label>'+abIn(ab,'sc'+i+'b','https://...')+'<label class="ablbl">参考元投稿の台本</label>'+abTa(ab,'sc'+i+'c',4)+'<label class="ablbl">オリジナル台本と撮影予定シーン</label>'+abTa(ab,'sc'+i+'d',4)+'</div>';
   html+=abSaveBtn()+'</div></details>';
 
   // 12 動画FB依頼
-  html+='<details class="abs"><summary>１２．動画FB依頼</summary><div class="p-4 pt-0 space-y-3"><p class="text-[10px] text-gray-500">担当サポーターからのFB欄は、担当マーケターが記入します。</p>'+abVideoRows(ab,false,null)+abSaveBtn()+'</div></details>';
+  html+='<details class="abs"><summary>１２．動画FB依頼（45枠）</summary><div class="p-4 pt-0 space-y-3"><p class="text-[10px] text-gray-500">担当サポーターからのFB欄は、担当マーケターが記入します。</p>'+abVideoRows(ab,false,null)+abSaveBtn()+'</div></details>';
 
   // 13 マネタイズ方針
   html+='<details class="abs"><summary>１３．マネタイズ方針</summary><div class="p-4 pt-0 space-y-2"><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span>狙っている収益方法は</span><span class="inline-block w-48">'+abIn(ab,'m1','収益方法')+'</span><span>で、</span><span class="inline-block w-20">'+abIn(ab,'m2','◯◯')+'</span><span>ヶ月以内に</span><span class="inline-block w-40">'+abIn(ab,'m3','目標')+'</span><span>達成します！！</span></div>'+abSaveBtn()+'</div></details>';
 
   // 14 ポートフォリオ
-  html+='<details class="abs"><summary>１４．ポートフォリオ用記録</summary><div class="p-4 pt-0 space-y-2"><div class="grid grid-cols-12 gap-2 text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-1"><span class="col-span-3">日付</span><span class="col-span-4">実績</span><span class="col-span-5">詳細情報</span></div>';
+  html+='<details class="abs"><summary>１４．ポートフォリオ用記録（20枠）</summary><div class="p-4 pt-0 space-y-2"><div class="grid grid-cols-12 gap-2 text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-1"><span class="col-span-3">日付</span><span class="col-span-4">実績</span><span class="col-span-5">詳細情報</span></div>';
   for(var i=1;i<=20;i++) html+='<div class="grid grid-cols-12 gap-2"><div class="col-span-3">'+abIn(ab,'pf'+i+'d','2026/07/12')+'</div><div class="col-span-4">'+abIn(ab,'pf'+i+'a')+'</div><div class="col-span-5">'+abIn(ab,'pf'+i+'i')+'</div></div>';
   html+=abSaveBtn()+'</div></details>';
 
   // 15 進捗確認
-  html+='<details class="abs" open><summary>１５．進捗確認</summary><div class="p-4 pt-0 space-y-3"><div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/30"><span class="text-xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span><span class="text-[9px] text-gray-500 block">全体進捗達成率</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-white">'+esc(d.admissionDate||'---')+'</span><span class="text-[9px] text-gray-500 block">開始日（入学日）</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><div class="w-full">'+abIn(ab,'startDate','運用スタート日を記入')+'</div><span class="text-[9px] text-gray-500 block mt-1">運用スタート</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-emerald-400 font-mono">MR'+d.currentRank+'</span><span class="text-[9px] text-gray-500 block">現在ランク</span></div></div><div class="space-y-1.5">';
+  html+='<details class="abs" open><summary>１５．進捗確認（自動）</summary><div class="p-4 pt-0 space-y-3"><div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/30"><span class="text-xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span><span class="text-[9px] text-gray-500 block">全体進捗達成率</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-white">'+esc(d.admissionDate||'---')+'</span><span class="text-[9px] text-gray-500 block">開始日（入学日）</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><div class="w-full">'+abIn(ab,'startDate','運用スタート日を記入')+'</div><span class="text-[9px] text-gray-500 block mt-1">運用スタート</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-emerald-400 font-mono">MR'+d.currentRank+'</span><span class="text-[9px] text-gray-500 block">現在ランク</span></div></div><div class="space-y-1.5">';
   for(var i=0;i<pr.phases.length;i++){
     html+='<div><div class="flex justify-between text-[10px] text-gray-400"><span>'+pr.phases[i][0]+'</span><span class="font-mono">'+pr.phases[i][1]+'%</span></div><div class="h-2 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.phases[i][1]+'%"></div></div></div>';
   }
@@ -911,15 +901,8 @@ function renderAB(){
 
   c.innerHTML=html;
 }
-function blk(t,x){
-  var body;
-  if(x.indexOf('https://')===0||x.indexOf('http://')===0){
-    body='<a href="'+esc(x)+'" target="_blank" rel="noopener" class="text-amber-400 hover:underline break-all font-bold">'+esc(x)+'</a>';
-  } else {
-    body=esc(x);
-  }
-  return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line leading-relaxed">'+body+'</div></div>';
-}
+function abScriptSample(){
+  function blk(t,x){ return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line leading-relaxed">'+esc(x)+'</div></div>'; }
   var h='<div class="space-y-3"><span class="text-[10px] font-black text-white">■ 見本1（構成×内容の掛け合わせ例）</span>';
   h+=blk("文章構成参考元投稿のURL","https://www.tiktok.com/@nenohana26/video/7495045281134677266?_r=1&_t=ZS-8vDxpa4Vnwl");
   h+=blk("内容参考元投稿のURL","https://www.tiktok.com/@mamahome_194/video/7480836176732015879");
