@@ -35,29 +35,6 @@
 <header class="border-b-2 border-[#dfb76c]/30 bg-[#070503] py-4 px-6 sticky top-0 z-40 shadow-xl">
   <div class="max-w-7xl mx-auto flex justify-between items-center">
     <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
-      <div class="w-12 h-12 flex-shrink-0 drop-shadow-[0_0_8px_rgba(223,183,108,0.7)]">
-        <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-          <defs>
-            <linearGradient id="flameOuter" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#f0d9a5"/><stop offset="55%" stop-color="#dfb76c"/><stop offset="100%" stop-color="#9a763a"/>
-            </linearGradient>
-            <linearGradient id="flameCore" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff3d6"/><stop offset="100%" stop-color="#edd19b"/>
-            </linearGradient>
-            <g id="sideFlame">
-              <path d="M46 44 C40 52 32 58 27 68 C21 80 22 94 30 104 C34 109 38 112 42 114 C46 112 51 108 55 103 C62 94 63 81 58 71 C54 63 49 56 49 50 C48 47 47 45 46 44 Z" fill="url(#flameOuter)"/>
-              <path d="M42 74 C38 81 33 85 33 93 C33 101 37 106 42 108 C47 106 51 101 51 93 C51 85 46 81 42 74 Z" fill="#18100a"/>
-              <path d="M42 84 C39 88 37 91 37 96 C37 101 39 104 42 105 C45 104 47 101 47 96 C47 91 44 88 42 84 Z" fill="url(#flameCore)"/>
-            </g>
-          </defs>
-          <path d="M100 12 C96 26 84 34 78 48 C71 63 72 82 82 95 C88 103 94 108 100 110 C106 108 112 103 118 95 C128 82 129 63 122 48 C116 34 104 26 100 12 Z" fill="url(#flameOuter)"/>
-          <path d="M100 52 C94 62 87 68 87 80 C87 92 93 100 100 102 C107 100 113 92 113 80 C113 68 106 62 100 52 Z" fill="#18100a"/>
-          <path d="M100 68 C96 74 92 78 92 85 C92 92 95 97 100 98 C105 97 108 92 108 85 C108 78 104 74 100 68 Z" fill="url(#flameCore)"/>
-          <use href="#sideFlame"/>
-          <use href="#sideFlame" transform="translate(200,0) scale(-1,1)"/>
-          <path d="M28 122 Q100 132 172 122" stroke="#dfb76c" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
-        </svg>
-      </div>
       <div>
         <h1 class="text-lg md:text-xl font-black fc tracking-widest gg">GUILD MARKETING</h1>
         <p class="text-[9px] text-[#dfb76c]/70 tracking-widest font-bold font-mono">MARKETER RANK SYSTEM</p>
@@ -834,6 +811,16 @@ function renderChapters(){
   }
   c.innerHTML=html;
 }
+  var secs=c.querySelectorAll(':scope > details.abs');
+  for(var si=0;si<secs.length;si++){
+    (function(me){
+      me.addEventListener('toggle',function(){
+        if(me.open){
+          for(var sj=0;sj<secs.length;sj++){ if(secs[sj]!==me) secs[sj].open=false; }
+        }
+      });
+    })(secs[si]);
+  }
 
 // ===== 冒険の書 =====
 var ABQ = {
@@ -924,8 +911,15 @@ function renderAB(){
 
   c.innerHTML=html;
 }
-function abScriptSample(){
-  function blk(t,x){ return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line leading-relaxed">'+esc(x)+'</div></div>'; }
+function blk(t,x){
+  var body;
+  if(x.indexOf('https://')===0||x.indexOf('http://')===0){
+    body='<a href="'+esc(x)+'" target="_blank" rel="noopener" class="text-amber-400 hover:underline break-all font-bold">'+esc(x)+'</a>';
+  } else {
+    body=esc(x);
+  }
+  return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line leading-relaxed">'+body+'</div></div>';
+}
   var h='<div class="space-y-3"><span class="text-[10px] font-black text-white">■ 見本1（構成×内容の掛け合わせ例）</span>';
   h+=blk("文章構成参考元投稿のURL","https://www.tiktok.com/@nenohana26/video/7495045281134677266?_r=1&_t=ZS-8vDxpa4Vnwl");
   h+=blk("内容参考元投稿のURL","https://www.tiktok.com/@mamahome_194/video/7480836176732015879");
