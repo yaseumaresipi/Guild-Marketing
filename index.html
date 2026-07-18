@@ -44,7 +44,7 @@
       <div class="relative">
         <button id="nbellbtn" style="display:none" onclick="toggleNotif()" class="relative text-[#dfb76c] bg-[#110b07] border-2 border-[#dfb76c]/50 hover:border-[#dfb76c] p-2 rounded-xl">
           <i data-lucide="bell" class="w-4 h-4"></i>
-          <span id="nbadge" style="display:none" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 px-1.5 py-0.5 rounded-full">0</span>
+          <span id="nbadge" style="display:none" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">0</span>
         </button>
         <div id="npanel" style="display:none" class="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto qp rounded-xl p-3 z-50 space-y-2">
           <div class="text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-2">🔔 通知</div>
@@ -335,6 +335,7 @@ var fdb = firebase.firestore();
 
 var DB = {students:{}, chapters:[]};
 var MKS = {};
+var MNAME = {}; // ユーザー名→氏名のキャッシュ
 var CU = null, AA = false, CV = 'auth', AEN = null, ASK = null, ASE = null, ATB = 'login', MKV = null;
 var APW = '1'; // ←必ず変更してください！
 
@@ -344,6 +345,22 @@ function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,
 
 function dbS(k){ if(k===undefined) k=CU; if(k && DB.students[k]) fdb.collection('students').doc(k).set(DB.students[k]); }
 function dbSCh(){ fdb.collection('meta').doc('chapters').set({list:DB.chapters}); }
+
+// ===== 担当マーケター: ユーザー名→氏名変換 =====
+function mentorNameSync(uname){
+  if(!uname || uname==='未割り当て') return '未割り当て';
+  if(MNAME[uname]) return MNAME[uname];
+  for(var k in DB.students){ if(DB.students[k].username===uname){ MNAME[uname]=DB.students[k].name; return MNAME[uname]; } }
+  return uname; // 未解決ならユーザー名のまま表示
+}
+function mentorName(uname, cb){
+  var v = mentorNameSync(uname);
+  if(v!==uname || !uname || uname==='未割り当て'){ cb(v); return; }
+  fdb.collection('students').where('username','==',uname).limit(1).get().then(function(qs){
+    if(!qs.empty){ MNAME[uname]=qs.docs[0].data().name; cb(MNAME[uname]); }
+    else cb(uname);
+  }).catch(function(){ cb(uname); });
+}
 
 function pushNotif(key,msg){
   fdb.collection('students').doc(key).update({
@@ -364,7 +381,7 @@ function listenAll(){
   unsubAll = fdb.collection('students').onSnapshot(function(qs){
     var me = DB.students[CU];
     DB.students = {};
-    qs.forEach(function(d){ DB.students[d.id]=d.data(); });
+    qs.forEach(function(d){ DB.students[d.id]=d.data(); MNAME[d.data().username]=d.data().name; });
     if(CU && !DB.students[CU] && me) DB.students[CU]=me;
     if(AA && CV==='admin') renderSList();
   });
@@ -534,7 +551,8 @@ function updateUI(){
   if(!CU) return;
   var d=DB.students[CU]; if(!d) return;
   g('sname').innerText=d.name; g('susr').innerText="ID: "+d.username;
-  g('sadm').innerText=d.admissionDate||"未設定"; g('smentor').innerText=d.mentor||"未割り当て";
+  g('sadm').innerText=d.admissionDate||"未設定";
+  mentorName(d.mentor, function(nm){ g('smentor').innerText=nm; });
   g('srank').innerText="MR"+d.currentRank; g('hrank').innerText="MR"+d.currentRank;
   g('hname').innerText=d.name; g('hbadge').style.display='flex';
   g('snext').innerText = d.currentRank===8?"MASTER":"MR"+(d.currentRank+1);
@@ -837,18 +855,14 @@ function renderAB(){
   var pr=abProgress(d);
   var html='<div class="qp rounded-2xl p-5 flex items-center justify-between"><div><h3 class="text-base font-black fc gg">📖 冒険の書</h3><p class="text-[10px] text-gray-400 mt-1">あなただけの成長記録。使えば使うほど宝物が育ちます。</p></div><div class="text-right"><span class="text-2xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span><span class="text-[9px] text-gray-500 block">全体進捗達成率</span></div></div>';
 
-  // 1 使用方法
   html+='<details class="abs"><summary>１．『冒険の書』のご使用方法</summary><div class="p-4 pt-0 text-[11px] text-gray-300 leading-relaxed space-y-2"><p>・この『冒険の書』のご記入がいただけていない場合はサービスを適切にご利用いただけない場合がございます。効果が半減しないように必ずエピソード(動画教材)と一緒にお使いください。</p><p>・このワークシートも冒険の書同様、外部への流出や漏洩は必ず避けてお使いください。</p><p>・なるべく毎日もしくは毎週を目処に、面談の前日までには必ずこの『冒険の書』の更新をお願いします。</p><p>・当ギルドに所属されている間は必ず使用し続けてください。使用すればするほどあなただけの宝物があなたと共に成長します。</p></div></details>';
 
-  // 2 ロードマップ
   html+='<details class="abs"><summary>２．ロードマップ</summary><div class="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-2">';
   for(var i=0;i<ABQ.road.length;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-[10px] font-black text-[#dfb76c] font-mono">'+ABQ.road[i][0]+'</span><p class="text-[11px] font-bold text-white mt-0.5">'+ABQ.road[i][1]+'</p><p class="text-[10px] text-gray-400 mt-0.5">'+ABQ.road[i][2]+'</p></div>';
   html+='</div></details>';
 
-  // 3 事前調査
   html+='<details class="abs"><summary>３．事前調査</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.p,'p')+abSaveBtn()+'</div></details>';
 
-  // 4 Before&After
   html+='<details class="abs"><summary>４．毎日見るBefore&After</summary><div class="p-4 pt-0 space-y-2"><p class="text-[10px] text-gray-500">Beforeは「３．事前調査」の回答から自動反映されます。Afterはあなたの現在値を記入して更新しましょう！</p><div class="grid grid-cols-3 gap-2 text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-1"><span>項目</span><span>Before（自動）</span><span>After（記入）</span></div>';
   for(var i=0;i<ABQ.baLabels.length;i++){
     var lb=ABQ.baLabels[i][0], src='p'+(ABQ.baLabels[i][1]+1);
@@ -856,43 +870,32 @@ function renderAB(){
   }
   html+=abSaveBtn()+'</div></details>';
 
-  // 5 ゴール設計
   html+='<details class="abs"><summary>５．ゴール設計</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.gq,'g')+abSaveBtn()+'</div></details>';
 
-  // 6 ジャンル選定
   html+='<details class="abs"><summary>６．ジャンル選定</summary><div class="p-4 pt-0 space-y-2"><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span>運用していくアカウントのジャンルは</span><span class="inline-block w-48">'+abIn(ab,'j1','ジャンル')+'</span><span>で、</span></div><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span class="inline-block w-64">'+abIn(ab,'j2','コンセプト')+'</span><span>をコンセプトに活動します！！</span></div>'+abSaveBtn()+'</div></details>';
 
-  // 7 自己分析
   html+='<details class="abs"><summary>７．自己分析</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.sq,'s')+abSaveBtn()+'</div></details>';
 
-  // 8 ターゲット
   html+='<details class="abs"><summary>８．ターゲット</summary><div class="p-4 pt-0">'+abQTable(ab,ABQ.tq,'t')+abSaveBtn()+'</div></details>';
 
-  // 9 ベンチマーク
   html+='<details class="abs"><summary>９．ベンチマーク情報</summary><div class="p-4 pt-0 space-y-3">';
   for(var i=1;i<=5;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] font-mono">BENCHMARK '+i+'</span><label class="ablbl">アカウント名</label>'+abIn(ab,'b'+i+'n')+'<label class="ablbl">参考ポイント</label>'+abTa(ab,'b'+i+'p')+'<label class="ablbl">URL</label>'+abIn(ab,'b'+i+'u','https://...')+'</div>';
   html+=abSaveBtn()+'</div></details>';
 
-  // 10 台本見本
   html+='<details class="abs"><summary>１０．台本見本</summary><div class="p-4 pt-0 space-y-4">'+abScriptSample()+'</div></details>';
 
-  // 11 台本FB依頼
   html+='<details class="abs"><summary>１１．台本FB依頼</summary><div class="p-4 pt-0 space-y-3">';
   for(var i=1;i<=3;i++) html+='<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] font-mono">台本FB依頼 '+i+'</span><label class="ablbl">文章構成参考元投稿のURL</label>'+abIn(ab,'sc'+i+'a','https://...')+'<label class="ablbl">内容参考元投稿のURL</label>'+abIn(ab,'sc'+i+'b','https://...')+'<label class="ablbl">参考元投稿の台本</label>'+abTa(ab,'sc'+i+'c',4)+'<label class="ablbl">オリジナル台本と撮影予定シーン</label>'+abTa(ab,'sc'+i+'d',4)+'</div>';
   html+=abSaveBtn()+'</div></details>';
 
-  // 12 動画FB依頼
   html+='<details class="abs"><summary>１２．動画FB依頼</summary><div class="p-4 pt-0 space-y-3"><p class="text-[10px] text-gray-500">担当サポーターからのFB欄は、担当マーケターが記入します。</p>'+abVideoRows(ab,false,null)+abSaveBtn()+'</div></details>';
 
-  // 13 マネタイズ方針
   html+='<details class="abs"><summary>１３．マネタイズ方針</summary><div class="p-4 pt-0 space-y-2"><div class="flex flex-wrap items-center gap-2 text-sm text-gray-200 font-bold"><span>狙っている収益方法は</span><span class="inline-block w-48">'+abIn(ab,'m1','収益方法')+'</span><span>で、</span><span class="inline-block w-20">'+abIn(ab,'m2','◯◯')+'</span><span>ヶ月以内に</span><span class="inline-block w-40">'+abIn(ab,'m3','目標')+'</span><span>達成します！！</span></div>'+abSaveBtn()+'</div></details>';
 
-  // 14 ポートフォリオ
   html+='<details class="abs"><summary>１４．ポートフォリオ用記録</summary><div class="p-4 pt-0 space-y-2"><div class="grid grid-cols-12 gap-2 text-[10px] font-black text-[#dfb76c] border-b border-[#3c2a1c] pb-1"><span class="col-span-3">日付</span><span class="col-span-4">実績</span><span class="col-span-5">詳細情報</span></div>';
   for(var i=1;i<=20;i++) html+='<div class="grid grid-cols-12 gap-2"><div class="col-span-3">'+abIn(ab,'pf'+i+'d','2026/07/12')+'</div><div class="col-span-4">'+abIn(ab,'pf'+i+'a')+'</div><div class="col-span-5">'+abIn(ab,'pf'+i+'i')+'</div></div>';
   html+=abSaveBtn()+'</div></details>';
 
-  // 15 進捗確認
   html+='<details class="abs" open><summary>１５．進捗確認</summary><div class="p-4 pt-0 space-y-3"><div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center"><div class="p-3 rounded-lg bg-[#080503] border border-[#dfb76c]/30"><span class="text-xl font-black text-[#dfb76c] font-mono">'+pr.total+'%</span><span class="text-[9px] text-gray-500 block">全体進捗達成率</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-white">'+esc(d.admissionDate||'---')+'</span><span class="text-[9px] text-gray-500 block">開始日（入学日）</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><div class="w-full">'+abIn(ab,'startDate','運用スタート日を記入')+'</div><span class="text-[9px] text-gray-500 block mt-1">運用スタート</span></div><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c]"><span class="text-sm font-black text-emerald-400 font-mono">MR'+d.currentRank+'</span><span class="text-[9px] text-gray-500 block">現在ランク</span></div></div><div class="space-y-1.5">';
   for(var i=0;i<pr.phases.length;i++){
     html+='<div><div class="flex justify-between text-[10px] text-gray-400"><span>'+pr.phases[i][0]+'</span><span class="font-mono">'+pr.phases[i][1]+'%</span></div><div class="h-2 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.phases[i][1]+'%"></div></div></div>';
@@ -903,14 +906,15 @@ function renderAB(){
 }
 function abScriptSample(){
   function blk(t,x){ return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px] text-gray-300 whitespace-pre-line leading-relaxed">'+esc(x)+'</div></div>'; }
+  function blkUrl(t,u){ return '<div><span class="text-[10px] font-black text-[#dfb76c] block mb-1">'+t+'</span><div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-[10px]"><a href="'+esc(u)+'" target="_blank" rel="noopener" class="text-amber-400 hover:underline break-all">'+esc(u)+'</a></div></div>'; }
   var h='<div class="space-y-3"><span class="text-[10px] font-black text-white">■ 見本1（構成×内容の掛け合わせ例）</span>';
-  h+=blk("文章構成参考元投稿のURL","https://www.tiktok.com/@nenohana26/video/7495045281134677266?_r=1&_t=ZS-8vDxpa4Vnwl");
-  h+=blk("内容参考元投稿のURL","https://www.tiktok.com/@mamahome_194/video/7480836176732015879");
+  h+=blkUrl("文章構成参考元投稿のURL","https://www.tiktok.com/@nenohana26/video/7495045281134677266?_r=1&_t=ZS-8vDxpa4Vnwl");
+  h+=blkUrl("内容参考元投稿のURL","https://www.tiktok.com/@mamahome_194/video/7480836176732015879");
   h+=blk("参考元投稿の台本","従業員)支配人すみません\n休憩入るので賄い作ってもらっていいですか？\n支配人)わかったよ、このチャーハン作ってからな\n従業員)早く休憩行きたいので、急いでもらっていいですか？\n支配人)わかった\nなに食べたい？\n従業員)ロールカツでお願いします\n支配人)わかった\nすぐ作るわ\n〜調理シーン〜\n支配人)はい、できたよ\n休憩行っておいで\n従業員)うわっ美味そっ\nロールカツ？\n一個照り焼きで1個カツやん\n一回の食事で二回楽しめるって最高やな\nしかも中にチーズ入ってる\nうれし・・・\nにしても巻き具合上手・・・\n支配人)なんで上からやねん");
   h+=blk("オリジナル台本と撮影予定シーン","従業員)〇〇社長すみません\n〇〇汚れあるんで、落とし方教えてもらってもいいですか？\n(〇〇＝ケチャップ、コーヒーなど)\n支配人)OKこの作業終わってからな\n従業員)私そろそろ休憩なんで、急いでもらっていいですか？\n支配人)わかった、どの車種？\n従業員)〇〇の〇〇部分お願いします\n(〇〇＝車種名のシート、ライトなど)\n支配人)わかった、すぐ落とすわ\n〜汚れを落とすシーンとBGM〜\n支配人)はいできたで、やり方覚えた？\n従業員)うわ、新車みたいに綺麗に落ちてるやん\nてか作業はっや\n(褒め褒めシャワー)\nそれにしてもさっすが社長\n支配人)褒めてくれるのはええけど次からしてもらうで？");
   h+='</div><div class="space-y-3 border-t border-[#3c2a1c] pt-3"><span class="text-[10px] font-black text-white">■ 見本2（グルメ紹介系の例）</span>';
-  h+=blk("文章構成参考元投稿のURL","https://www.tiktok.com/@tokyo_foods/video/7520962323570265361");
-  h+=blk("内容参考元投稿のURL","https://www.tiktok.com/@shunmaile2025/video/7461538211819441415");
+  h+=blkUrl("文章構成参考元投稿のURL","https://www.tiktok.com/@tokyo_foods/video/7520962323570265361");
+  h+=blkUrl("内容参考元投稿のURL","https://www.tiktok.com/@shunmaile2025/video/7461538211819441415");
   h+=blk("参考元投稿の台本","女性も入れる(ターゲット)\nこれがウワサの飲めるハンバーグだって\nハンバーグ専門店のふく吉は\n今飲めるハンバーグが\n食べられると話題のお店で\n個室もあって\n女性もお一人様でもとっても入りやすいお店なんだよね\nここのハンバーグは\n国産和牛100%使用の\n極上のハンバーグ\nチーズを流し入れるハンバーグは\n女性1番人気\nツナギを一切入れてないから\n中から肉汁が溢れ出す\n炊き方にもこだわった\n京都八代目儀兵衛の米が\nまた最高に美味い\n食べ終わったら残った肉汁の海で\n店員さんがガーリックライスを作ってくれる");
   h+=blk("オリジナル台本と撮影予定シーン","大阪にきたら絶対行きたい\nこれが今話題の旨味広がる柔らか牛タン食べ比べ！\n牛タン専門店の本町肉倶楽部 たんべえは\nたくさんの牛タンが\n食べ比べできる超人気店で\n個室の数も多く\nデートでも使いやすいお店！\nここの牛タンは冷蔵で徹底管理されていて\n厳選されたお肉を独自ルートで仕入れてるから\n極上のタンを堪能できる\n特に牛タン七種盛りは\nたんべえ自慢のタンを全種味わえて\n注文必須\nここはメインのお肉だけじゃなくて\n韓国料理を中心とした\nサイドメニューも充実してて\nしかも最高に美味い\n各席に排煙ロースターが\n備え付けられているので\nデートや仕事帰りでも気軽に寄れる\nこのクオリティでこの値段はコスパ最強すぎ");
   return h+'</div>';
@@ -1001,7 +1005,6 @@ function mkDetail(key,s){
   html+='<div class="space-y-1.5">';
   for(var i=0;i<pr.phases.length;i++) html+='<div><div class="flex justify-between text-[10px] text-gray-400"><span>'+pr.phases[i][0]+'</span><span class="font-mono">'+pr.phases[i][1]+'%</span></div><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.phases[i][1]+'%"></div></div></div>';
   html+='</div>';
-  // 試験状況
   html+='<div class="border-t border-[#3c2a1c] pt-3"><span class="text-[10px] font-black text-[#dfb76c]">■ MR試験の状況</span><div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">';
   for(var r=2;r<=8;r++){
     var a=(s.examAttempts||{})[r];
@@ -1009,7 +1012,6 @@ function mkDetail(key,s){
     html+='<div class="p-2.5 rounded-lg bg-[#080503] border border-[#3c2a1c] flex justify-between text-[10px]"><span class="font-bold text-gray-300">MR'+r+'</span><span class="text-gray-400">'+st+'</span></div>';
   }
   html+='</div></div></div>';
-  // 動画FB
   html+='<div class="qp rounded-2xl p-5 space-y-3"><h5 class="text-sm font-black text-[#dfb76c]">🎬 動画FB依頼（サポーターFBを記入できます）</h5>'+abVideoRows(s.abook||{},true,key)+'</div>';
   return html;
 }
@@ -1068,7 +1070,7 @@ function renderSList(){
       badges+='<button onclick="openRv(\''+key+'\','+r+')" class="text-[9px] px-1 py-1 rounded '+cls+' hover:opacity-85 font-mono">'+lbl+'</button>';
     }
     var sel=(ASK===key);
-    c.innerHTML+='<div class="p-3.5 rounded-xl border transition-all '+(sel?'border-[#dfb76c] bg-[#dfb76c]/5':'border-[#3c2a1c] bg-[#080503]/40 hover:border-[#dfb76c]/40')+'"><div class="flex justify-between items-start mb-2"><div class="cursor-pointer flex-grow" onclick="selStudent(\''+key+'\')"><span class="text-xs font-black text-white hover:text-[#dfb76c] flex items-center space-x-1"><i data-lucide="user" class="w-3.5 h-3.5 text-[#dfb76c]"></i><span>'+esc(s.name)+'</span></span><span class="text-[9px] text-gray-500 block mt-0.5">@'+esc(s.username)+'</span></div><span class="text-[10px] bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/20 px-2.5 py-0.5 rounded font-mono font-bold">MR'+s.currentRank+'</span></div><div class="flex justify-between text-[9px] text-gray-400 bg-black/40 p-1.5 rounded my-1"><span>担当: <strong class="text-white">'+esc(s.mentor||"未指定")+'</strong></span><span>入学: <strong class="text-[#dfb76c]">'+esc(s.admissionDate||"未登録")+'</strong></span></div><div class="border-t border-[#3c2a1c] pt-2 mt-2"><div class="flex justify-between items-center mb-1"><span class="text-[9px] text-gray-400">■ 各MRランク審査状態:</span>'+(pend?'<span class="text-[8px] text-amber-400 bg-amber-500/15 px-1 rounded font-bold border border-amber-500/30">新着申請あり</span>':'')+(grad?'<span class="text-[8px] text-rose-400 bg-rose-500/15 px-1 rounded font-bold border border-rose-500/30">解答到着</span>':'')+'</div><div class="grid grid-cols-7 gap-1">'+badges+'</div></div></div>';
+    c.innerHTML+='<div class="p-3.5 rounded-xl border transition-all '+(sel?'border-[#dfb76c] bg-[#dfb76c]/5':'border-[#3c2a1c] bg-[#080503]/40 hover:border-[#dfb76c]/40')+'"><div class="flex justify-between items-start mb-2"><div class="cursor-pointer flex-grow" onclick="selStudent(\''+key+'\')"><span class="text-xs font-black text-white hover:text-[#dfb76c] flex items-center space-x-1"><i data-lucide="user" class="w-3.5 h-3.5 text-[#dfb76c]"></i><span>'+esc(s.name)+'</span></span><span class="text-[9px] text-gray-500 block mt-0.5">@'+esc(s.username)+'</span></div><span class="text-[10px] bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/20 px-2.5 py-0.5 rounded font-mono font-bold">MR'+s.currentRank+'</span></div><div class="flex justify-between text-[9px] text-gray-400 bg-black/40 p-1.5 rounded my-1"><span>担当: <strong class="text-white">'+esc(mentorNameSync(s.mentor)||"未指定")+'</strong></span><span>入学: <strong class="text-[#dfb76c]">'+esc(s.admissionDate||"未登録")+'</strong></span></div><div class="border-t border-[#3c2a1c] pt-2 mt-2"><div class="flex justify-between items-center mb-1"><span class="text-[9px] text-gray-400">■ 各MRランク審査状態:</span>'+(pend?'<span class="text-[8px] text-amber-400 bg-amber-500/15 px-1 rounded font-bold border border-amber-500/30">新着申請あり</span>':'')+(grad?'<span class="text-[8px] text-rose-400 bg-rose-500/15 px-1 rounded font-bold border border-rose-500/30">解答到着</span>':'')+'</div><div class="grid grid-cols-7 gap-1">'+badges+'</div></div></div>';
   }
   lci(); renderDList();
 }
@@ -1085,6 +1087,7 @@ function saveStudent(){
   var keys=Object.keys(DB.students);
   for(var i=0;i<keys.length;i++){ if(keys[i]!==ASK && DB.students[keys[i]].username===uname){ toast("登録不可","このユーザー名は他の生徒が使用中です。","error"); return; } }
   s.name=name; s.username=uname; s.admissionDate=adm; s.mentor=mentor;
+  MNAME[uname]=name;
   dbS(ASK);
   toast("カルテ保存完了","生徒の基本情報を更新しました。","success");
   renderSList();
@@ -1290,6 +1293,19 @@ function saveCE(i){
   toast("編集完了","チャプター"+num+"「"+title+"」を更新しました。","success");
 }
 function delCh(i){ DB.chapters.splice(i,1); dbSCh(); renderACh(); toast("削除完了","チャプターを削除しました。","info"); }
+
+// ===== 冒険の書: 排他アコーディオン(同階層は1つだけ開く) =====
+document.addEventListener('toggle', function(e){
+  var t=e.target;
+  if(!t || t.tagName!=='DETAILS' || !t.open || !t.classList.contains('abs')) return;
+  var all=document.querySelectorAll('details.abs[open]');
+  for(var i=0;i<all.length;i++){
+    var d=all[i];
+    if(d===t) continue;
+    if(d.contains(t) || t.contains(d)) continue;
+    if(d.parentElement===t.parentElement) d.open=false;
+  }
+}, true);
 
 window.onload=function(){ lci(); };
 </script>
