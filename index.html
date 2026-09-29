@@ -6,9 +6,7 @@
   <title>Guild Marketing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
     .fc{font-family:'Cinzel',serif;}
@@ -321,30 +319,43 @@
 </div>
 <footer class="bg-[#050302] border-t-2 border-[#dfb76c]/20 py-4 text-center text-[10px] text-gray-500 font-mono">&copy; 2026 Guild Marketing. All Rights Reserved.</footer>
 <script>
-var firebaseConfig = {
-  apiKey: "AIzaSyDZ6D-XolZGIiU4r0pgpNKtPBb2LEKOpqI",
-  authDomain: "guild-marketing.firebaseapp.com",
-  projectId: "guild-marketing",
-  storageBucket: "guild-marketing.firebasestorage.app",
-  messagingSenderId: "393572109200",
-  appId: "1:393572109200:web:c763a9169e74216d46c115"
-};
-firebase.initializeApp(firebaseConfig);
-var fauth = firebase.auth();
-var fdb = firebase.firestore();
+// ===== Supabase 接続設定 =====
+var SUPABASE_URL = "https://waddhxohnzjfzyyleegk.supabase.co";
+var SUPABASE_KEY = "sb_publishable_i-uE3giVLn5rYaG2-vFtUg_hSENpaet";
+var supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var DB = {students:{}, chapters:[]};
 var MKS = {};
 var MNAME = {};
 var CU = null, AA = false, CV = 'auth', AEN = null, ASK = null, ASE = null, ATB = 'login', MKV = null;
+var ALL = false, AUTH_UID = null, RT = null;
 var APW = 'akihibi0512';
 
 function g(id){ return document.getElementById(id); }
 function lci(){ try{ lucide.createIcons(); }catch(e){} }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function dbS(k){ if(k===undefined) k=CU; if(k && DB.students[k]) fdb.collection('students').doc(k).set(DB.students[k]); }
-function dbSCh(){ fdb.collection('meta').doc('chapters').set({list:DB.chapters}); }
+// ===== 保存 =====
+var SAVE_FIELDS = ['name','username','mentor','currentRank','admissionDate','examAttempts','abook'];
+function rowOf(s, fields){
+  var o={}, fs=fields||SAVE_FIELDS;
+  for(var i=0;i<fs.length;i++){ if(s[fs[i]]!==undefined) o[fs[i]]=s[fs[i]]; }
+  return o;
+}
+function dbS(k, fields){
+  if(k===undefined) k=CU;
+  if(!k || !DB.students[k]) return Promise.resolve();
+  return supa.from('students').update(rowOf(DB.students[k], fields)).eq('id',k).then(function(r){
+    if(r.error) toast("保存エラー","データの保存に失敗しました。（"+r.error.message+"）","error");
+    return r;
+  });
+}
+function dbSCh(){
+  return supa.from('meta').upsert({id:'chapters', list:DB.chapters}).then(function(r){
+    if(r.error) toast("保存エラー","チャプターの保存に失敗しました。（"+r.error.message+"）","error");
+    return r;
+  });
+}
 
 function mentorNameSync(uname){
   if(!uname || uname==='未割り当て') return '未割り当て';
@@ -355,72 +366,120 @@ function mentorNameSync(uname){
 function mentorName(uname, cb){
   var v = mentorNameSync(uname);
   if(v!==uname || !uname || uname==='未割り当て'){ cb(v); return; }
-  fdb.collection('students').where('username','==',uname).limit(1).get().then(function(qs){
-    if(!qs.empty){ MNAME[uname]=qs.docs[0].data().name; cb(MNAME[uname]); }
+  supa.rpc('name_by_username',{u:uname}).then(function(r){
+    if(!r.error && r.data){ MNAME[uname]=r.data; cb(r.data); }
     else cb(uname);
-  }).catch(function(){ cb(uname); });
+  });
 }
 
 function pushNotif(key,msg){
-  fdb.collection('students').doc(key).update({
-    notifs: firebase.firestore.FieldValue.arrayUnion({msg:msg, ts:new Date().toLocaleString(), read:false})
-  }).catch(function(){});
+  return supa.rpc('push_notif',{target:key, msg:msg, ts:new Date().toLocaleString()}).then(function(r){ return r; });
 }
 
-// ===== リアルタイム監視 =====
-var unsubMe=null, unsubAll=null, unsubCh=null, unsubMK=null;
-function listenMe(uid){
-  if(unsubMe) unsubMe();
-  unsubMe = fdb.collection('students').doc(uid).onSnapshot(function(s){
-    if(s.exists){ DB.students[uid]=s.data(); if(CV==='student') updateUI(); renderNotif(); }
+// ===== 読み込み =====
+function loadMentees(){
+  var me=DB.students[CU];
+  MKS={};
+  if(!me || !me.username){ g('sk').style.display='none'; return Promise.resolve(); }
+  return supa.from('students').select('*').eq('mentor',me.username).then(function(r){
+    MKS={};
+    var rows=r.data||[];
+    for(var i=0;i<rows.length;i++){ if(rows[i].id!==CU) MKS[rows[i].id]=rows[i]; }
+    g('sk').style.display = Object.keys(MKS).length>0 ? 'block' : 'none';
+    if(CV==='student' && g('smk').style.display!=='none') renderMK();
   });
 }
-function listenAll(){
-  if(unsubAll) return;
-  unsubAll = fdb.collection('students').onSnapshot(function(qs){
-    var me = DB.students[CU];
-    DB.students = {};
-    qs.forEach(function(d){ DB.students[d.id]=d.data(); MNAME[d.data().username]=d.data().name; });
-    if(CU && !DB.students[CU] && me) DB.students[CU]=me;
-    if(AA && CV==='admin') renderSList();
-  });
-}
-function listenCh(){
-  if(unsubCh) return;
-  unsubCh = fdb.collection('meta').doc('chapters').onSnapshot(function(s){
-    DB.chapters = (s.exists && s.data().list) || [];
+function loadChapters(){
+  return supa.from('meta').select('list').eq('id','chapters').maybeSingle().then(function(r){
+    DB.chapters = (r.data && r.data.list) || [];
     if(AA && CV==='admin') renderACh();
     if(CV==='student' && g('schapters').style.display!=='none') renderChapters();
   });
 }
-function listenMK(uname){
-  if(unsubMK){ unsubMK(); unsubMK=null; }
-  MKS = {};
-  unsubMK = fdb.collection('students').where('mentor','==',uname).onSnapshot(function(qs){
-    MKS = {};
-    qs.forEach(function(d){ if(d.id!==CU) MKS[d.id]=d.data(); });
-    var has = Object.keys(MKS).length>0;
-    g('sk').style.display = has ? 'block' : 'none';
-    if(CV==='student' && g('smk').style.display!=='none') renderMK();
+function loadAll(){
+  return supa.from('students').select('*').order('createdAt',{ascending:true}).then(function(r){
+    if(r.error){ toast("読み込みエラー","生徒一覧を取得できませんでした。（"+r.error.message+"）","error"); return; }
+    var me = DB.students[CU];
+    DB.students = {};
+    var rows=r.data||[];
+    for(var i=0;i<rows.length;i++){ DB.students[rows[i].id]=rows[i]; if(rows[i].username) MNAME[rows[i].username]=rows[i].name; }
+    if(CU && !DB.students[CU] && me) DB.students[CU]=me;
+    ALL = true;
+    if(AA && CV==='admin') renderSList();
   });
 }
 
-fauth.onAuthStateChanged(function(user){
-  if(user){
-    fdb.collection('students').doc(user.uid).get().then(function(s){
-      if(s.exists){
-        CU = user.uid;
-        DB.students[CU] = s.data();
-        listenMe(CU); listenCh(); listenMK(s.data().username);
-        loginUser(CU);
-      } else {
-        toast("データ未検出","ログインは成功しましたが生徒データが見つかりません。運営にご連絡ください。","error");
-      }
-    }).catch(function(e){
-      toast("読み込みエラー","データベースに接続できません。"+(e&&e.code?"（"+e.code+"）":""),"error");
-    });
+// ===== リアルタイム監視 =====
+function startRealtime(){
+  if(RT) return;
+  RT = supa.channel('guild-db')
+    .on('postgres_changes',{event:'*',schema:'public',table:'students'},onStudentChange)
+    .on('postgres_changes',{event:'*',schema:'public',table:'meta'},onMetaChange)
+    .subscribe();
+}
+function stopRealtime(){ if(RT){ supa.removeChannel(RT); RT=null; } }
+function onStudentChange(p){
+  if(p.eventType==='DELETE'){
+    var did = p.old && p.old.id;
+    if(did){ if(did!==CU) delete DB.students[did]; delete MKS[did]; }
+    refreshViews(); return;
+  }
+  var s = p.new; if(!s || !s.id) return;
+  if(s.username) MNAME[s.username]=s.name;
+  if(s.id===CU || ALL) DB.students[s.id]=s;
+  var me = DB.students[CU];
+  if(me && me.username && s.mentor===me.username && s.id!==CU) MKS[s.id]=s;
+  else if(MKS[s.id]) delete MKS[s.id];
+  refreshViews();
+}
+function onMetaChange(p){
+  var m = p.new;
+  if(!m || m.id!=='chapters') return;
+  DB.chapters = m.list || [];
+  if(AA && CV==='admin') renderACh();
+  if(CV==='student' && g('schapters').style.display!=='none') renderChapters();
+}
+function refreshViews(){
+  if(!CU) return;
+  if(CV==='student') updateUI();
+  renderNotif();
+  g('sk').style.display = Object.keys(MKS).length>0 ? 'block' : 'none';
+  if(CV==='student' && g('smk').style.display!=='none') renderMK();
+  if(AA && CV==='admin' && ALL) renderSList();
+}
+
+// ===== ログイン状態の監視 =====
+supa.auth.onAuthStateChange(function(event, session){
+  if(event==='PASSWORD_RECOVERY'){ setTimeout(askNewPassword, 300); }
+  if(session && session.user){
+    if(AUTH_UID===session.user.id) return;
+    AUTH_UID = session.user.id;
+    var user = session.user;
+    setTimeout(function(){ onSignedIn(user); }, 0);
+  } else if(event==='SIGNED_OUT'){
+    AUTH_UID = null;
   }
 });
+function onSignedIn(user){
+  supa.from('students').select('*').eq('authId', user.id).maybeSingle().then(function(r){
+    if(r.error){ toast("読み込みエラー","データベースに接続できません。（"+r.error.message+"）","error"); return; }
+    if(!r.data){ toast("データ未検出","ログインは成功しましたが生徒データが見つかりません。運営にご連絡ください。","error"); return; }
+    CU = r.data.id;
+    DB.students[CU] = r.data;
+    if(r.data.username) MNAME[r.data.username]=r.data.name;
+    startRealtime(); loadChapters(); loadMentees();
+    loginUser(CU);
+  });
+}
+function askNewPassword(){
+  var p = prompt("新しいパスワードを入力してください（6文字以上）");
+  if(!p) return;
+  if(p.length<6){ toast("入力エラー","パスワードは6文字以上で入力してください。","error"); askNewPassword(); return; }
+  supa.auth.updateUser({password:p}).then(function(r){
+    if(r.error) toast("変更失敗","パスワードを変更できませんでした。（"+r.error.message+"）","error");
+    else toast("変更完了","パスワードを変更しました。","success");
+  });
+}
 
 // ===== トースト =====
 var toastT=null;
@@ -459,7 +518,7 @@ function toggleNotif(){
     var ns = DB.students[CU].notifs || [];
     var ch=false;
     for(var i=0;i<ns.length;i++){ if(!ns[i].read){ ns[i].read=true; ch=true; } }
-    if(ch){ DB.students[CU].notifs=ns; dbS(); }
+    if(ch){ DB.students[CU].notifs=ns; dbS(CU,['notifs']); }
   }
 }
 
@@ -489,21 +548,23 @@ function doAuth(){
   if(!em){ toast("入力エラー","メールアドレスを入力してください。","error"); return; }
   if(p.length<6){ toast("入力エラー","パスワードは6文字以上で入力してください。","error"); return; }
   if(ATB==='login'){
-    fauth.signInWithEmailAndPassword(em,p).catch(function(){ toast("認証失敗","メールアドレスまたはパスワードが正しくありません。","error"); });
+    supa.auth.signInWithPassword({email:em, password:p}).then(function(r){
+      if(r.error) toast("認証失敗","メールアドレスまたはパスワードが正しくありません。","error");
+    });
   } else {
     var rn=g('irname').value.trim(), u=g('iusr').value.trim().toLowerCase();
     if(!rn){ toast("入力エラー","受講生の本名を入力してください。","error"); return; }
     if(!u || !/^[a-zA-Z0-9]+$/.test(u)){ toast("入力エラー","ユーザー名は半角英数字で入力してください。","error"); return; }
-    fdb.collection('students').where('username','==',u).get().then(function(qs){
-      if(!qs.empty){ toast("登録不可","このユーザー名はすでに使われています。","info"); return; }
-      fauth.createUserWithEmailAndPassword(em,p).then(function(cr){
-        var data={username:u, name:rn, email:em, currentRank:1, admissionDate:new Date().toLocaleDateString('ja-JP'), mentor:"未割り当て", examAttempts:{}, abook:{}, notifs:[]};
-        return fdb.collection('students').doc(cr.user.uid).set(data);
-      }).then(function(){
-        toast("登録完了","受講生 "+rn+" さんのギルド登録が完了しました！","success");
-      }).catch(function(e){
-        var msg = (e && e.code==='auth/email-already-in-use') ? "このメールアドレスは登録済みです。" : "登録に失敗しました。";
-        toast("登録エラー",msg,"error");
+    supa.rpc('username_taken',{u:u}).then(function(r){
+      if(r.error){ toast("登録エラー","登録に失敗しました。（"+r.error.message+"）","error"); return; }
+      if(r.data){ toast("登録不可","このユーザー名はすでに使われています。","info"); return; }
+      supa.auth.signUp({email:em, password:p, options:{data:{username:u, name:rn}}}).then(function(res){
+        if(res.error){
+          var msg = /registered|exists/i.test(res.error.message) ? "このメールアドレスは登録済みです。" : "登録に失敗しました。（"+res.error.message+"）";
+          toast("登録エラー",msg,"error"); return;
+        }
+        if(res.data && res.data.session) toast("登録完了","受講生 "+rn+" さんのギルド登録が完了しました！","success");
+        else toast("確認メールを送信しました","メール内のリンクを開いて登録を完了してください。","success");
       });
     });
   }
@@ -511,10 +572,11 @@ function doAuth(){
 function doReset(){
   var em=g('rsemail').value.trim();
   if(!em){ toast("入力エラー","メールアドレスを入力してください。","error"); return; }
-  fauth.sendPasswordResetEmail(em).then(function(){
+  supa.auth.resetPasswordForEmail(em,{redirectTo: location.origin + location.pathname}).then(function(r){
+    if(r.error){ toast("送信失敗","メールを送信できませんでした。（"+r.error.message+"）","error"); return; }
     toast("送信完了","パスワード再設定メールを送信しました。メールボックスをご確認ください。","success");
     hideReset();
-  }).catch(function(){ toast("送信失敗","このメールアドレスは登録されていない可能性があります。","error"); });
+  });
 }
 function loginUser(k){
   CU=k;
@@ -522,11 +584,11 @@ function loginUser(k){
   CV='student'; showPg('student'); sstab('mypage'); updateUI(); renderNotif();
 }
 function doLogout(){
-  fauth.signOut();
-  if(unsubMe){unsubMe();unsubMe=null;}
-  if(unsubMK){unsubMK();unsubMK=null;}
-  CU=null; MKS={};
+  supa.auth.signOut();
+  stopRealtime();
+  CU=null; MKS={}; DB.students={}; ALL=false; AA=false; AUTH_UID=null;
   g('btn-logout').style.display='none'; g('hbadge').style.display='none'; g('nbellbtn').style.display='none'; g('npanel').style.display='none';
+  g('sk').style.display='none';
   g('btn-admin-text').innerText="ギルド運営管理画面へ";
   CV='auth'; showPg('auth');
   toast("ログアウト","ギルドハウスを退出しました。","info");
@@ -545,6 +607,8 @@ function sstab(tab){
     g(pages[t]).style.display = (t===tab)?'block':'none';
     g(tabs[t]).className = (t===tab) ? "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]" : "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200";
   }
+  if(tab==='mk') g('sk').style.display='block';
+  else if(!Object.keys(MKS).length) g('sk').style.display='none';
   if(tab==='chapters') renderChapters();
   if(tab==='abook') renderAB();
   if(tab==='mk') renderMK();
@@ -1040,14 +1104,15 @@ function mkDetail(key,s){
 function saveMkFb(key,i){
   var el=g('mkfb_'+i); if(!el) return;
   var txt=el.value;
-  var upd={};
-  upd['abook.v'+i+'f']=txt;
-  upd['abook.v'+i+'s']='FB済';
-  fdb.collection('students').doc(key).update(upd).then(function(){
+  var patch={};
+  patch['v'+i+'f']=txt;
+  patch['v'+i+'s']='FB済';
+  supa.rpc('patch_abook',{target:key, patch:patch}).then(function(r){
+    if(r.error){ toast("送信失敗","FBの保存に失敗しました。（"+r.error.message+"）","error"); return; }
     if(MKS[key]){ if(!MKS[key].abook) MKS[key].abook={}; MKS[key].abook['v'+i+'f']=txt; MKS[key].abook['v'+i+'s']='FB済'; }
     pushNotif(key,"🎬 動画No."+i+" に担当マーケターからFBが届きました！冒険の書を確認しましょう。");
     toast("FB送信完了","動画No."+i+"のフィードバックを送信しました。","success");
-  }).catch(function(){ toast("送信失敗","FBの保存に失敗しました。","error"); });
+  });
 }
 
 // ===== 管理画面 =====
@@ -1063,12 +1128,14 @@ function toggleAdmin(){
   }
 }
 function doAdminAuth(){
+  if(!CU){ toast("ログインが必要です","先にギルド運営（管理者）のアカウントでログインしてください。","error"); return; }
+  if(!DB.students[CU] || !DB.students[CU].isAdmin){ toast("権限がありません","このアカウントには管理者権限がありません。","error"); return; }
   if(g('apwinp').value===APW){
     AA=true; g('alock').style.display='none'; showDash();
     toast("認証完了","ギルド特権アクセスが許可されました。","success");
   } else toast("認証失敗","認証パスワードが正しくありません。","error");
 }
-function showDash(){ listenAll(); listenCh(); g('adash').style.display='block'; renderSList(); renderACh(); renderDList(); }
+function showDash(){ g('adash').style.display='block'; renderSList(); renderACh(); renderDList(); loadAll(); loadChapters(); }
 
 function renderSList(){
   var c=g('aslist'); c.innerHTML="";
@@ -1117,11 +1184,15 @@ function saveStudent(){
 }
 function delStudent(key){
   var s=DB.students[key]; if(!s) return;
-  delete DB.students[key];
-  fdb.collection('students').doc(key).delete();
-  if(ASK===key){ ASK=null; ASE=null; g('arv').style.display='none'; g('aph').style.display='block'; }
-  renderSList();
-  toast("削除完了",s.name+" さんのデータを削除しました。","info");
+  if(key===CU){ toast("削除不可","ログイン中の自分自身は削除できません。","error"); return; }
+  if(!confirm(s.name+" さんのデータを削除します。よろしいですか？")) return;
+  supa.from('students').delete().eq('id',key).then(function(r){
+    if(r.error){ toast("削除失敗","削除できませんでした。（"+r.error.message+"）","error"); return; }
+    delete DB.students[key];
+    if(ASK===key){ ASK=null; ASE=null; g('arv').style.display='none'; g('aph').style.display='block'; }
+    renderSList();
+    toast("削除完了",s.name+" さんのデータを削除しました。","info");
+  });
 }
 function renderDList(){
   var c=g('adlist'); if(!c) return;
@@ -1208,17 +1279,17 @@ function openRv(key,r){
 }
 function sendR8(){
   if(!ASK) return;
+  var key=ASK;
   var txt=g('sf_r8rec').value.trim();
   if(!txt){ toast("エラー","推薦状に記載する文章を入力してください。","error"); return; }
-  var s=DB.students[ASK];
+  var s=DB.students[key];
   if(!s.examAttempts) s.examAttempts={};
   if(!s.examAttempts[8]) s.examAttempts[8]={};
   var att=s.examAttempts[8];
   att.status="recommended"; att.timestamp=new Date().toLocaleString(); att.feedback=txt;
-  dbS(ASK);
-  pushNotif(ASK,"👑 ギルド運営役員会よりMR8特別推薦状が届きました！マイページで開封してください。");
+  dbS(key).then(function(){ return pushNotif(key,"👑 ギルド運営役員会よりMR8特別推薦状が届きました！マイページで開封してください。"); });
   toast("推薦状送信完了",s.name+" さん宛てに、MR8推薦状を送信しました！","success");
-  openRv(ASK,8);
+  openRv(key,8);
 }
 function drawPreview(r,att,isBlank){
   var p=g('rvpreview'); p.innerHTML="";
@@ -1256,8 +1327,7 @@ function approveEx(){
   if(info.af){ for(var i=0;i<info.af.length;i++){ var el=g("sf_"+info.af[i].n); if(el) att["shared_"+info.af[i].n]=el.value.trim(); } }
   att.status="approved"; att.timestamp=new Date().toLocaleString();
   s.examAttempts[r]=att;
-  dbS(key);
-  pushNotif(key,"✅ マーケターランク"+r+"への挑戦が承認されました！クエストを受注できます。");
+  dbS(key).then(function(){ return pushNotif(key,"✅ マーケターランク"+r+"への挑戦が承認されました！クエストを受注できます。"); });
   g('rvabtn').innerHTML='<div class="w-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5"><i data-lucide="check" class="w-5 h-5"></i><span>ギルド挑戦承認 完了！</span></div>';
   lci();
   toast("承認完了","マーケターランク"+r+"への挑戦を承認しました。","success");
@@ -1278,8 +1348,8 @@ function submitReview(){
   att.history.push({type:'graded',ts:new Date().toLocaleString(),score:score,result:res,feedback:fb});
   s.examAttempts[r]=att;
   if(res==='pass' && r>s.currentRank) s.currentRank=r;
-  dbS(key);
-  pushNotif(key, res==='pass' ? "🎉 MR"+r+"試験に合格しました！（"+score+"点）フィードバックを確認しましょう。" : "📝 MR"+r+"試験の採点が完了しました（"+score+"点・要再提出）。フィードバックを確認して再挑戦しましょう。");
+  var nmsg = res==='pass' ? "🎉 MR"+r+"試験に合格しました！（"+score+"点）フィードバックを確認しましょう。" : "📝 MR"+r+"試験の採点が完了しました（"+score+"点・要再提出）。フィードバックを確認して再挑戦しましょう。";
+  dbS(key).then(function(){ return pushNotif(key, nmsg); });
   renderSList(); openRv(key,r);
   toast("採点完了","採点レポートとフィードバックを生徒のポータルへ送信しました。","success");
 }
