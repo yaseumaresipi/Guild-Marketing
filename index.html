@@ -261,7 +261,7 @@
                 </div>
               </div>
               <div id="aestats" class="border-t border-[#3c2a1c] pt-3 space-y-2"></div>
-              <button onclick="saveStudent()" class="w-full bg-[#1e140d] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c] text-[#dfb76c] font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="save" class="w-4 h-4"></i><span>生徒の基本情報（カルテ）を上書き保存する</span></button>
+              <button onclick="saveStudent()" class="w-full bg-[#1e140d] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c] text-[#dfb76c] font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="save" class="w-4 h-4"></i><span>カルテ（基本情報・運営入力・活動データ）を保存する</span></button>
               <p class="text-[9px] text-gray-500">※パスワードは本人が「パスワードを忘れた方はこちら」からメールで再設定します。</p>
             </div>
             <div id="rvapprv" style="display:none" class="bg-amber-500/10 p-4 rounded-xl border-2 border-dashed border-[#dfb76c]/40 space-y-4">
@@ -862,7 +862,7 @@ function drawCards(rank,atts){
       border="border-emerald-500/20 bg-emerald-950/5";
     } else if(unlk){
       var L=reqList(d,r), okc=L.filter(function(x){return x.ok;}).length;
-      if(r<MAXR) extra='<div class="flex justify-between text-[10px] text-gray-400"><span>受験条件</span><span class="font-mono '+(okc===L.length?'text-emerald-400':'text-amber-400')+'">'+okc+' / '+L.length+' 達成</span></div><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+(L.length?Math.round(okc/L.length*100):0)+'%"></div></div>';
+      if(false) extra='<div class="flex justify-between text-[10px] text-gray-400"><span>受験条件</span><span class="font-mono '+(okc===L.length?'text-emerald-400':'text-amber-400')+'">'+okc+' / '+L.length+' 達成</span></div><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+(L.length?Math.round(okc/L.length*100):0)+'%"></div></div>';
       if(r===MAXR){
         if(att.status==="recommended"){
           badge='<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono animate-bounce">推薦到着！</span>';
@@ -890,7 +890,7 @@ function drawCards(rank,atts){
         border="border-rose-500/30 bg-rose-950/5";
       } else {
         badge='<span class="bg-[#110a06] text-gray-500 border border-gray-800 text-[9px] font-bold px-2 py-0.5 rounded">STANDBY</span>';
-        btn='<button onclick="openExam('+r+')" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs font-bold">受験条件を確認して申請する</button>';
+        btn='<button onclick="openExam('+r+')" class="w-full bg-[#130d09] hover:bg-[#dfb76c] hover:text-black border border-[#3c2a1c] hover:border-[#dfb76c] text-[#dfb76c] py-2 rounded-xl text-xs font-bold">挑戦を申請する</button>';
       }
     } else {
       badge='<span class="bg-gray-950 text-gray-700 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-900">LOCKED</span>';
@@ -910,7 +910,6 @@ function reqHtml(s,r){
 function applyChallenge(r){
   if(!CU) return;
   var d=DB.students[CU];
-  if(!reqOk(d,r)){ toast("受験条件が未達成です","チェックリストの⬜の項目を満たすと申請できます。","error"); return; }
   if(!d.examAttempts) d.examAttempts={};
   var old=d.examAttempts[r]||{};
   var att={status:"applying",timestamp:new Date().toLocaleString(),history:old.history||[]};
@@ -943,18 +942,14 @@ function openExam(r){
   var rank=d.currentRank||1;
   g('wtitle').innerText=info.title;
   g('wsub').innerText="MR EXAM LEVEL "+r+" - "+info.purpose;
-  g('wdesc').innerHTML='<div class="font-bold text-[#dfb76c] mb-1">【クエスト指令】</div><p class="mb-2 text-xs text-gray-300">'+info.desc+'</p>'+rubricText(info);
+  g('wdesc').style.display='none';
 
   // 受験条件
   var wr=g('wreq');
   var pre = r===rank+1 && r<MAXR && (!att.status || att.status==='not_started' || (att.status==='graded' && att.result==='fail' && info.type!=='form'));
-  if(r<MAXR && r===rank+1){
-    var ok=reqOk(d,r);
-    var h='<div class="flex justify-between items-center"><h5 class="text-xs font-black text-[#dfb76c]">📋 MR'+r+' 受験条件チェック</h5><span class="text-[10px] '+(ok?'text-emerald-400':'text-amber-400')+' font-bold">'+(ok?'すべて達成！':'未達成の条件があります')+'</span></div>'+reqHtml(d,r);
-    h+='<p class="text-[9px] text-gray-500">※数字は下の「活動データ」から、正答率は「⚔️ 訓練クエスト」から自動で反映されます。</p>'+statFormHtml(d);
-    if(pre) h+= ok ? '<button onclick="applyChallenge('+r+')" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs">MR'+r+'昇格試験への挑戦を申請する</button>'
-                   : '<button disabled class="w-full bg-[#0d0805] text-gray-600 border border-[#2a1d13] py-2.5 rounded-xl text-xs cursor-not-allowed">条件をすべて満たすと申請できます</button>';
-    wr.innerHTML=h; wr.style.display='block';
+  if(pre){
+    wr.innerHTML='<h5 class="text-xs font-black text-[#dfb76c]">🛡️ MR'+r+'昇格試験への挑戦</h5><p class="text-[11px] text-gray-400">申請すると、ギルド運営が受験条件を確認します。承認されたら試験に挑戦できます。</p><button onclick="applyChallenge('+r+')" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs">MR'+r+'昇格試験への挑戦を申請する</button>';
+    wr.style.display='block';
   } else wr.style.display='none';
 
   // 共有情報（面談）
@@ -1394,9 +1389,15 @@ function loadSF(s){
   var op=s.ops||{};
   g('aeimp').value=op.imp||"0"; g('aeclaim').value=op.claims||"0"; g('aechat').value=op.chat==='0'?'0':'1';
   var st=s.stats||{}, qa=quizAcc(s), mi=menteeInfo(s);
-  var rows=[["アカウントURL",st.accountUrl?'<a href="'+esc(st.accountUrl)+'" target="_blank" class="text-amber-400 hover:underline break-all">'+esc(st.accountUrl)+'</a>':'—'],["投稿本数",esc(st.posts||'—')],["コメント返信率",esc(st.reply||'—')+(st.reply?'%':'')],["フォロワー",esc(st.followers||'—')],["平均再生数",esc(st.avg||'—')],["10万再生バズ",st.buzz==='1'?'あり':'なし'],["最高いいね",esc(st.likes||'—')],["クライアントワーク",esc(st.client||'—')],["月の収益（万円）",esc(st.income||'—')],["チャプター視聴",chWatched(s)+' / '+DB.chapters.length],["冒険の書",abProgress(s).total+'%'],["訓練クエスト",qa.a+'問 / '+qa.acc.toFixed(1)+'%'],["担当生徒",mi.n+'人（MR5以上 '+mi.r5+'人）']];
-  var h='<span class="text-[10px] font-black text-[#dfb76c] block">📊 活動データ（生徒入力・自動集計）'+(st.updated?'<span class="text-gray-500 font-normal"> 最終更新 '+esc(st.updated)+'</span>':'')+'</span><div class="grid grid-cols-2 gap-x-4 gap-y-1">';
-  for(var i=0;i<rows.length;i++) h+='<div class="flex justify-between text-[10px] border-b border-[#1c130c] py-0.5"><span class="text-gray-500">'+rows[i][0]+'</span><span class="text-gray-200 font-bold text-right">'+rows[i][1]+'</span></div>';
+  var h='<span class="text-[10px] font-black text-[#dfb76c] block">📊 活動データ（運営入力）'+(st.updated?'<span class="text-gray-500 font-normal"> 最終更新 '+esc(st.updated)+'</span>':'')+'</span><div class="grid grid-cols-2 gap-3 text-xs">';
+  for(var i=0;i<STF.length;i++){
+    var f=STF[i];
+    h+='<div class="'+(f[0]==='accountUrl'?'col-span-2':'')+'"><label class="block text-gray-400 mb-1 font-bold">'+f[1]+'</label><input type="text" id="ast_'+f[0]+'" value="'+esc(st[f[0]]||'')+'" placeholder="'+esc(f[2])+'" class="abin"></div>';
+  }
+  h+='<div class="col-span-2"><label class="block text-gray-400 mb-1 font-bold">直近1ヶ月で10万再生以上のバズ動画</label><select id="ast_buzz" class="abin"><option value="0"'+(st.buzz!=='1'?' selected':'')+'>なし</option><option value="1"'+(st.buzz==='1'?' selected':'')+'>あり</option></select></div></div>';
+  var rows=[["チャプター視聴",chWatched(s)+' / '+DB.chapters.length],["冒険の書",abProgress(s).total+'%'],["訓練クエスト",qa.a+'問 / '+qa.acc.toFixed(1)+'%'],["担当生徒",mi.n+'人（MR5以上 '+mi.r5+'人）']];
+  h+='<span class="text-[10px] font-black text-[#dfb76c] block pt-2">🔄 自動集計</span><div class="grid grid-cols-2 gap-x-4 gap-y-1">';
+  for(var k=0;k<rows.length;k++) h+='<div class="flex justify-between text-[10px] border-b border-[#1c130c] py-0.5"><span class="text-gray-500">'+rows[k][0]+'</span><span class="text-gray-200 font-bold text-right">'+rows[k][1]+'</span></div>';
   g('aestats').innerHTML=h+'</div>';
 }
 function saveStudent(){
@@ -1409,6 +1410,10 @@ function saveStudent(){
   for(var i=0;i<keys.length;i++){ if(keys[i]!==ASK && DB.students[keys[i]].username===uname){ toast("登録不可","このユーザー名は他の生徒が使用中です。","error"); return; } }
   s.name=name; s.username=uname; s.admissionDate=adm; s.mentor=mentor;
   s.ops={imp:String(parseInt(g('aeimp').value)||0), claims:String(parseInt(g('aeclaim').value)||0), chat:g('aechat').value};
+  var st=JSON.parse(JSON.stringify(s.stats||{}));
+  for(var si=0;si<STF.length;si++){ var el=g('ast_'+STF[si][0]); if(el) st[STF[si][0]]=el.value.trim(); }
+  if(g('ast_buzz')) st.buzz=g('ast_buzz').value;
+  st.updated=new Date().toLocaleString(); s.stats=st;
   MNAME[uname]=name;
   dbS(ASK);
   toast("カルテ保存完了","生徒の基本情報を更新しました。","success");
