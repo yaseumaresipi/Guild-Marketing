@@ -166,15 +166,6 @@
         <div class="mt-4 p-3 rounded-lg bg-[#0d0905] border border-[#dfb76c]/10 text-[10px] text-gray-400 flex items-start space-x-2"><i data-lucide="info" class="w-4 h-4 text-[#dfb76c] flex-shrink-0 mt-0.5"></i><span>MR1〜MR5は教育段階（学習→実践→提出→昇格）、MR6〜MR9はプロ段階（生徒育成→目標達成→昇格）、MR10はギルド運営からの推薦です。受験条件をすべて満たすと昇格試験に申請できます。</span></div>
       </div>
     </div>
-    <div class="qp rounded-2xl p-6 space-y-4">
-      <div class="flex justify-between items-center border-b border-[#dfb76c]/20 pb-2">
-        <h3 class="text-sm font-bold text-gray-200 flex items-center space-x-2 fc tracking-wider"><i data-lucide="bar-chart-3" class="w-4 h-4 text-[#dfb76c]"></i><span>ADVENTURER STATUS（活動データ）</span></h3>
-        <span class="text-[9px] text-gray-500">最新の数字に更新しましょう</span>
-      </div>
-      <div id="statform" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-      <button onclick="saveStats()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] text-black font-black py-2 rounded-xl text-[11px]">💾 活動データを保存する</button>
-      <div id="statauto" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-    </div>
     <div class="space-y-4">
       <h3 class="text-base font-black text-gray-200 tracking-wider flex items-center space-x-2 fc"><i data-lucide="swords" class="w-5 h-5 text-[#dfb76c]"></i><span>GUILD QUEST BOARD</span></h3>
       <div id="egrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -722,7 +713,7 @@ function updateUI(){
   g('snext').innerText = r>=MAXR?"MASTER":"MR"+(r+1);
   g('sfee').innerText = FEE[r] ? "月額 "+FEE[r] : "MR5から割引制度が適用";
   var dw=demoteWarn(d); g('sdemote').style.display=dw?'block':'none'; g('sdemote').innerText=dw;
-  drawTL(r); drawStats(d); drawCards(r, d.examAttempts||{});
+  drawTL(r); drawCards(r, d.examAttempts||{});
   renderNotif();
 }
 function drawTL(r){
@@ -748,21 +739,15 @@ var STF = [
   ["client","クライアントワーク経験（件）","1"],
   ["income","月の収益（万円）","30"]
 ];
-function drawStats(d){
-  var st=d.stats||{}, h='';
-  if(g('statform').contains(document.activeElement)){ drawStatAuto(d); return; }
+function statFormHtml(d){
+  var st=d.stats||{}, h='<details class="abs"'+(st.updated?'':' open')+'><summary>📊 活動データを入力・更新する'+(st.updated?'（最終更新 '+esc(st.updated)+'）':'')+'</summary><div class="p-3 pt-0 space-y-3"><div class="grid grid-cols-2 gap-3">';
   for(var i=0;i<STF.length;i++){
     var f=STF[i];
     h+='<div class="'+(f[0]==='accountUrl'?'col-span-2':'')+'"><label class="ablbl">'+f[1]+'</label><input type="text" id="st_'+f[0]+'" value="'+esc(st[f[0]]||'')+'" placeholder="'+esc(f[2])+'" class="abin"></div>';
   }
-  h+='<div class="col-span-2"><label class="ablbl">直近1ヶ月で10万再生以上のバズ動画</label><select id="st_buzz" class="abin"><option value="0"'+(st.buzz!=='1'?' selected':'')+'>なし</option><option value="1"'+(st.buzz==='1'?' selected':'')+'>あり</option></select></div>';
-  g('statform').innerHTML=h;
-  drawStatAuto(d);
-}
-function drawStatAuto(d){
-  var qa=quizAcc(d), mi=menteeInfo(d), abp=abProgress(d), op=d.ops||{};
-  function tile(label,val){ return '<div class="p-3 rounded-lg bg-[#080503] border border-[#3c2a1c] text-center"><span class="text-base font-black text-[#dfb76c] font-mono block">'+val+'</span><span class="text-[9px] text-gray-500">'+label+'</span></div>'; }
-  g('statauto').innerHTML = tile("冒険の書 進捗（自動）",abp.total+"%") + tile("訓練クエスト正答率（自動）",qa.acc.toFixed(1)+"%") + tile("担当生徒（自動）",mi.n+"人 / MR5以上 "+mi.r5+"人") + tile("業務改善実績（運営入力）",num(op.imp)+"件");
+  h+='<div class="col-span-2"><label class="ablbl">直近1ヶ月で10万再生以上のバズ動画</label><select id="st_buzz" class="abin"><option value="0"'+(st.buzz!=='1'?' selected':'')+'>なし</option><option value="1"'+(st.buzz==='1'?' selected':'')+'>あり</option></select></div></div>';
+  h+='<button onclick="saveStats()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2 rounded-xl text-[11px]">💾 活動データを保存して条件を再チェック</button></div></details>';
+  return h;
 }
 function saveStats(){
   if(!CU) return;
@@ -771,7 +756,7 @@ function saveStats(){
   for(var i=0;i<STF.length;i++){ var el=g('st_'+STF[i][0]); if(el) d.stats[STF[i][0]]=el.value.trim(); }
   d.stats.buzz=g('st_buzz').value;
   d.stats.updated=new Date().toLocaleString();
-  dbS(CU,['stats']); updateUI();
+  dbS(CU,['stats']); updateUI(); if(AEN) openExam(AEN);
   toast("保存完了","活動データを更新しました。","success");
 }
 
@@ -966,7 +951,7 @@ function openExam(r){
   if(r<MAXR && r===rank+1){
     var ok=reqOk(d,r);
     var h='<div class="flex justify-between items-center"><h5 class="text-xs font-black text-[#dfb76c]">📋 MR'+r+' 受験条件チェック</h5><span class="text-[10px] '+(ok?'text-emerald-400':'text-amber-400')+' font-bold">'+(ok?'すべて達成！':'未達成の条件があります')+'</span></div>'+reqHtml(d,r);
-    h+='<p class="text-[9px] text-gray-500">※数字はマイページの「活動データ」、正答率は「⚔️ 訓練クエスト」から自動で反映されます。</p>';
+    h+='<p class="text-[9px] text-gray-500">※数字は下の「活動データ」から、正答率は「⚔️ 訓練クエスト」から自動で反映されます。</p>'+statFormHtml(d);
     if(pre) h+= ok ? '<button onclick="applyChallenge('+r+')" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2.5 rounded-xl text-xs">MR'+r+'昇格試験への挑戦を申請する</button>'
                    : '<button disabled class="w-full bg-[#0d0805] text-gray-600 border border-[#2a1d13] py-2.5 rounded-xl text-xs cursor-not-allowed">条件をすべて満たすと申請できます</button>';
     wr.innerHTML=h; wr.style.display='block';
@@ -1687,10 +1672,9 @@ function delCh(i){ DB.chapters.splice(i,1); dbSCh(); renderACh(); toast("削除�
 var QGEN = [
   {id:'g1',title:'① 再生数比較編',icon:'play-circle',desc:'2つの動画を見比べて、再生数が多かったのはどちらかを見抜く'},
   {id:'g3',title:'② コメント数比較編',icon:'messages-square',desc:'2つの投稿を見比べて、コメントが多く付いたのはどちらかを見抜く'},
-  {id:'g4',title:'③ コメント分析編',icon:'search',desc:'動画を見て、一番多く付いたコメントはどれかを予測する'},
-  {id:'g5',title:'④ いいねが多いコメント編',icon:'thumbs-up',desc:'複数のコメントから、いいね数が最も多いものを見抜く'},
-  {id:'g6',title:'⑤ CTA分析編',icon:'megaphone',desc:'企業アカウントの動画に隠れたCTA（行動喚起）を見抜く'},
-  {id:'g7',title:'⑥ TTP先の提案編',icon:'crosshair',desc:'ペルソナに合わせて、3つの候補から最適なTTP先を選ぶ'}
+  {id:'g5',title:'③ いいねが多いコメント編',icon:'thumbs-up',desc:'複数のコメントから、いいね数が最も多いものを見抜く'},
+  {id:'g6',title:'④ CTA分析編',icon:'megaphone',desc:'企業アカウントの動画に隠れたCTA（行動喚起）を見抜く'},
+  {id:'g7',title:'⑤ TTP先の提案編',icon:'crosshair',desc:'ペルソナに合わせて、3つの候補から最適なTTP先を選ぶ'}
 ];
 var QQ = [];     // 問題データベース（meta: quiz）
 var QZ = null;   // 挑戦中のクエスト
