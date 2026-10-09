@@ -133,6 +133,7 @@
     <button id="sm" onclick="sstab('mypage')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]">マイページ</button>
     <button id="sc" onclick="sstab('chapters')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">チャプター講義</button>
     <button id="sb" onclick="sstab('abook')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">📖 冒険の書</button>
+    <button id="sg" onclick="sstab('goal')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">🧭 逆算マップ</button>
     <button id="sq" onclick="sstab('quest')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">⚔️ 訓練クエスト</button>
     <button id="sk" onclick="sstab('mk')" style="display:none" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200">👥 担当生徒</button>
   </div>
@@ -176,6 +177,7 @@
     <div id="clist" class="space-y-6"></div>
   </div>
   <div id="sabook" style="display:none" class="space-y-4"></div>
+  <div id="sgoal" style="display:none" class="space-y-4"></div>
   <div id="squest" style="display:none" class="space-y-4"></div>
   <div id="smk" style="display:none" class="space-y-4"></div>
 </div>
@@ -296,7 +298,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
           <div><label class="block text-gray-400 mb-1 font-bold">番号</label><input type="number" id="chnum" min="1" placeholder="1" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
           <div><label class="block text-gray-400 mb-1 font-bold">タイトル</label><input type="text" id="chtitle" placeholder="例: アカウント設計の基礎" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
-          <div><label class="block text-gray-400 mb-1 font-bold">Vimeo URL</label><input type="text" id="churl" placeholder="https://vimeo.com/123456789" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div>
+          <div><label class="block text-gray-400 mb-1 font-bold">動画URL（Vimeo / Googleドライブ / YouTube）</label><input type="text" id="churl" placeholder="https://drive.google.com/file/d/..." class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div>
           <div><label class="block text-gray-400 mb-1 font-bold">説明文</label><input type="text" id="chdesc" placeholder="この講義では〜" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
         </div>
         <button onclick="addChapter()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] hover:from-[#edd19b] text-black font-black py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="plus-circle" class="w-4 h-4"></i><span>チャプターを追加する</span></button>
@@ -612,8 +614,8 @@ function goHome(){
 
 // ===== 生徒タブ =====
 function sstab(tab){
-  var tabs={mypage:'sm',chapters:'sc',abook:'sb',quest:'sq',mk:'sk'};
-  var pages={mypage:'smypage',chapters:'schapters',abook:'sabook',quest:'squest',mk:'smk'};
+  var tabs={mypage:'sm',chapters:'sc',abook:'sb',goal:'sg',quest:'sq',mk:'sk'};
+  var pages={mypage:'smypage',chapters:'schapters',abook:'sabook',goal:'sgoal',quest:'squest',mk:'smk'};
   for(var t in tabs){
     g(pages[t]).style.display = (t===tab)?'block':'none';
     g(tabs[t]).className = (t===tab) ? "px-4 py-2.5 text-xs font-bold border-b-2 border-[#dfb76c] text-[#dfb76c]" : "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-200";
@@ -622,6 +624,7 @@ function sstab(tab){
   else if(!Object.keys(MKS).length) g('sk').style.display='none';
   if(tab==='chapters') renderChapters();
   if(tab==='abook') renderAB();
+  if(tab==='goal') renderGoal();
   if(tab==='quest'){ QZ=null; renderQuest(); }
   if(tab==='mk') renderMK();
 }
@@ -1069,6 +1072,14 @@ function toggleWatched(num){
   d.stats.watched=w;
   dbS(CU,['stats']); renderChapters();
 }
+function chEmbed(url){
+  if(!url) return null;
+  var u=String(url).trim(), m;
+  if((m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return "https://player.vimeo.com/video/"+m[1];
+  if((m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([a-zA-Z0-9_-]+)/))) return "https://drive.google.com/file/d/"+m[1]+"/preview";
+  if((m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/))) return "https://www.youtube.com/embed/"+m[1];
+  return null;
+}
 function renderChapters(){
   var c=g('clist'); if(!c) return;
   if(!DB.chapters.length){ c.innerHTML='<div class="text-center py-16 text-gray-500"><p class="text-sm font-bold">チャプター講義はまだ登録されていません。</p></div>'; return; }
@@ -1076,11 +1087,10 @@ function renderChapters(){
   var html='<div class="qp rounded-2xl p-4 flex justify-between items-center"><span class="text-xs text-gray-300 font-bold">視聴完了</span><span class="text-sm font-black text-[#dfb76c] font-mono">'+chWatched(d)+' / '+DB.chapters.length+'</span></div>';
   for(var i=0;i<DB.chapters.length;i++){
     var ch=DB.chapters[i], done=w.indexOf(String(ch.number))>=0;
-    var m=ch.url && ch.url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    var e=m?"https://player.vimeo.com/video/"+m[1]:null;
+    var e=chEmbed(ch.url);
     html+='<div class="qp rounded-2xl p-5 space-y-3"><div class="flex items-start justify-between gap-3"><div class="flex items-start space-x-3"><span class="text-xs font-black font-mono bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1 rounded-lg flex-shrink-0">CHAPTER '+ch.number+'</span><div><h4 class="text-sm font-bold text-white">'+esc(ch.title)+'</h4><p class="text-xs text-gray-400 mt-1">'+esc(ch.description||'')+'</p></div></div><button onclick="toggleWatched('+ch.number+')" class="flex-shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-lg border '+(done?'bg-emerald-950/40 border-emerald-500/50 text-emerald-400':'bg-[#130d09] border-[#dfb76c]/40 text-[#dfb76c]')+'">'+(done?'✅ 視聴完了':'視聴完了にする')+'</button></div>';
     if(e) html+='<div class="rounded-xl overflow-hidden border border-[#3c2a1c]" style="padding:56.25% 0 0 0;position:relative;"><iframe src="'+e+'" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
-    else html+='<div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">動画URLが正しく設定されていません。</div>';
+    else html+='<div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">動画URLが正しく設定されていません。（Vimeo / Googleドライブ / YouTube のリンクに対応）</div>';
     html+='</div>';
   }
   c.innerHTML=html;
@@ -1305,6 +1315,7 @@ function mkDetail(key,s){
   html+='<div class="space-y-1.5">';
   for(var i=0;i<pr.phases.length;i++) html+='<div><div class="flex justify-between text-[10px] text-gray-400"><span>'+pr.phases[i][0]+'</span><span class="font-mono">'+pr.phases[i][1]+'%</span></div><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr.phases[i][1]+'%"></div></div></div>';
   html+='</div>';
+  html+='<div class="border-t border-[#3c2a1c] pt-3 text-[10px]"><span class="font-black text-[#dfb76c]">■ 🧭 逆算マップ：</span><span class="text-gray-300">'+esc(goalSummary(s))+'</span></div>';
   html+='<div class="border-t border-[#3c2a1c] pt-3"><span class="text-[10px] font-black text-[#dfb76c]">■ 昇格試験の状況</span><div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">';
   for(var r=2;r<=MAXR;r++){
     var a=(s.examAttempts||{})[r];
@@ -1396,7 +1407,7 @@ function loadSF(s){
     h+='<div class="'+(f[0]==='accountUrl'?'col-span-2':'')+'"><label class="block text-gray-400 mb-1 font-bold">'+f[1]+'</label><input type="text" id="ast_'+f[0]+'" value="'+esc(st[f[0]]||'')+'" placeholder="'+esc(f[2])+'" class="abin"></div>';
   }
   h+='<div class="col-span-2"><label class="block text-gray-400 mb-1 font-bold">直近1ヶ月で10万再生以上のバズ動画</label><select id="ast_buzz" class="abin"><option value="0"'+(st.buzz!=='1'?' selected':'')+'>なし</option><option value="1"'+(st.buzz==='1'?' selected':'')+'>あり</option></select></div></div>';
-  var rows=[["チャプター視聴",chWatched(s)+' / '+DB.chapters.length],["冒険の書",abProgress(s).total+'%'],["訓練クエスト",qa.a+'問 / '+qa.acc.toFixed(1)+'%'],["担当生徒",mi.n+'人（MR5以上 '+mi.r5+'人）']];
+  var rows=[["チャプター視聴",chWatched(s)+' / '+DB.chapters.length],["冒険の書",abProgress(s).total+'%'],["訓練クエスト",qa.a+'問 / '+qa.acc.toFixed(1)+'%'],["担当生徒",mi.n+'人（MR5以上 '+mi.r5+'人）'],["逆算マップ（生徒入力）",esc(goalSummary(s))]];
   h+='<span class="text-[10px] font-black text-[#dfb76c] block pt-2">🔄 自動集計</span><div class="grid grid-cols-2 gap-x-4 gap-y-1">';
   for(var k=0;k<rows.length;k++) h+='<div class="flex justify-between text-[10px] border-b border-[#1c130c] py-0.5"><span class="text-gray-500">'+rows[k][0]+'</span><span class="text-gray-200 font-bold text-right">'+rows[k][1]+'</span></div>';
   g('aestats').innerHTML=h+'</div>';
@@ -1875,6 +1886,139 @@ function delAQ(id){
   QQ=QQ.filter(function(x){return x.id!==id;});
   saveQQ(); if(AQE===id) AQE=null; renderAQForm(); renderAQ();
   toast("削除完了","問題を削除しました。","info");
+}
+
+// ===== 逆算マップ（生徒が自分で入力） =====
+var GKF = [
+  ["followers","今のフォロワー数（人）","例：800"],
+  ["views","これまでの総再生数（回）","例：120000"],
+  ["posts","これまでの投稿本数（本）","例：20"],
+  ["goal","目標フォロワー数（人）","例：10000"],
+  ["deadline","いつまでに達成したい？（日付）","2027-03-31"],
+  ["perWeek","1週間に投稿できる本数（本）","例：5"]
+];
+var GMILES = [1000,5000,10000,30000,50000,100000,300000,500000,1000000];
+function goalPlan(d){ return ((d&&d.abook)||{}).goalPlan || {}; }
+function calcGoal(pl){
+  var f=num(pl.followers), v=num(pl.views), p=num(pl.posts), goal=num(pl.goal), pw=num(pl.perWeek);
+  var r={f:f,v:v,p:p,goal:goal,pw:pw,ok:false,miss:[]};
+  if(!v) r.miss.push("総再生数"); if(!f) r.miss.push("フォロワー数"); if(!goal) r.miss.push("目標フォロワー数");
+  if(r.miss.length) return r;
+  r.ok=true;
+  r.conv = f/v;                          // 1再生あたりのフォロワー獲得数
+  r.per10k = r.conv*10000;               // 1万再生あたり何人
+  r.avg = p ? v/p : 0;                   // 1投稿あたり平均再生数
+  r.remain = Math.max(0, goal-f);
+  r.needViews = r.remain / r.conv;       // 目標まであと必要な再生数
+  r.needPostsAtAvg = r.avg ? Math.ceil(r.needViews / r.avg) : 0;
+  if(pl.deadline){
+    var dl=new Date(pl.deadline+'T23:59:59'), now=new Date();
+    r.days = Math.ceil((dl-now)/86400000);
+    if(r.days>0 && pw){
+      r.postsLeft = Math.max(1, Math.floor(r.days/7*pw));
+      r.perPost = r.needViews / r.postsLeft;
+      r.ratio = r.avg ? r.perPost / r.avg : 0;
+    }
+  }
+  if(r.avg && pw){
+    var wk = r.needViews / (r.avg*pw);
+    r.etaWeeks = wk;
+    r.eta = new Date(Date.now()+wk*7*86400000);
+  }
+  return r;
+}
+function ymd(dt){ return dt.getFullYear()+'/'+(dt.getMonth()+1)+'/'+dt.getDate(); }
+function etaText(weeks){
+  if(weeks<=0) return '達成済み';
+  if(weeks<1) return '1週間以内';
+  if(weeks<9) return '約'+Math.ceil(weeks)+'週間';
+  var m=weeks/4.345; if(m<24) return '約'+Math.round(m)+'ヶ月';
+  return '約'+(m/12).toFixed(1)+'年';
+}
+function goalStages(r){
+  var st=[{t:'START',f:r.f,cur:true}];
+  for(var i=0;i<GMILES.length;i++){ if(GMILES[i]>r.f && GMILES[i]<r.goal) st.push({t:'ステージ',f:GMILES[i]}); }
+  st.push({t:'GOAL',f:r.goal,goal:true});
+  for(var k=1;k<st.length;k++){
+    var s=st[k];
+    s.views = Math.max(0,s.f-r.f)/r.conv;
+    s.posts = r.avg ? Math.ceil(s.views/r.avg) : null;
+    s.weeks = (r.avg && r.pw) ? s.views/(r.avg*r.pw) : null;
+    s.done = r.f>=s.f;
+  }
+  return st;
+}
+function goalSummary(d){
+  var pl=goalPlan(d), r=calcGoal(pl);
+  if(!r.ok) return '未入力';
+  var t='目標 '+fmt(r.goal)+'人 / あと '+fmt(Math.round(r.needViews))+'再生';
+  if(r.perPost) t+=' / 1投稿あたり '+fmt(Math.round(r.perPost))+'再生';
+  return t;
+}
+function renderGoal(){
+  var c=g('sgoal'); if(!c||!CU) return;
+  var d=DB.students[CU], pl=goalPlan(d), r=calcGoal(pl);
+  var h='<div class="qp rounded-2xl p-5"><h3 class="text-base font-black fc gg">🧭 逆算マップ</h3><p class="text-[10px] text-gray-400 mt-1">あなたの実績と目標から、ゴールまでに必要な再生数と、1投稿あたりの目標再生数を逆算します。数字を更新するほど正確になります。</p></div>';
+  // 入力
+  h+='<div class="qp rounded-2xl p-5 space-y-3"><h4 class="text-xs font-black text-[#dfb76c]">✏️ あなたの数字を入力</h4><div class="grid grid-cols-2 md:grid-cols-3 gap-3">';
+  for(var i=0;i<GKF.length;i++){
+    var f=GKF[i];
+    h+='<div><label class="ablbl">'+f[1]+'</label><input type="'+(f[0]==='deadline'?'date':'text')+'" id="gk_'+f[0]+'" value="'+esc(pl[f[0]]||'')+'" placeholder="'+esc(f[2])+'" class="abin"'+(f[0]==='deadline'?' style="color-scheme:dark"':'')+'></div>';
+  }
+  h+='</div><button onclick="saveGoal()" class="w-full bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2 rounded-xl text-[11px]">🧮 保存して逆算する</button>'+(pl.updated?'<p class="text-[9px] text-gray-500 text-right">最終更新 '+esc(pl.updated)+'</p>':'')+'</div>';
+  if(!r.ok){
+    h+='<div class="qp rounded-2xl p-6 text-center text-xs text-gray-400">「'+r.miss.join('」「')+'」を入力すると逆算結果が表示されます。</div>';
+    c.innerHTML=h; lci(); return;
+  }
+  function tile(label,val,sub,hl){ return '<div class="p-3 rounded-xl bg-[#080503] border '+(hl?'border-[#dfb76c]/60':'border-[#3c2a1c]')+' text-center"><span class="text-[9px] text-gray-500 block">'+label+'</span><span class="text-lg font-black '+(hl?'text-[#dfb76c]':'text-white')+' font-mono block">'+val+'</span>'+(sub?'<span class="text-[9px] text-gray-500">'+sub+'</span>':'')+'</div>'; }
+  // 結果
+  h+='<div class="qp rounded-2xl p-5 space-y-3"><h4 class="text-xs font-black text-[#dfb76c]">📊 逆算結果</h4><div class="grid grid-cols-2 md:grid-cols-4 gap-3">';
+  h+=tile('1万再生あたりのフォロワー獲得',fmt(Math.round(r.per10k*10)/10)+'人','今の再生数に対する獲得率');
+  h+=tile('1投稿あたりの平均再生数',r.avg?fmt(Math.round(r.avg))+'回':'—',r.p?fmt(r.p)+'本の平均':'投稿本数を入れると表示');
+  h+=tile('目標まであと',r.remain?fmt(r.remain)+'人':'達成！',fmt(r.f)+'人 → '+fmt(r.goal)+'人');
+  h+=tile('あと必要な再生数（概算）',r.remain?fmt(Math.round(r.needViews))+'回':'—','今の獲得率のまま伸びた場合',true);
+  h+='</div>';
+  if(r.remain){
+    if(r.perPost){
+      var lvl = r.ratio<=1 ? ['今のペースで届きます！','text-emerald-400','border-emerald-500/40 bg-emerald-950/20'] : r.ratio<=2 ? ['少し背伸びが必要です','text-amber-400','border-amber-500/40 bg-amber-950/20'] : ['かなり高い目標です。期限か投稿本数の見直しも検討を','text-rose-400','border-rose-500/40 bg-rose-950/20'];
+      h+='<div class="p-4 rounded-xl border '+lvl[2]+' space-y-1"><span class="text-[10px] text-gray-400 block">期限まで残り'+r.days+'日・週'+fmt(r.pw)+'本ペースだと、投稿できるのは約'+fmt(r.postsLeft)+'本</span><span class="text-sm font-black text-white">1投稿あたり <span class="text-[#dfb76c] text-xl font-mono">'+fmt(Math.round(r.perPost))+'</span> 再生が必要</span>'+(r.avg?'<span class="text-[11px] block '+lvl[1]+' font-bold">今の平均（'+fmt(Math.round(r.avg))+'回）の '+(Math.round(r.ratio*10)/10)+'倍 … '+lvl[0]+'</span>':'')+'</div>';
+    } else if(pl.deadline && r.days<=0){
+      h+='<div class="p-3 rounded-xl border border-rose-500/40 bg-rose-950/20 text-[11px] text-rose-300">期限の日付が過ぎています。新しい期限を入れてください。</div>';
+    } else {
+      h+='<div class="p-3 rounded-xl border border-[#3c2a1c] bg-[#080503] text-[11px] text-gray-400">「期限」と「1週間の投稿本数」を入れると、1投稿あたりに必要な再生数が出ます。</div>';
+    }
+    if(r.eta) h+='<p class="text-[11px] text-gray-300">📅 今の平均再生数・週'+fmt(r.pw)+'本ペースのままだと、目標到達は <b class="text-[#dfb76c]">'+etaText(r.etaWeeks)+'後（'+ymd(r.eta)+'ごろ）</b> の見込みです。</p>';
+  }
+  h+='</div>';
+  // ステージ（すごろく）
+  var st=goalStages(r);
+  h+='<div class="qp rounded-2xl p-5 space-y-3"><h4 class="text-xs font-black text-[#dfb76c]">🎲 ゴールまでのステージ</h4><div class="flex flex-wrap items-stretch gap-2">';
+  for(var k=0;k<st.length;k++){
+    var s=st[k];
+    var cls = s.cur ? 'border-[#dfb76c] bg-[#2a1b10]' : s.goal ? 'border-amber-400 bg-amber-950/20' : 'border-[#3c2a1c] bg-[#080503]';
+    h+='<div class="rounded-xl border-2 '+cls+' p-3 text-center flex-1" style="min-width:120px">';
+    h+='<span class="text-[9px] font-black '+(s.goal?'text-amber-400':'text-[#dfb76c]')+' fc tracking-widest block">'+(s.cur?'📍 いまここ':s.goal?'🏁 GOAL':'STAGE '+k)+'</span>';
+    h+='<span class="text-base font-black text-white font-mono block">'+fmt(s.f)+'人</span>';
+    if(!s.cur){
+      h+='<span class="text-[9px] text-gray-400 block">あと '+fmt(Math.round(s.views))+'再生</span>';
+      if(s.posts!=null) h+='<span class="text-[9px] text-gray-500 block">平均で約'+fmt(s.posts)+'投稿分</span>';
+      if(s.weeks!=null) h+='<span class="text-[9px] text-[#dfb76c] block">'+etaText(s.weeks)+'</span>';
+    }
+    h+='</div>';
+    if(k<st.length-1) h+='<div class="flex items-center text-[#dfb76c] font-black">→</div>';
+  }
+  h+='</div><p class="text-[9px] text-gray-500">※あなたの「今の獲得率（1万再生あたり'+fmt(Math.round(r.per10k*10)/10)+'人）」がこの先も続くと仮定した概算です。バズや発信内容の変化で大きく変わるので、数字は定期的に更新しましょう。</p></div>';
+  c.innerHTML=h; lci();
+}
+function saveGoal(){
+  if(!CU) return;
+  var d=DB.students[CU]; if(!d.abook) d.abook={};
+  var pl={};
+  for(var i=0;i<GKF.length;i++){ var el=g('gk_'+GKF[i][0]); if(el) pl[GKF[i][0]]=el.value.trim(); }
+  pl.updated=new Date().toLocaleString();
+  d.abook.goalPlan=pl;
+  dbS(CU,['abook']); renderGoal();
+  toast("逆算しました","最新の数字で逆算マップを更新しました。","success");
 }
 
 // ===== 動画FB枠: 同階層は1つだけ開く =====
