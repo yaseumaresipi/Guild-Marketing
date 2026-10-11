@@ -261,6 +261,7 @@
                 </div>
               </div>
               <div id="aestats" class="border-t border-[#3c2a1c] pt-3 space-y-2"></div>
+              <div id="aequiz" class="border-t border-[#3c2a1c] pt-3 space-y-2"></div>
               <button onclick="saveStudent()" class="w-full bg-[#1e140d] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c] text-[#dfb76c] font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5"><i data-lucide="save" class="w-4 h-4"></i><span>カルテ（基本情報・運営入力・活動データ）を保存する</span></button>
               <p class="text-[9px] text-gray-500">※パスワードは本人が「パスワードを忘れた方はこちら」からメールで再設定します。</p>
             </div>
@@ -293,7 +294,8 @@
       <h3 class="text-sm font-bold text-[#dfb76c] flex items-center space-x-2 fc tracking-widest border-b border-[#dfb76c]/20 pb-3"><i data-lucide="play-circle" class="w-5 h-5"></i><span>CHAPTER LECTURE MANAGEMENT</span></h3>
       <div class="pc p-4 rounded-xl border border-[#dfb76c]/30 space-y-3">
         <h5 class="text-xs font-bold text-[#dfb76c] font-mono">＋ 新規チャプターを追加</h5>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+          <div><label class="block text-gray-400 mb-1 font-bold">再生リスト</label><input type="text" id="chpl" list="pllist" placeholder="例: スタートアップ（仮）" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"><datalist id="pllist"></datalist></div>
           <div><label class="block text-gray-400 mb-1 font-bold">番号</label><input type="number" id="chnum" min="1" placeholder="1" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
           <div><label class="block text-gray-400 mb-1 font-bold">タイトル</label><input type="text" id="chtitle" placeholder="例: アカウント設計の基礎" class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-[#dfb76c]"></div>
           <div><label class="block text-gray-400 mb-1 font-bold">動画URL（Vimeo / Googleドライブ / YouTube）</label><input type="text" id="churl" placeholder="https://drive.google.com/file/d/..." class="w-full bg-[#080503] border border-[#5a4231] rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-[#dfb76c]"></div>
@@ -1077,18 +1079,34 @@ function chEmbed(url){
   if((m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/))) return "https://www.youtube.com/embed/"+m[1];
   return null;
 }
+var PL_NONE='その他の講義';
+function plNames(){
+  var a=[]; for(var i=0;i<DB.chapters.length;i++){ var n=DB.chapters[i].playlist||PL_NONE; if(a.indexOf(n)<0) a.push(n); }
+  var k=a.indexOf(PL_NONE); if(k>=0){ a.splice(k,1); a.push(PL_NONE); }
+  return a;
+}
+var PLOPEN=null;
 function renderChapters(){
   var c=g('clist'); if(!c) return;
   if(!DB.chapters.length){ c.innerHTML='<div class="text-center py-16 text-gray-500"><p class="text-sm font-bold">チャプター講義はまだ登録されていません。</p></div>'; return; }
   var d=DB.students[CU]||{}, w=((d.stats||{}).watched)||[];
-  var html='<div class="qp rounded-2xl p-4 flex justify-between items-center"><span class="text-xs text-gray-300 font-bold">視聴完了</span><span class="text-sm font-black text-[#dfb76c] font-mono">'+chWatched(d)+' / '+DB.chapters.length+'</span></div>';
-  for(var i=0;i<DB.chapters.length;i++){
-    var ch=DB.chapters[i], done=w.indexOf(String(ch.number))>=0;
-    var e=chEmbed(ch.url);
-    html+='<div class="qp rounded-2xl p-5 space-y-3"><div class="flex items-start justify-between gap-3"><div class="flex items-start space-x-3"><span class="text-xs font-black font-mono bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1 rounded-lg flex-shrink-0">CHAPTER '+ch.number+'</span><div><h4 class="text-sm font-bold text-white">'+esc(ch.title)+'</h4><p class="text-xs text-gray-400 mt-1">'+esc(ch.description||'')+'</p></div></div><button onclick="toggleWatched('+ch.number+')" class="flex-shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-lg border '+(done?'bg-emerald-950/40 border-emerald-500/50 text-emerald-400':'bg-[#130d09] border-[#dfb76c]/40 text-[#dfb76c]')+'">'+(done?'✅ 視聴完了':'視聴完了にする')+'</button></div>';
-    if(e) html+='<div class="rounded-xl overflow-hidden border border-[#3c2a1c]" style="padding:56.25% 0 0 0;position:relative;"><iframe src="'+e+'" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
-    else html+='<div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">動画URLが正しく設定されていません。（Vimeo / Googleドライブ / YouTube のリンクに対応）</div>';
-    html+='</div>';
+  var html='<div class="qp rounded-2xl p-4 flex justify-between items-center"><span class="text-xs text-gray-300 font-bold">視聴完了（全体）</span><span class="text-sm font-black text-[#dfb76c] font-mono">'+chWatched(d)+' / '+DB.chapters.length+'</span></div>';
+  var pls=plNames();
+  if(PLOPEN===null || pls.indexOf(PLOPEN)<0) PLOPEN=pls[0];
+  for(var p=0;p<pls.length;p++){
+    var list=DB.chapters.filter(function(ch){ return (ch.playlist||PL_NONE)===pls[p]; });
+    var dn=list.filter(function(ch){ return w.indexOf(String(ch.number))>=0; }).length;
+    var pct=Math.round(dn/list.length*100);
+    html+='<details class="abs"'+(pls[p]===PLOPEN?' open':'')+' ontoggle="if(this.open)PLOPEN=this.dataset.pl" data-pl="'+esc(pls[p])+'"><summary><span class="flex items-center gap-2"><span>▶ '+esc(pls[p])+'</span><span class="text-[10px] text-gray-400 font-mono">'+list.length+'本</span></span><span class="text-[10px] font-mono '+(dn===list.length?'text-emerald-400':'text-gray-400')+' mr-2">'+(dn===list.length?'✅ ':'')+dn+' / '+list.length+'</span></summary><div class="px-4 pb-4 space-y-4"><div class="h-1.5 rounded bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pct+'%"></div></div>';
+    for(var i=0;i<list.length;i++){
+      var ch=list[i], done=w.indexOf(String(ch.number))>=0;
+      var e=chEmbed(ch.url);
+      html+='<div class="rounded-2xl border border-[#3c2a1c] bg-[#0d0905] p-4 space-y-3"><div class="flex items-start justify-between gap-3"><div class="flex items-start space-x-3"><span class="text-xs font-black font-mono bg-[#dfb76c]/10 text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1 rounded-lg flex-shrink-0">'+(i+1)+'. CH '+ch.number+'</span><div><h4 class="text-sm font-bold text-white">'+esc(ch.title)+'</h4><p class="text-xs text-gray-400 mt-1">'+esc(ch.description||'')+'</p></div></div><button onclick="toggleWatched('+ch.number+')" class="flex-shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-lg border '+(done?'bg-emerald-950/40 border-emerald-500/50 text-emerald-400':'bg-[#130d09] border-[#dfb76c]/40 text-[#dfb76c]')+'">'+(done?'✅ 視聴完了':'視聴完了にする')+'</button></div>';
+      if(e) html+='<div class="rounded-xl overflow-hidden border border-[#3c2a1c]" style="padding:56.25% 0 0 0;position:relative;"><iframe src="'+e+'" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+      else html+='<div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-400 text-center">動画URLが正しく設定されていません。（Vimeo / Googleドライブ / YouTube のリンクに対応）</div>';
+      html+='</div>';
+    }
+    html+='</div></details>';
   }
   c.innerHTML=html;
 }
@@ -1407,6 +1425,67 @@ function loadSF(s){
   h+='<span class="text-[10px] font-black text-[#dfb76c] block pt-2">🔄 自動集計</span><div class="grid grid-cols-2 gap-x-4 gap-y-1">';
   for(var k=0;k<rows.length;k++) h+='<div class="flex justify-between text-[10px] border-b border-[#1c130c] py-0.5"><span class="text-gray-500">'+rows[k][0]+'</span><span class="text-gray-200 font-bold text-right">'+rows[k][1]+'</span></div>';
   g('aestats').innerHTML=h+'</div>';
+  drawAdminQuiz(s);
+}
+// ===== 訓練クエスト成績の修正（運営） =====
+function drawAdminQuiz(s){
+  var z=s.quiz||{}, qa=quizAcc(s), gs=z.genres||{};
+  var h='<span class="text-[10px] font-black text-[#dfb76c] block">⚔️ 訓練クエスト成績（運営が修正できます）</span>';
+  h+='<div class="grid grid-cols-3 gap-2 text-xs items-end"><div><label class="block text-gray-400 mb-1 font-bold">累計回答数</label><input type="number" min="0" id="aqz_a" value="'+qa.a+'" class="abin"></div><div><label class="block text-gray-400 mb-1 font-bold">累計正解数</label><input type="number" min="0" id="aqz_c" value="'+qa.c+'" class="abin"></div><div class="text-center pb-1"><span class="text-[9px] text-gray-500 block">現在の正答率</span><span class="text-sm font-black text-[#dfb76c] font-mono">'+qa.acc.toFixed(1)+'%</span></div></div>';
+  h+='<details class="abs"><summary>ジャンル別の数字も修正する</summary><div class="p-3 pt-0 space-y-2">';
+  for(var i=0;i<QGEN.length;i++){
+    var st=gs[QGEN[i].id]||{a:0,c:0};
+    h+='<div class="grid grid-cols-3 gap-2 items-center text-[10px]"><span class="text-gray-300 font-bold">'+QGEN[i].title+'</span><input type="number" min="0" id="aqz_ga_'+QGEN[i].id+'" value="'+(st.a||0)+'" class="abin" placeholder="回答数"><input type="number" min="0" id="aqz_gc_'+QGEN[i].id+'" value="'+(st.c||0)+'" class="abin" placeholder="正解数"></div>';
+  }
+  h+='<p class="text-[9px] text-gray-500">左：回答数 ／ 右：正解数</p></div></details>';
+  h+='<button onclick="saveQuizFix()" class="w-full bg-[#1e140d] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c] text-[#dfb76c] font-bold py-1.5 rounded-xl text-[11px]">🛠 訓練クエストの数字を修正して保存</button>';
+  var adj=z.adjust||[];
+  if(adj.length){
+    h+='<div class="text-[9px] text-amber-300 space-y-0.5">';
+    for(var k=0;k<Math.min(adj.length,5);k++) h+='<div>🛠 '+esc(adj[k].ts)+'　累計 '+adj[k].from.a+'問中'+adj[k].from.c+'正解 → '+adj[k].to.a+'問中'+adj[k].to.c+'正解</div>';
+    h+='</div>';
+  }
+  var hist=z.hist||[];
+  h+='<span class="text-[10px] font-black text-[#dfb76c] block pt-2">📜 過去'+QHMAX+'問の回答履歴</span>';
+  if(!hist.length) h+='<p class="text-[10px] text-gray-500">まだ回答がありません。</p>';
+  for(var j=0;j<hist.length;j++){
+    h+='<div class="flex items-start gap-2"><div class="flex-grow min-w-0">'+histRow(hist[j])+'</div><button onclick="fixHist('+j+')" class="flex-shrink-0 mt-1.5 text-[9px] font-bold px-2 py-1 rounded border '+(hist[j].ok?'border-rose-500/40 text-rose-300':'border-emerald-500/40 text-emerald-300')+'">'+(hist[j].ok?'×に修正':'○に修正')+'</button></div>';
+  }
+  g('aequiz').innerHTML=h;
+}
+function quizClone(s){ return JSON.parse(JSON.stringify(s.quiz||{})); }
+function fixHist(j){
+  if(!ASK) return;
+  var s=DB.students[ASK], z=quizClone(s), h=(z.hist||[])[j]; if(!h) return;
+  if(h.orig===undefined) h.orig=h.ok;
+  var d = h.ok ? -1 : 1;
+  h.ok=!h.ok; h.fixed=(h.ok!==h.orig); h.fixTs=new Date().toLocaleString();
+  z.correct=Math.max(0,(z.correct||0)+d);
+  if(!z.genres) z.genres={};
+  var gs=z.genres[h.g]||{a:0,c:0}; gs.c=Math.max(0,(gs.c||0)+d); z.genres[h.g]=gs;
+  s.quiz=z;
+  dbS(ASK,['quiz']);
+  drawAdminQuiz(s); renderSList();
+  toast("修正しました","回答を「"+(h.ok?'正解':'不正解')+"」に変更し、累計の数字にも反映しました。","success");
+}
+function saveQuizFix(){
+  if(!ASK) return;
+  var s=DB.students[ASK], z=quizClone(s);
+  var a=parseInt(g('aqz_a').value)||0, c=parseInt(g('aqz_c').value)||0;
+  if(c>a){ toast("入力エラー","正解数が回答数より多くなっています。","error"); return; }
+  if(!z.genres) z.genres={};
+  for(var i=0;i<QGEN.length;i++){
+    var gid=QGEN[i].id, ga=parseInt(g('aqz_ga_'+gid).value)||0, gc=parseInt(g('aqz_gc_'+gid).value)||0;
+    if(gc>ga){ toast("入力エラー",QGEN[i].title+"の正解数が回答数より多くなっています。","error"); return; }
+    if(ga||gc||z.genres[gid]) z.genres[gid]={a:ga,c:gc};
+  }
+  var from={a:z.answered||0,c:z.correct||0};
+  z.answered=a; z.correct=c;
+  z.adjust=[{ts:new Date().toLocaleString(),from:from,to:{a:a,c:c}}].concat(z.adjust||[]).slice(0,10);
+  s.quiz=z;
+  dbS(ASK,['quiz']);
+  drawAdminQuiz(s); renderSList();
+  toast("修正しました","訓練クエストの数字を更新しました。","success");
 }
 function saveStudent(){
   if(!ASK){ toast("エラー","生徒が選択されていません。","error"); return; }
@@ -1652,9 +1731,9 @@ function submitReview(){
 // ===== チャプター管理 =====
 function addChapter(){
   var num=parseInt(g('chnum').value), title=g('chtitle').value.trim();
-  var url=g('churl').value.trim(), desc=g('chdesc').value.trim();
+  var url=g('churl').value.trim(), desc=g('chdesc').value.trim(), pl=g('chpl').value.trim();
   if(!num||!title||!url){ toast("入力エラー","番号・タイトル・URLは必須です。","error"); return; }
-  DB.chapters.push({number:num,title:title,url:url,description:desc});
+  DB.chapters.push({number:num,title:title,url:url,description:desc,playlist:pl});
   DB.chapters.sort(function(a,b){return a.number-b.number;});
   dbSCh(); renderACh();
   g('chnum').value=''; g('chtitle').value=''; g('churl').value=''; g('chdesc').value='';
@@ -1662,19 +1741,20 @@ function addChapter(){
 }
 function renderACh(){
   var c=g('achlist'); if(!c) return;
+  var dl=g('pllist'); if(dl){ var pls=plNames(), o=''; if(pls.indexOf('スタートアップ（仮）')<0) pls.unshift('スタートアップ（仮）'); for(var p=0;p<pls.length;p++) if(pls[p]!==PL_NONE) o+='<option value="'+esc(pls[p])+'">'; dl.innerHTML=o; }
   if(!DB.chapters.length){ c.innerHTML='<div class="text-xs text-gray-500 text-center py-4">チャプターがまだ登録されていません。</div>'; return; }
   var html="";
   for(var i=0;i<DB.chapters.length;i++){
     var ch=DB.chapters[i];
-    html+='<div class="rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-[#dfb76c]/40 transition-all overflow-hidden"><div class="flex items-center justify-between p-3"><div class="flex items-center space-x-3 flex-grow min-w-0"><span class="text-xs font-black font-mono text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/20 px-2 py-0.5 rounded flex-shrink-0">CH.'+ch.number+'</span><div class="min-w-0"><span class="text-xs font-bold text-white block truncate">'+esc(ch.title)+'</span><span class="text-[10px] text-gray-500 block truncate">'+esc(ch.description||'説明なし')+'</span></div></div><div class="flex items-center space-x-2 flex-shrink-0 ml-2"><button onclick="toggleCE('+i+')" class="text-[#dfb76c] hover:text-white border border-[#dfb76c]/30 hover:bg-[#dfb76c]/10 px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center space-x-1"><i data-lucide="edit-2" class="w-3 h-3"></i><span>編集</span></button><button onclick="delCh('+i+')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div><div id="ce_'+i+'" style="display:none" class="border-t border-[#3c2a1c] p-3 space-y-2 bg-[#0d0905]"><div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs"><div><label class="block text-gray-400 mb-1">番号</label><input type="number" id="cen_'+i+'" value="'+ch.number+'" class="abin"></div><div><label class="block text-gray-400 mb-1">タイトル</label><input type="text" id="cet_'+i+'" value="'+esc(ch.title)+'" class="abin"></div><div><label class="block text-gray-400 mb-1">動画URL（Vimeo / Googleドライブ / YouTube）</label><input type="text" id="ceu_'+i+'" value="'+esc(ch.url)+'" class="abin font-mono"></div><div><label class="block text-gray-400 mb-1">説明文</label><input type="text" id="ced_'+i+'" value="'+esc(ch.description||'')+'" class="abin"></div></div><div class="flex space-x-2"><button onclick="saveCE('+i+')" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-1.5 rounded-lg text-xs">保存</button><button onclick="toggleCE('+i+')" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-1.5 rounded-lg text-xs">キャンセル</button></div></div></div>';
+    html+='<div class="rounded-xl bg-[#080503] border border-[#3c2a1c] hover:border-[#dfb76c]/40 transition-all overflow-hidden"><div class="flex items-center justify-between p-3"><div class="flex items-center space-x-3 flex-grow min-w-0"><span class="text-xs font-black font-mono text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/20 px-2 py-0.5 rounded flex-shrink-0">CH.'+ch.number+'</span><div class="min-w-0"><span class="text-[9px] text-amber-400 font-bold block">▶ '+esc(ch.playlist||PL_NONE)+'</span><span class="text-xs font-bold text-white block truncate">'+esc(ch.title)+'</span><span class="text-[10px] text-gray-500 block truncate">'+esc(ch.description||'説明なし')+'</span></div></div><div class="flex items-center space-x-2 flex-shrink-0 ml-2"><button onclick="toggleCE('+i+')" class="text-[#dfb76c] hover:text-white border border-[#dfb76c]/30 hover:bg-[#dfb76c]/10 px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center space-x-1"><i data-lucide="edit-2" class="w-3 h-3"></i><span>編集</span></button><button onclick="delCh('+i+')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div><div id="ce_'+i+'" style="display:none" class="border-t border-[#3c2a1c] p-3 space-y-2 bg-[#0d0905]"><div class="grid grid-cols-1 md:grid-cols-5 gap-2 text-xs"><div><label class="block text-gray-400 mb-1">再生リスト</label><input type="text" id="cep_'+i+'" list="pllist" value="'+esc(ch.playlist||'')+'" class="abin"></div><div><label class="block text-gray-400 mb-1">番号</label><input type="number" id="cen_'+i+'" value="'+ch.number+'" class="abin"></div><div><label class="block text-gray-400 mb-1">タイトル</label><input type="text" id="cet_'+i+'" value="'+esc(ch.title)+'" class="abin"></div><div><label class="block text-gray-400 mb-1">動画URL（Vimeo / Googleドライブ / YouTube）</label><input type="text" id="ceu_'+i+'" value="'+esc(ch.url)+'" class="abin font-mono"></div><div><label class="block text-gray-400 mb-1">説明文</label><input type="text" id="ced_'+i+'" value="'+esc(ch.description||'')+'" class="abin"></div></div><div class="flex space-x-2"><button onclick="saveCE('+i+')" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-1.5 rounded-lg text-xs">保存</button><button onclick="toggleCE('+i+')" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-1.5 rounded-lg text-xs">キャンセル</button></div></div></div>';
   }
   c.innerHTML=html; lci();
 }
 function toggleCE(i){ var el=g("ce_"+i); el.style.display = el.style.display==='none'?'block':'none'; }
 function saveCE(i){
-  var num=parseInt(g("cen_"+i).value), title=g("cet_"+i).value.trim(), url=g("ceu_"+i).value.trim(), desc=g("ced_"+i).value.trim();
+  var num=parseInt(g("cen_"+i).value), title=g("cet_"+i).value.trim(), url=g("ceu_"+i).value.trim(), desc=g("ced_"+i).value.trim(), pl=g("cep_"+i).value.trim();
   if(!num||!title||!url){ toast("入力エラー","番号・タイトル・URLは必須です。","error"); return; }
-  DB.chapters[i]={number:num,title:title,url:url,description:desc};
+  DB.chapters[i]={number:num,title:title,url:url,description:desc,playlist:pl};
   DB.chapters.sort(function(a,b){return a.number-b.number;});
   dbSCh(); renderACh();
   toast("編集完了","チャプター"+num+"「"+title+"」を更新しました。","success");
@@ -1691,6 +1771,10 @@ var QGEN = [
 ];
 var QQ = [];     // 問題データベース（meta: quiz）
 var QZ = null;   // 挑戦中のクエスト
+var QYM = null;  // 選択中の年月（'all' または 'YYYY-MM'）
+function ymLabel(ym){ if(!ym) return '年月未設定'; var m=String(ym).match(/^(\d{4})-(\d{1,2})$/); return m ? m[1]+'年'+parseInt(m[2])+'月' : ym; }
+function qymList(){ var a=[]; for(var i=0;i<QQ.length;i++){ var y=QQ[i].ym||''; if(a.indexOf(y)<0) a.push(y); } a.sort(function(x,y){ if(!x) return 1; if(!y) return -1; return x<y?1:-1; }); return a; }
+function qFiltered(gid){ return QQ.filter(function(x){ return x.genreId===gid && (QYM==='all' || (x.ym||'')===QYM); }); }
 var AQE = null;  // 管理画面で編集中の問題ID
 
 function qgen(id){ for(var i=0;i<QGEN.length;i++){ if(QGEN[i].id===id) return QGEN[i]; } return {title:id,icon:'help-circle',desc:''}; }
@@ -1738,22 +1822,32 @@ function renderQuest(){
     var pa=Math.min(100,qa.acc/need*100), pc=Math.min(100,qa.a/QZMIN*100), pr=ok?100:Math.round((pa+pc)/2);
     h+='<div class="qp rounded-2xl p-5 space-y-3"><div class="flex justify-between items-center"><span class="text-xs font-black '+(ok?'text-emerald-400':'text-white')+'">'+(ok?'🔓 MR'+nr+'昇格試験の訓練条件クリア！':'🔒 MR'+nr+'昇格試験の訓練条件')+'</span><span class="text-[10px] font-bold '+(ok?'text-emerald-400':'text-[#dfb76c]')+'">'+(ok?'達成':'あと '+Math.max(0,need-qa.acc).toFixed(1)+'% / '+Math.max(0,QZMIN-qa.a)+'問')+'</span></div><p class="text-[10px] text-gray-400">累計'+QZMIN+'問以上 かつ 累計正答率'+need+'%以上で、MR'+nr+'昇格試験の条件を1つ満たします。</p><div class="h-2.5 rounded-full bg-[#080503] border border-[#3c2a1c] overflow-hidden"><div class="h-full bg-gradient-to-r from-[#9a763a] to-[#dfb76c]" style="width:'+pr+'%"></div></div></div>';
   }
-  h+='<h4 class="text-sm font-black text-gray-200 fc tracking-wider mt-2">🗡️ 訓練ジャンル選択</h4><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">';
+  var yms=qymList();
+  if(QYM===null || (QYM!=='all' && yms.indexOf(QYM)<0)) QYM = yms.length ? yms[0] : 'all';
+  var yo='<option value="all"'+(QYM==='all'?' selected':'')+'>すべての月</option>';
+  for(var y=0;y<yms.length;y++) yo+='<option value="'+esc(yms[y])+'"'+(QYM===yms[y]?' selected':'')+'>'+ymLabel(yms[y])+'（'+QQ.filter(function(x){return (x.ym||'')===yms[y];}).length+'問）</option>';
+  h+='<div class="flex flex-wrap justify-between items-center gap-2 mt-2"><h4 class="text-sm font-black text-gray-200 fc tracking-wider">🗡️ 訓練ジャンル選択</h4><label class="flex items-center gap-2 text-[11px] text-gray-300 font-bold">📅 出題月<select onchange="QYM=this.value;renderQuest()" class="abin" style="width:auto">'+yo+'</select></label></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">';
   for(var i=0;i<QGEN.length;i++){
     var gg=QGEN[i], st=gs[gg.id]||{a:0,c:0}, acc=st.a?(st.c/st.a*100):0;
-    var cnt=QQ.filter(function(x){return x.genreId===gg.id;}).length;
+    var cnt=qFiltered(gg.id).length;
     h+='<div class="qc rounded-xl p-4 flex flex-col justify-between space-y-3"><div><div class="flex justify-between items-center"><i data-lucide="'+gg.icon+'" class="w-5 h-5 text-[#dfb76c]"></i><span class="text-[9px] text-gray-500 font-mono">'+cnt+'問</span></div><h5 class="text-sm font-bold text-white mt-2">'+gg.title+'</h5><p class="text-[10px] text-gray-400 mt-1">'+gg.desc+'</p></div><div class="flex justify-between items-end border-t border-[#3c2a1c] pt-2"><div><span class="text-[9px] text-gray-500 block">ジャンル正答率</span><span class="text-sm font-black font-mono '+(acc>=80?'text-emerald-400':'text-[#dfb76c]')+'">'+acc.toFixed(1)+'%</span><span class="text-[9px] text-gray-500"> （'+st.c+'/'+st.a+'）</span></div><button onclick="startQuiz(\''+gg.id+'\')" '+(cnt?'':'disabled')+' class="'+(cnt?'bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black':'bg-[#0d0805] text-gray-600 cursor-not-allowed')+' font-black py-1.5 px-4 rounded-lg text-[11px]">'+(cnt?'挑戦する':'準備中')+'</button></div></div>';
   }
   h+='</div>';
   var hist=q.hist||[];
   h+='<div class="qp rounded-2xl p-5 space-y-2"><h4 class="text-xs font-black text-[#dfb76c]">📜 直近の回答履歴</h4>';
   if(!hist.length) h+='<p class="text-[10px] text-gray-500 text-center py-3">まだ回答がありません。</p>';
-  for(var j=0;j<Math.min(hist.length,20);j++) h+='<div class="flex justify-between text-[10px] border-b border-[#1c130c] py-1"><span class="'+(hist[j].ok?'text-emerald-400':'text-rose-400')+'">'+(hist[j].ok?'⭕ 正解':'❌ 不正解')+'　<span class="text-gray-400">'+esc(qgen(hist[j].g).title)+'</span></span><span class="text-gray-500">'+esc(hist[j].ts)+'</span></div>';
+  for(var j=0;j<Math.min(hist.length,QHMAX);j++) h+=histRow(hist[j]);
+  if(q.adjust && q.adjust.length) h+='<p class="text-[10px] text-amber-300 pt-1">🛠 運営が累計の数字を修正しました（最終 '+esc(q.adjust[0].ts)+'）</p>';
   h+='</div>';
   c.innerHTML=h; lci();
 }
+var QHMAX = 20;   // 1人あたり保存する履歴の数
+function histRow(h){
+  var badge = h.fixed ? '<span class="text-[9px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/40 px-1.5 py-0.5 rounded ml-1">🛠 運営が'+(h.ok?'正解':'不正解')+'に変更済み</span>' : '';
+  return '<div class="text-[10px] border-b border-[#1c130c] py-1.5"><div class="flex justify-between gap-2"><span class="'+(h.ok?'text-emerald-400':'text-rose-400')+' font-bold">'+(h.ok?'⭕ 正解':'❌ 不正解')+badge+'</span><span class="text-gray-500 flex-shrink-0">'+esc(h.ts)+'</span></div><div class="text-gray-400">'+esc(qgen(h.g).title)+(h.ym?' ・ '+ymLabel(h.ym):'')+(h.qt?'：'+esc(h.qt):'')+'</div>'+(h.sel?'<div class="text-gray-500">あなたの答え：'+esc(h.sel)+(h.ok?'':' ／ 正解：'+esc(h.ans||''))+'</div>':'')+'</div>';
+}
 function startQuiz(gid){
-  var list=QQ.filter(function(x){return x.genreId===gid;});
+  var list=qFiltered(gid);
   if(!list.length){ toast("準備中","このジャンルにはまだ問題が登録されていません。","info"); return; }
   QZ={g:gid, queue:list.slice().sort(function(){return Math.random()-0.5;}), idx:0, score:0, done:false};
   renderQuest(); window.scrollTo(0,0);
@@ -1803,7 +1897,7 @@ function answerQ(i){
   var z=d.quiz||{}; z.answered=(z.answered||0)+1; if(ok) z.correct=(z.correct||0)+1;
   if(!z.genres) z.genres={};
   var gs=z.genres[QZ.g]||{a:0,c:0}; gs.a++; if(ok) gs.c++; z.genres[QZ.g]=gs;
-  z.hist=[{ts:new Date().toLocaleString(),g:QZ.g,q:q.id,ok:ok}].concat(z.hist||[]).slice(0,50);
+  z.hist=[{ts:new Date().toLocaleString(),g:QZ.g,q:q.id,ym:q.ym||'',qt:String(q.question||'').slice(0,80),sel:q.options[i]||'',ans:q.options[q.correctIdx]||'',ok:ok}].concat(z.hist||[]).slice(0,QHMAX);
   d.quiz=z;
   QZ.after=quizAcc(d).acc; QZ.sel=i; QZ.done=true; if(ok) QZ.score++;
   dbS(CU,['quiz']);
@@ -1820,7 +1914,8 @@ function renderAQForm(){
   q=q||{genreId:(g('aqfilter')&&g('aqfilter').value!=='all'?g('aqfilter').value:'g1'),options:['','','',''],correctIdx:0,itemA:{},itemB:{},itemC:{}};
   var opts=''; for(var k=0;k<QGEN.length;k++) opts+='<option value="'+QGEN[k].id+'"'+(q.genreId===QGEN[k].id?' selected':'')+'>'+QGEN[k].title+'</option>';
   var h='<h5 class="text-xs font-bold text-[#dfb76c] font-mono">'+(AQE?'✏️ 問題を編集中':'＋ 新しい問題を追加')+'</h5>';
-  h+='<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"><div><label class="block text-gray-400 mb-1 font-bold text-[10px]">ジャンル</label><select id="aq_g" class="abin">'+opts+'</select></div>'+aqInput('aq_q','問題文','例：2つの動画を見比べて、再生数が多かったのはどちら？',q.question)+'</div>';
+  var dym = q.ym || (g('aqym') && g('aqym').value!=='all' && g('aqym').value ? g('aqym').value : (new Date().getFullYear()+'-'+('0'+(new Date().getMonth()+1)).slice(-2)));
+  h+='<div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs"><div><label class="block text-gray-400 mb-1 font-bold text-[10px]">出題月（年月）</label><input type="month" id="aq_ym" value="'+esc(dym)+'" class="abin" style="color-scheme:dark"></div><div><label class="block text-gray-400 mb-1 font-bold text-[10px]">ジャンル</label><select id="aq_g" class="abin">'+opts+'</select></div>'+aqInput('aq_q','問題文','例：2つの動画を見比べて、再生数が多かったのはどちら？',q.question)+'</div>';
   h+=aqArea('aq_p','メモ（任意・問題と一緒に表示されます）','例：20代女性・一人暮らし・節約レシピ・6ヶ月で1万フォロワーを目指す初心者',q.persona);
   h+='<div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-xl bg-[#080503] border border-[#3c2a1c]">';
   var labs=[['A','itemA'],['B','itemB'],['C','itemC']];
@@ -1842,12 +1937,17 @@ function renderAQ(){
   var f=g('aqfilter'); if(!f) return;
   if(!f.options.length){ var o='<option value="all">全ジャンル</option>'; for(var i=0;i<QGEN.length;i++) o+='<option value="'+QGEN[i].id+'">'+QGEN[i].title+'</option>'; f.innerHTML=o; }
   var fv=f.value||'all';
-  var list=QQ.filter(function(x){ return fv==='all'||x.genreId===fv; });
+  var ys=g('aqym');
+  if(!ys){ ys=document.createElement('select'); ys.id='aqym'; ys.className='abin'; ys.style.width='auto'; ys.onchange=function(){ renderAQ(); }; f.parentNode.insertBefore(ys,f); f.parentNode.style.gap='8px'; }
+  var yv=ys.value||'all', yl=qymList(), yo='<option value="all">すべての月</option>';
+  for(var y=0;y<yl.length;y++) yo+='<option value="'+esc(yl[y])+'"'+(yv===yl[y]?' selected':'')+'>'+ymLabel(yl[y])+'</option>';
+  ys.innerHTML=yo; if(yv!=='all' && yl.indexOf(yv)<0) yv='all'; ys.value=yv;
+  var list=QQ.filter(function(x){ return (fv==='all'||x.genreId===fv) && (yv==='all'||(x.ym||'')===yv); });
   var h='<div class="text-[10px] text-gray-500">登録済み：'+list.length+'問</div>';
   if(!list.length) h+='<div class="text-xs text-gray-500 text-center py-4">問題がまだ登録されていません。</div>';
   for(var j=0;j<list.length;j++){
     var q=list[j];
-    h+='<div class="p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] flex justify-between items-start gap-3"><div class="min-w-0"><span class="text-[9px] text-[#dfb76c] font-bold">'+esc(qgen(q.genreId).title)+'</span><p class="text-xs text-white font-bold truncate">'+esc(q.question)+'</p><p class="text-[10px] text-emerald-400 truncate">正解：'+esc((q.options||[])[q.correctIdx]||'')+'</p></div><div class="flex gap-2 flex-shrink-0"><button onclick="editAQ(\''+q.id+'\')" class="text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">編集</button><button onclick="delAQ(\''+q.id+'\')" class="text-rose-400 border border-rose-500/20 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">削除</button></div></div>';
+    h+='<div class="p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] flex justify-between items-start gap-3"><div class="min-w-0"><span class="text-[9px] text-[#dfb76c] font-bold">📅 '+ymLabel(q.ym)+' ・ '+esc(qgen(q.genreId).title)+'</span><p class="text-xs text-white font-bold truncate">'+esc(q.question)+'</p><p class="text-[10px] text-emerald-400 truncate">正解：'+esc((q.options||[])[q.correctIdx]||'')+'</p></div><div class="flex gap-2 flex-shrink-0"><button onclick="editAQ(\''+q.id+'\')" class="text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">編集</button><button onclick="delAQ(\''+q.id+'\')" class="text-rose-400 border border-rose-500/20 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">削除</button></div></div>';
   }
   g('aqlist').innerHTML=h;
   if(!g('aq_g')) renderAQForm();
@@ -1858,6 +1958,7 @@ function saveAQ(){
   while(opts.length>2 && !opts[opts.length-1]) opts.pop();
   var q={
     id: AQE || ('q'+Date.now()),
+    ym: g('aq_ym').value,
     genreId: g('aq_g').value,
     question: g('aq_q').value.trim(),
     persona: g('aq_p').value.trim(),
@@ -1867,6 +1968,7 @@ function saveAQ(){
   };
   var keys=['itemA','itemB','itemC'];
   for(var j=0;j<3;j++){ var it={title:g('aq_'+j+'t').value.trim(),url:g('aq_'+j+'u').value.trim(),stat:g('aq_'+j+'s').value.trim()}; if(it.title||it.url||it.stat) q[keys[j]]=it; }
+  if(!q.ym){ toast("入力エラー","出題月（年月）を選んでください。","error"); return; }
   if(!q.question){ toast("入力エラー","問題文を入力してください。","error"); return; }
   if(!opts[0]||!opts[1]){ toast("入力エラー","選択肢A・Bは必須です。","error"); return; }
   if(!opts[q.correctIdx]){ toast("入力エラー","正解に選んだ選択肢が空欄です。","error"); return; }
