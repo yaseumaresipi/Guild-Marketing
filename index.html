@@ -1764,10 +1764,9 @@ function delCh(i){ DB.chapters.splice(i,1); dbSCh(); renderACh(); toast("削除�
 // ===== 訓練クエスト（小テスト） =====
 var QGEN = [
   {id:'g1',title:'① 再生数比較編',icon:'play-circle',desc:'2つの動画を見比べて、再生数が多かったのはどちらかを見抜く'},
-  {id:'g3',title:'② コメント数比較編',icon:'messages-square',desc:'2つの投稿を見比べて、コメントが多く付いたのはどちらかを見抜く'},
-  {id:'g5',title:'③ いいねが多いコメント編',icon:'thumbs-up',desc:'複数のコメントから、いいね数が最も多いものを見抜く'},
-  {id:'g6',title:'④ CTA分析編',icon:'megaphone',desc:'企業アカウントの動画に隠れたCTA（行動喚起）を見抜く'},
-  {id:'g7',title:'⑤ TTP先の提案編',icon:'crosshair',desc:'ペルソナに合わせて、3つの候補から最適なTTP先を選ぶ'}
+  {id:'g5',title:'② いいねが多いコメント編',icon:'thumbs-up',desc:'複数のコメントから、いいね数が最も多いものを見抜く'},
+  {id:'g6',title:'③ CTA分析編',icon:'megaphone',desc:'企業アカウントの動画に隠れたCTA（行動喚起）を見抜く'},
+  {id:'g7',title:'④ TTP先の提案編',icon:'crosshair',desc:'ペルソナに合わせて、3つの候補から最適なTTP先を選ぶ'}
 ];
 var QQ = [];     // 問題データベース（meta: quiz）
 var QZ = null;   // 挑戦中のクエスト
@@ -1775,7 +1774,8 @@ var QYM = null;  // 選択中の年月（'all' または 'YYYY-MM'）
 function ymLabel(ym){ if(!ym) return '年月未設定'; var m=String(ym).match(/^(\d{4})-(\d{1,2})$/); return m ? m[1]+'年'+parseInt(m[2])+'月' : ym; }
 function qymList(){ var a=[]; for(var i=0;i<QQ.length;i++){ var y=QQ[i].ym||''; if(a.indexOf(y)<0) a.push(y); } a.sort(function(x,y){ if(!x) return 1; if(!y) return -1; return x<y?1:-1; }); return a; }
 function qFiltered(gid){ return QQ.filter(function(x){ return x.genreId===gid && (QYM==='all' || (x.ym||'')===QYM); }); }
-var AQE = null;  // 管理画面で編集中の問題ID
+var AQE = null;
+var AQCOPY = null; // コピーして新規追加するときの元データ  // 管理画面で編集中の問題ID
 
 function qgen(id){ for(var i=0;i<QGEN.length;i++){ if(QGEN[i].id===id) return QGEN[i]; } return {title:id,icon:'help-circle',desc:''}; }
 function loadQuiz(){
@@ -1911,9 +1911,10 @@ function aqArea(id,label,ph,val,rows){ return '<div><label class="block text-gra
 function renderAQForm(){
   var q=null;
   if(AQE){ for(var i=0;i<QQ.length;i++){ if(QQ[i].id===AQE) q=QQ[i]; } }
+  else if(AQCOPY) q=AQCOPY;
   q=q||{genreId:(g('aqfilter')&&g('aqfilter').value!=='all'?g('aqfilter').value:'g1'),options:['','','',''],correctIdx:0,itemA:{},itemB:{},itemC:{}};
   var opts=''; for(var k=0;k<QGEN.length;k++) opts+='<option value="'+QGEN[k].id+'"'+(q.genreId===QGEN[k].id?' selected':'')+'>'+QGEN[k].title+'</option>';
-  var h='<h5 class="text-xs font-bold text-[#dfb76c] font-mono">'+(AQE?'✏️ 問題を編集中':'＋ 新しい問題を追加')+'</h5>';
+  var h='<h5 class="text-xs font-bold text-[#dfb76c] font-mono">'+(AQE?'✏️ 問題を編集中':AQCOPY?'📋 コピーした問題から新規追加（URLなど変えたいところだけ直して追加）':'＋ 新しい問題を追加')+'</h5>';
   var dym = q.ym || (g('aqym') && g('aqym').value!=='all' && g('aqym').value ? g('aqym').value : (new Date().getFullYear()+'-'+('0'+(new Date().getMonth()+1)).slice(-2)));
   h+='<div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs"><div><label class="block text-gray-400 mb-1 font-bold text-[10px]">出題月（年月）</label><input type="month" id="aq_ym" value="'+esc(dym)+'" class="abin" style="color-scheme:dark"></div><div><label class="block text-gray-400 mb-1 font-bold text-[10px]">ジャンル</label><select id="aq_g" class="abin">'+opts+'</select></div>'+aqInput('aq_q','問題文','例：2つの動画を見比べて、再生数が多かったのはどちら？',q.question)+'</div>';
   h+=aqArea('aq_p','メモ（任意・問題と一緒に表示されます）','例：20代女性・一人暮らし・節約レシピ・6ヶ月で1万フォロワーを目指す初心者',q.persona);
@@ -1921,7 +1922,7 @@ function renderAQForm(){
   var labs=[['A','itemA'],['B','itemB'],['C','itemC']];
   for(var j=0;j<3;j++){
     var it=q[labs[j][1]]||{};
-    h+='<div class="space-y-2"><span class="text-[10px] font-black text-[#dfb76c]">比較対象 '+labs[j][0]+'</span>'+aqInput('aq_'+j+'t','表示名','例：動画'+labs[j][0],it.title)+aqInput('aq_'+j+'u','URL（TikTok/YouTube/Instagram/ドライブ）','https://...',it.url,true)+aqInput('aq_'+j+'s','回答後に見せるデータ','例：14.5万回再生',it.stat)+'</div>';
+    h+='<div class="space-y-2"><span class="text-[10px] font-black text-[#dfb76c]">比較対象 '+labs[j][0]+'</span>'+aqInput('aq_'+j+'t','表示名','例：動画'+labs[j][0],it.title)+aqInput('aq_'+j+'u','URL（TikTok/YouTube/Instagram/ドライブ）','https://www.tiktok.com/@名前/video/番号',it.url,true)+'<div id="aqpv_'+j+'" class="text-[9px]">'+urlCheck(it.url)+'</div>'+aqInput('aq_'+j+'s','回答後に見せるデータ','例：14.5万回再生',it.stat)+'</div>';
   }
   h+='</div><p class="text-[9px] text-gray-500">※使わない比較対象は空欄でOK。「回答後に見せるデータ」は答え合わせのときだけ表示されます。</p>';
   h+='<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
@@ -1929,9 +1930,19 @@ function renderAQForm(){
   for(var o=0;o<4;o++) h+=aqInput('aq_o'+o,'選択肢 '+String.fromCharCode(65+o)+(o<2?'（必須）':'（任意）'),o===0?'例：動画A':(o===1?'例：動画B':''),op[o]);
   h+='</div><div><label class="block text-gray-400 mb-1 font-bold text-[10px]">正解</label><select id="aq_c" class="abin">';
   for(var p=0;p<4;p++) h+='<option value="'+p+'"'+(q.correctIdx===p?' selected':'')+'>選択肢 '+String.fromCharCode(65+p)+'</option>';
-  h+='</select></div>'+aqArea('aq_e','解説（回答後に表示）','正解の根拠やSNS分析の視点でのアドバイス',q.explanation,3);
-  h+='<div class="flex gap-2"><button onclick="saveAQ()" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2 rounded-xl text-xs">'+(AQE?'💾 変更を保存する':'＋ 問題を追加する')+'</button>'+(AQE?'<button onclick="AQE=null;renderAQForm()" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-2 rounded-xl text-xs">キャンセル</button>':'')+'</div>';
+  h+='</select></div>'+aqArea('aq_e','解説（任意・回答後に表示）','正解の根拠やSNS分析の視点でのアドバイス',q.explanation,3);
+  h+='<div class="flex gap-2"><button onclick="saveAQ()" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2 rounded-xl text-xs">'+(AQE?'💾 変更を保存する':'＋ 問題を追加する')+'</button>'+((AQE||AQCOPY)?'<button onclick="AQE=null;AQCOPY=null;renderAQForm()" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-2 rounded-xl text-xs">キャンセル</button>':'')+'</div>';
   g('aqform').innerHTML=h;
+  for(var u=0;u<3;u++){ (function(k){ var el=g('aq_'+k+'u'); if(el) el.addEventListener('input',function(){ g('aqpv_'+k).innerHTML=urlCheck(el.value); }); })(u); }
+}
+function urlCheck(url){
+  var u=String(url||'').trim(); if(!u) return '';
+  if(/vt\.tiktok\.com|vm\.tiktok\.com|tiktok\.com\/t\//.test(u)) return '<span class="text-amber-300">⚠️ TikTokの短縮URLはページ内で再生できません。ブラウザでこのURLを開き、アドレス欄に出る「https://www.tiktok.com/@〇〇/video/番号」の長いURLを貼ってください。</span>';
+  if(/tiktok\.com\/.*\/video\/\d+/.test(u)) return '<span class="text-emerald-400">✅ TikTokの動画をページ内でそのまま再生できます</span>';
+  if(/youtu\.be\/|youtube\.com\//.test(u)) return '<span class="text-emerald-400">✅ YouTubeの動画をページ内で再生できます</span>';
+  if(/instagram\.com\/(reel|p)\//.test(u)) return '<span class="text-emerald-400">✅ Instagramの投稿をページ内で表示できます</span>';
+  if(/drive\.google\.com/.test(u)) return '<span class="text-emerald-400">✅ Googleドライブの動画を再生できます（共有設定は「リンクを知っている全員」に）</span>';
+  return '<span class="text-gray-500">このURLはページ内で再生できないため、リンクボタンだけ表示されます</span>';
 }
 function renderAQ(){
   var f=g('aqfilter'); if(!f) return;
@@ -1947,12 +1958,19 @@ function renderAQ(){
   if(!list.length) h+='<div class="text-xs text-gray-500 text-center py-4">問題がまだ登録されていません。</div>';
   for(var j=0;j<list.length;j++){
     var q=list[j];
-    h+='<div class="p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] flex justify-between items-start gap-3"><div class="min-w-0"><span class="text-[9px] text-[#dfb76c] font-bold">📅 '+ymLabel(q.ym)+' ・ '+esc(qgen(q.genreId).title)+'</span><p class="text-xs text-white font-bold truncate">'+esc(q.question)+'</p><p class="text-[10px] text-emerald-400 truncate">正解：'+esc((q.options||[])[q.correctIdx]||'')+'</p></div><div class="flex gap-2 flex-shrink-0"><button onclick="editAQ(\''+q.id+'\')" class="text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">編集</button><button onclick="delAQ(\''+q.id+'\')" class="text-rose-400 border border-rose-500/20 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">削除</button></div></div>';
+    h+='<div class="p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] flex justify-between items-start gap-3"><div class="min-w-0"><span class="text-[9px] text-[#dfb76c] font-bold">📅 '+ymLabel(q.ym)+' ・ '+esc(qgen(q.genreId).title)+'</span><p class="text-xs text-white font-bold truncate">'+esc(q.question)+'</p><p class="text-[10px] text-emerald-400 truncate">正解：'+esc((q.options||[])[q.correctIdx]||'')+'</p></div><div class="flex gap-2 flex-shrink-0"><button onclick="copyAQ(\''+q.id+'\')" class="text-emerald-300 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">📋 コピー</button><button onclick="editAQ(\''+q.id+'\')" class="text-[#dfb76c] border border-[#dfb76c]/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">編集</button><button onclick="delAQ(\''+q.id+'\')" class="text-rose-400 border border-rose-500/20 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">削除</button></div></div>';
   }
   g('aqlist').innerHTML=h;
   if(!g('aq_g')) renderAQForm();
 }
-function editAQ(id){ AQE=id; renderAQForm(); g('aqform').scrollIntoView({behavior:'smooth',block:'center'}); }
+function copyAQ(id){
+  var src=null; for(var i=0;i<QQ.length;i++){ if(QQ[i].id===id) src=QQ[i]; }
+  if(!src) return;
+  AQCOPY=JSON.parse(JSON.stringify(src)); delete AQCOPY.id; AQE=null;
+  renderAQForm(); g('aqform').scrollIntoView({behavior:'smooth',block:'center'});
+  toast("コピーしました","内容を入れた状態でフォームを開きました。変えたいところだけ直して「問題を追加する」を押してください。","info");
+}
+function editAQ(id){ AQCOPY=null; AQE=id; renderAQForm(); g('aqform').scrollIntoView({behavior:'smooth',block:'center'}); }
 function saveAQ(){
   var opts=[]; for(var o=0;o<4;o++) opts.push(g('aq_o'+o).value.trim());
   while(opts.length>2 && !opts[opts.length-1]) opts.pop();
@@ -1972,12 +1990,11 @@ function saveAQ(){
   if(!q.question){ toast("入力エラー","問題文を入力してください。","error"); return; }
   if(!opts[0]||!opts[1]){ toast("入力エラー","選択肢A・Bは必須です。","error"); return; }
   if(!opts[q.correctIdx]){ toast("入力エラー","正解に選んだ選択肢が空欄です。","error"); return; }
-  if(!q.explanation){ toast("入力エラー","解説を入力してください。","error"); return; }
   var found=false;
   for(var i=0;i<QQ.length;i++){ if(QQ[i].id===q.id){ QQ[i]=q; found=true; } }
   if(!found) QQ.push(q);
   saveQQ(); toast("保存完了",found?"問題を更新しました。":"問題を追加しました。","success");
-  AQE=null; renderAQForm(); renderAQ();
+  AQE=null; AQCOPY=null; renderAQForm(); renderAQ();
 }
 function delAQ(id){
   if(!confirm("この問題を削除します。よろしいですか？")) return;
