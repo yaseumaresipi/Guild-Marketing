@@ -1793,19 +1793,22 @@ function saveQQ(){
 }
 
 // 動画の埋め込み（YouTube / Googleドライブ / TikTok / Instagram）
-function embedHtml(url){
+function embedHtml(url,hide){
   if(!url) return '';
   var u=String(url).trim(), src='', tall=false, m;
   if((m=u.match(/\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/))) src='https://drive.google.com/file/d/'+m[1]+'/preview';
   else if((m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/))){ src='https://www.youtube.com/embed/'+m[1]; tall=/shorts/.test(u); }
-  else if((m=u.match(/tiktok\.com\/.*\/video\/(\d+)/))){ src='https://www.tiktok.com/player/v1/'+m[1]+'?music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0'; tall=true; }
+  else if((m=u.match(/tiktok\.com\/.*\/video\/(\d+)/))){ src='https://www.tiktok.com/player/v1/'+m[1]+'?music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0'; tall=true; var isTT=true; }
   else if((m=u.match(/instagram\.com\/(?:reel|p)\/([\w-]+)/))){ src='https://www.instagram.com/reel/'+m[1]+'/embed'; tall=true; }
   if(!src){
     if(/\.(mp4|mov|webm)(\?|$)/i.test(u)) return '<video src="'+esc(u)+'" controls class="w-full rounded-xl border border-[#3c2a1c] my-2"></video>';
     return '<div class="p-3 rounded-lg bg-[#0d0905] border border-[#3c2a1c] text-[10px] text-gray-400 my-2 text-center">この動画はサイト内で再生できない形式で登録されています。運営にお知らせください。</div>';
   }
-  return '<div class="rounded-xl overflow-hidden border border-[#3c2a1c] bg-black my-2 mx-auto" style="position:relative;'+(tall?'max-width:325px;padding-top:min(178%,580px);':'padding-top:56.25%;')+'"><iframe src="'+src+'" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+  return '<div class="rounded-xl overflow-hidden border border-[#3c2a1c] bg-black my-2 mx-auto" style="position:relative;'+(tall?'max-width:325px;padding-top:min(178%,580px);':'padding-top:56.25%;')+'"><iframe src="'+src+'" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'+((hide&&isTT)?TT_COVER:'')+'</div>';
 }
+// TikTokの右側（いいね・コメント数など）を答え合わせまで隠す目隠し
+// 位置がずれていたら、ここの数字（%）を調整する
+var TT_COVER='<div style="position:absolute;right:0;top:'+'30%'+';bottom:'+'12%'+';width:'+'21%'+';background:linear-gradient(to left,#000 75%,rgba(0,0,0,.6));display:flex;align-items:center;justify-content:center;z-index:2"><span style="writing-mode:vertical-rl;color:#dfb76c;font-size:10px;font-weight:900;letter-spacing:2px">🙈 答え合わせ後に表示</span></div>';
 
 function renderQuest(){
   var c=g('squest'); if(!c||!CU) return;
@@ -1860,7 +1863,7 @@ function qItemCard(it,def,showStat){
   if(!it || !(it.title||it.url||it.stat)) return '';
   var t=it.title||def;
   return '<div class="p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/30 px-2 py-0.5 rounded">'+esc(t)+'</span>'
-    +(it.url?embedHtml(it.url):'')
+    +(it.url?embedHtml(it.url,!showStat):'')
     +(showStat && it.stat?'<p class="text-[11px] font-mono text-emerald-300 bg-emerald-950/30 border border-emerald-500/30 p-2 rounded">📊 '+esc(it.stat)+'</p>':'')+'</div>';
 }
 function renderQuizQ(){
