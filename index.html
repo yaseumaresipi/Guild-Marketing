@@ -1798,11 +1798,11 @@ function embedHtml(url){
   var u=String(url).trim(), src='', tall=false, m;
   if((m=u.match(/\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/))) src='https://drive.google.com/file/d/'+m[1]+'/preview';
   else if((m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/))){ src='https://www.youtube.com/embed/'+m[1]; tall=/shorts/.test(u); }
-  else if((m=u.match(/tiktok\.com\/.*\/video\/(\d+)/))){ src='https://www.tiktok.com/embed/v2/'+m[1]; tall=true; }
+  else if((m=u.match(/tiktok\.com\/.*\/video\/(\d+)/))){ src='https://www.tiktok.com/player/v1/'+m[1]+'?music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0'; tall=true; }
   else if((m=u.match(/instagram\.com\/(?:reel|p)\/([\w-]+)/))){ src='https://www.instagram.com/reel/'+m[1]+'/embed'; tall=true; }
   if(!src){
     if(/\.(mp4|mov|webm)(\?|$)/i.test(u)) return '<video src="'+esc(u)+'" controls class="w-full rounded-xl border border-[#3c2a1c] my-2"></video>';
-    return '<div class="text-[10px] text-gray-500 my-2">※この形式はページ内で再生できません。上のボタンから開いて確認してください。（TikTokの短縮URLは「https://www.tiktok.com/@名前/video/番号」の形で登録すると埋め込めます）</div>';
+    return '<div class="p-3 rounded-lg bg-[#0d0905] border border-[#3c2a1c] text-[10px] text-gray-400 my-2 text-center">この動画はサイト内で再生できない形式で登録されています。運営にお知らせください。</div>';
   }
   return '<div class="rounded-xl overflow-hidden border border-[#3c2a1c] bg-black my-2 mx-auto" style="position:relative;'+(tall?'max-width:325px;padding-top:min(178%,580px);':'padding-top:56.25%;')+'"><iframe src="'+src+'" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
 }
@@ -1860,7 +1860,7 @@ function qItemCard(it,def,showStat){
   if(!it || !(it.title||it.url||it.stat)) return '';
   var t=it.title||def;
   return '<div class="p-3 rounded-xl bg-[#080503] border border-[#3c2a1c] space-y-2"><span class="text-[10px] font-black text-[#dfb76c] bg-[#dfb76c]/10 border border-[#dfb76c]/30 px-2 py-0.5 rounded">'+esc(t)+'</span>'
-    +(it.url?'<a href="'+esc(it.url)+'" target="_blank" rel="noopener" class="block text-center bg-[#1c130c] hover:bg-[#dfb76c] hover:text-black border border-[#dfb76c]/40 text-[#dfb76c] font-bold py-2 rounded-lg text-[11px]">🔗 '+esc(t)+' を見に行く</a>'+embedHtml(it.url):'')
+    +(it.url?embedHtml(it.url):'')
     +(showStat && it.stat?'<p class="text-[11px] font-mono text-emerald-300 bg-emerald-950/30 border border-emerald-500/30 p-2 rounded">📊 '+esc(it.stat)+'</p>':'')+'</div>';
 }
 function renderQuizQ(){
@@ -1933,16 +1933,32 @@ function renderAQForm(){
   h+='</select></div>'+aqArea('aq_e','解説（任意・回答後に表示）','正解の根拠やSNS分析の視点でのアドバイス',q.explanation,3);
   h+='<div class="flex gap-2"><button onclick="saveAQ()" class="flex-1 bg-gradient-to-r from-[#dfb76c] to-[#9a763a] text-black font-black py-2 rounded-xl text-xs">'+(AQE?'💾 変更を保存する':'＋ 問題を追加する')+'</button>'+((AQE||AQCOPY)?'<button onclick="AQE=null;AQCOPY=null;renderAQForm()" class="px-4 bg-[#1a110a] border border-[#3c2a1c] text-gray-400 font-bold py-2 rounded-xl text-xs">キャンセル</button>':'')+'</div>';
   g('aqform').innerHTML=h;
-  for(var u=0;u<3;u++){ (function(k){ var el=g('aq_'+k+'u'); if(el) el.addEventListener('input',function(){ g('aqpv_'+k).innerHTML=urlCheck(el.value); }); })(u); }
+  for(var u=0;u<3;u++){ (function(k){ var el=g('aq_'+k+'u'); if(!el) return; el.addEventListener('input',function(){ g('aqpv_'+k).innerHTML=urlCheck(el.value); }); el.addEventListener('change',function(){ resolveTikTok(k); }); el.addEventListener('paste',function(){ setTimeout(function(){ resolveTikTok(k); },50); }); })(u); }
+}
+function isShortTT(u){ return /vt\.tiktok\.com|vm\.tiktok\.com|tiktok\.com\/t\//.test(String(u||'')); }
+function resolveTikTok(k){
+  var el=g('aq_'+k+'u'); if(!el) return;
+  var u=el.value.trim(); if(!isShortTT(u)) return;
+  g('aqpv_'+k).innerHTML='<span class="text-gray-400">⏳ 短縮URLを長いURLに変換しています…</span>';
+  fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(u)).then(function(r){ return r.json(); }).then(function(j){
+    var id=j && (j.embed_product_id || ((j.html||'').match(/data-video-id="(\d+)"/)||[])[1]);
+    var au=j && j.author_url;
+    if(!id) throw new Error('no id');
+    if(el.value.trim()!==u) return;
+    el.value=(au?au.replace(/\/$/,''):'https://www.tiktok.com/@tiktok')+'/video/'+id;
+    g('aqpv_'+k).innerHTML=urlCheck(el.value)+' <span class="text-gray-500">（短縮URLから自動で変換しました）</span>';
+  }).catch(function(){
+    g('aqpv_'+k).innerHTML=urlCheck(u);
+  });
 }
 function urlCheck(url){
   var u=String(url||'').trim(); if(!u) return '';
-  if(/vt\.tiktok\.com|vm\.tiktok\.com|tiktok\.com\/t\//.test(u)) return '<span class="text-amber-300">⚠️ TikTokの短縮URLはページ内で再生できません。ブラウザでこのURLを開き、アドレス欄に出る「https://www.tiktok.com/@〇〇/video/番号」の長いURLを貼ってください。</span>';
+  if(isShortTT(u)) return '<span class="text-amber-300">⚠️ 短縮URLを自動で変換できませんでした。このままだとサイト内で再生できないので、ブラウザでこのURLを開き、アドレス欄に出る「https://www.tiktok.com/@〇〇/video/番号」の長いURLを貼ってください。</span>';
   if(/tiktok\.com\/.*\/video\/\d+/.test(u)) return '<span class="text-emerald-400">✅ TikTokの動画をページ内でそのまま再生できます</span>';
   if(/youtu\.be\/|youtube\.com\//.test(u)) return '<span class="text-emerald-400">✅ YouTubeの動画をページ内で再生できます</span>';
   if(/instagram\.com\/(reel|p)\//.test(u)) return '<span class="text-emerald-400">✅ Instagramの投稿をページ内で表示できます</span>';
   if(/drive\.google\.com/.test(u)) return '<span class="text-emerald-400">✅ Googleドライブの動画を再生できます（共有設定は「リンクを知っている全員」に）</span>';
-  return '<span class="text-gray-500">このURLはページ内で再生できないため、リンクボタンだけ表示されます</span>';
+  return '<span class="text-rose-300">⚠️ このURLはサイト内で再生できません。生徒には動画が表示されないので、TikTok・YouTube・Instagram・Googleドライブのリンクにしてください。</span>';
 }
 function renderAQ(){
   var f=g('aqfilter'); if(!f) return;
@@ -1989,6 +2005,7 @@ function saveAQ(){
   if(!q.ym){ toast("入力エラー","出題月（年月）を選んでください。","error"); return; }
   if(!q.question){ toast("入力エラー","問題文を入力してください。","error"); return; }
   if(!opts[0]||!opts[1]){ toast("入力エラー","選択肢A・Bは必須です。","error"); return; }
+  for(var w=0;w<3;w++){ var it2=q[keys[w]]; if(it2 && it2.url && !embedHtml(it2.url).match(/<iframe|<video/)){ if(!confirm("比較対象"+'ABC'[w]+"のURLはサイト内で再生できない形式です（TikTokの短縮URLなど）。生徒には動画が表示されませんが、このまま保存しますか？")) return; } }
   if(!opts[q.correctIdx]){ toast("入力エラー","正解に選んだ選択肢が空欄です。","error"); return; }
   var found=false;
   for(var i=0;i<QQ.length;i++){ if(QQ[i].id===q.id){ QQ[i]=q; found=true; } }
